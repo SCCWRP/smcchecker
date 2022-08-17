@@ -1,0 +1,21 @@
+files/*
+export/*
+logs
+.vscode
+testing/
+
+
+# ignore pycache directories
+__pycache__/
+proj/__pycache__/
+proj/custom/__pycache__/
+proj/core/__pycache__/
+proj/utils/__pycache__/
+proj/static/__pycache__/
+proj/templates/__pycache__/
+
+# ignore custom checks files
+# not for the smc checker
+# proj/custom/*_custom.py
+
+docker/deploy.sh

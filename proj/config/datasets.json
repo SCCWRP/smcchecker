@@ -1,0 +1,845 @@
+{
+    "algae": {
+        "label": "Algae Taxonomy",
+        "tables": [
+            "tbl_algae"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+    "taxonomy": {
+        "label": "BMI Taxonomy",
+        "tables": [
+            "tbl_taxonomysampleinfo",
+            "tbl_taxonomyresults"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+
+    "chemistry": {
+        "label": "Chemistry",
+        "tables": [
+            "tbl_chemistrybatch",
+            "tbl_chemistryresults"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+    "phab": {
+        "label": "PHAB",
+        "tables": [
+            "tbl_phab"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+    "timeseries": {
+        "label": "Time Series",
+        "tables": [
+            "tbl_timeseriesresults",
+            "tbl_timeserieseffortcheck",
+            "tbl_timeserieseffortdetails",
+            "tbl_timeserieslocations",
+            "tbl_timeseriesstations"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+    "hydrostate": {
+        "label": "Hydrostate",
+        "tables": [
+            "tbl_hydrologicstate"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+   
+    "toxicity": {
+        "label": "Toxicity",
+        "tables": [
+            "tbl_toxicitybatch",
+            "tbl_toxicityresults",
+            "tbl_toxicitysummary"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+    
+    "channelengineering": {
+        "label": "Channel Engineering",
+        "tables": [
+            "tbl_channelengineering"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+    "hydromod": {
+        "label": "Hydromod",
+        "tables": [
+            "tbl_hydromod"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+    "siteevaluation": {
+        "label": "Site Evaluation",
+        "tables": [
+            "tbl_siteeval"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+    
+    "trash": {
+        "label": "Trash",
+        "tables": [
+            "tbl_trashsiteinfo",
+            "tbl_trashtally",
+            "tbl_trashvisualassessment",
+            "tbl_trashphotodoc"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    },
+    "vertebrate": {
+        "label" : "Vertebrate Observation",
+        "tables": [
+            "tbl_vertebrateobservation"
+        ],
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "label": "Your Agency/Lab",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "owner",
+                "label": "Who is the Data Owner",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_dataowner",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            },
+            {
+                "fieldname": "year",
+                "label": "What is the Sampling Year",
+                "fieldtype": "select",
+                "independent": "True",
+                "static_options": [
+                    2022,
+                    2021,
+                    2020,
+                    2019,
+                    2018,
+                    2017,
+                    2016,
+                    2015,
+                    2014,
+                    2013,
+                    2012,
+                    2011,
+                    2010,
+                    2009,
+                    2008,
+                    2007,
+                    2006,
+                    2005,
+                    2004,
+                    2003,
+                    2002,
+                    2001,
+                    2000,
+                    1999
+                ]
+            },
+            {
+                "fieldname": "project",
+                "fieldtype": "input",
+                "label": "What is the Project",
+                "defaultvalue": "SMC"
+            },
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label": "Your Email Address"
+            }
+        ]
+    }
+}
