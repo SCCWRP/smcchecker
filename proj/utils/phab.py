@@ -60,7 +60,7 @@ def extract_phab_data(infile):
     print("READ IN TABLES REQUIRED TO RUN QUERY:")
     sample_entry = CustomDataFrame(
         read_mdb(
-            infile, "Sample_Entry", usecols = ['SampleRowID','StationCode','SampleDate','AgencyCode','EventCode','ProtocolCode','ProjectCode'], 
+            infile, "Sample_Entry", usecols = ['SampleRowID','StationCode','SampleDate','AgencyCode','EventCode','ProtocolCode','ProjectCode', 'SampleComments'], 
             dtype={'SampleRowID': str}, 
             keep_default_na = False, 
             na_values = ''
@@ -86,7 +86,7 @@ def extract_phab_data(infile):
     fieldresult_entry = CustomDataFrame(
         read_mdb(
             infile, "FieldResult_Entry", 
-            usecols = ['FieldCollectionRowID','ConstituentRowID','Result','ResQualCode','QACode','ComplianceCode','BatchVerificationCode','FieldResultComments'], 
+            usecols = ['FieldCollectionRowID','ConstituentRowID','Result','ResQualCode','QACode','ComplianceCode','BatchVerificationCode','FieldResultComments', 'CollectionDeviceCode','CalibrationDate'], 
             dtype={'FieldCollectionRowID':str,'ConstituentRowID':str}, 
             keep_default_na = False, na_values = ''
         )
@@ -103,59 +103,74 @@ def extract_phab_data(infile):
     method_lookup = CustomDataFrame(read_mdb(infile, "MethodLookUp", strip_binary = True, usecols = ['MethodCode','MethodName'], keep_default_na = False, na_values = ''))
     matrix_lookup = CustomDataFrame(read_mdb(infile, "MatrixLookUp", strip_binary = True, usecols = ['MatrixCode','MatrixName'], keep_default_na = False, na_values = ''))
     unit_lookup = CustomDataFrame(read_mdb(infile, "UnitLookUp", strip_binary = True, usecols = ['UnitCode','UnitName'], keep_default_na = False, na_values = ''))
+    collectiondevice_lookup = CustomDataFrame(read_mdb(infile, "CollectionDeviceLookUp", strip_binary = True, usecols = ['CollectionDeviceCode','CollectionDeviceName'], keep_default_na = False, na_values = ''))
+    
+    personnel_entry = CustomDataFrame(read_mdb(infile, "Personnel_Entry", sql = "SELECT SampleRowID, PersonnelCode FROM Personnel_Entry;", keep_default_na = False, na_values = ''))
+    personnel_entry = personnel_entry.groupby('SampleRowID')['PersonnelCode'].apply(list).apply(lambda x: ', '.join(x)).reset_index().rename(columns={0:'PersonnelCode'})
 
     field = sample_entry \
         .join(location_entry, on = 'SampleRowID', how = 'inner') \
+        .join(personnel_entry, on = 'SampleRowID', how = 'inner') \
         .join(project_lookup, on = 'ProjectCode', how = 'inner') \
         .join(fieldcollection_entry, on = 'LocationRowID', how = 'inner') \
         .join(fieldresult_entry, on = 'FieldCollectionRowID', how = 'inner') \
+        .join(collectiondevice_lookup, on = 'CollectionDeviceCode', how = 'inner') \
         .join(constituent_lookup, on = 'ConstituentRowID', how = 'inner') \
         .join(analyte_lookup, on = 'AnalyteCode', how = 'inner') \
         .join(fraction_lookup, on = 'FractionCode', how = 'inner') \
         .join(method_lookup, on = 'MethodCode', how = 'inner') \
         .join(matrix_lookup, on = 'MatrixCode', how = 'inner') \
         .join(unit_lookup, on = 'UnitCode', how = 'inner') \
-        .assign(variableresult = '') 
+        .assign(variableresult = '')
 
     field.columns = [c.lower() for c in field.columns]
     field.rename(
-        columns={'fieldresultcomments':'resultcomments', 'fieldcollectioncomments':'collectioncomments', 'agencycode':'sampleagencycode'}, 
+        columns={
+            'fieldresultcomments':'resultcomments', 'fieldcollectioncomments':'collectioncomments','agencycode':'sampleagencycode','collectiondevicename':'collectiondevicedescr'
+        }, 
         inplace = True
     )
     field = field[[
         'stationcode', 'sampledate', 'sampleagencycode', 'eventcode', 'protocolcode', 'projectcode', 
         'parentprojectcode', 'locationcode', 'collectiontime', 'collectionmethodcode', 'collectiondepth', 'unitcollectiondepth', 
+        'collectiondevicedescr', 'calibrationdate',
         'replicate', 'analytename', 'fractionname', 'methodname','matrixname', 'variableresult', 'result', 'resqualcode', 
-        'qacode', 'compliancecode', 'batchverificationcode', 'resultcomments', 'collectioncomments'
+        'qacode', 'compliancecode', 'batchverificationcode', 'resultcomments', 'collectioncomments', 'samplecomments'
     ]]
    
 
     habitatcollection_entry = CustomDataFrame(read_mdb(infile, "HabitatCollection_Entry", dtype={'s_Generation':str}, keep_default_na = False, na_values = ''))
     habitatresult_entry = CustomDataFrame(read_mdb(infile, "HabitatResult_Entry", dtype={'s_Generation':str}, keep_default_na = False, na_values = ''))
+    
+    
 
     habitat = sample_entry \
         .join(location_entry, on = 'SampleRowID', how = 'inner') \
+        .join(personnel_entry, on = 'SampleRowID', how = 'inner') \
         .join(project_lookup, on = 'ProjectCode', how = 'inner') \
         .join(habitatcollection_entry, on = 'LocationRowID', how = 'inner') \
         .join(habitatresult_entry, on = 'HabitatCollectionRowID', how = 'inner') \
+        .join(collectiondevice_lookup, on = 'CollectionDeviceCode', how = 'inner') \
         .join(constituent_lookup, on = 'ConstituentRowID', how = 'inner') \
         .join(analyte_lookup, on = 'AnalyteCode', how = 'inner') \
         .join(fraction_lookup, on = 'FractionCode', how = 'inner') \
         .join(method_lookup, on = 'MethodCode', how = 'inner') \
         .join(matrix_lookup, on = 'MatrixCode', how = 'inner') \
         .join(unit_lookup, on = 'UnitCode', how = 'inner') \
-        .assign(collectiondepth = -88, unitcollectiondepth = '')
+        .assign(collectiondepth = -88, unitcollectiondepth = '', calibrationdate=pd.Timestamp('1950-01-01 00:00:00'))
 
     habitat.columns = [c.lower() for c in habitat.columns]
     habitat.rename(
-        columns={'habitatresultcomments':'resultcomments', 'habitatcollectioncomments':'collectioncomments', 'agencycode':'sampleagencycode'}, 
+            columns={'habitatresultcomments':'resultcomments','habitatcollectioncomments':'collectioncomments','agencycode':'sampleagencycode','collectiondevicename':'collectiondevicedescr'
+        }, 
         inplace = True
     )
     habitat = habitat[[
         'stationcode', 'sampledate', 'sampleagencycode', 'eventcode', 'protocolcode', 'projectcode', 
         'parentprojectcode', 'locationcode', 'collectiontime', 'collectionmethodcode', 'collectiondepth', 'unitcollectiondepth', 
+        'collectiondevicedescr', 'calibrationdate',
         'replicate', 'analytename', 'fractionname', 'methodname','matrixname', 'variableresult', 'result', 'resqualcode', 
-        'qacode', 'compliancecode', 'batchverificationcode', 'resultcomments', 'collectioncomments'
+        'qacode', 'compliancecode', 'batchverificationcode', 'resultcomments', 'collectioncomments', 'samplecomments'
     ]]
 
 
@@ -173,7 +188,10 @@ def extract_phab_data(infile):
 
     print("Now return the all_dataframes dictionary")
     all_dataframes = {'tbl_phab': phab}
-    
+
+    print("Data after being extracted from access database")
+    print(phab)
+    print(phab.columns)
     
     print("PhabConvert: DONE")
     return all_dataframes
