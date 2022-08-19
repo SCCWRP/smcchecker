@@ -134,7 +134,7 @@ def extract_phab_data(infile):
         'stationcode', 'sampledate', 'sampleagencycode', 'eventcode', 'protocolcode', 'projectcode', 
         'parentprojectcode', 'locationcode', 'collectiontime', 'collectionmethodcode', 'collectiondepth', 'unitcollectiondepth', 
         'collectiondevicedescr', 'calibrationdate',
-        'replicate', 'analytename', 'fractionname', 'methodname','matrixname', 'variableresult', 'result', 'resqualcode', 
+        'replicate', 'analytename', 'fractionname', 'methodname','matrixname', 'variableresult', 'result', 'unitname', 'resqualcode', 
         'qacode', 'compliancecode', 'batchverificationcode', 'resultcomments', 'collectioncomments', 'samplecomments'
     ]]
    
@@ -169,7 +169,7 @@ def extract_phab_data(infile):
         'stationcode', 'sampledate', 'sampleagencycode', 'eventcode', 'protocolcode', 'projectcode', 
         'parentprojectcode', 'locationcode', 'collectiontime', 'collectionmethodcode', 'collectiondepth', 'unitcollectiondepth', 
         'collectiondevicedescr', 'calibrationdate',
-        'replicate', 'analytename', 'fractionname', 'methodname','matrixname', 'variableresult', 'result', 'resqualcode', 
+        'replicate', 'analytename', 'fractionname', 'methodname','matrixname', 'variableresult', 'result', 'unitname','resqualcode', 
         'qacode', 'compliancecode', 'batchverificationcode', 'resultcomments', 'collectioncomments', 'samplecomments'
     ]]
 
@@ -187,7 +187,8 @@ def extract_phab_data(infile):
 
 
     print("Now return the all_dataframes dictionary")
-    all_dataframes = {'tbl_phab': phab}
+    #all_dataframes = {'tbl_phab': phab}
+    all_dataframes = {'tbl_phab_newformat': phab}
 
     print("Data after being extracted from access database")
     print(phab)
