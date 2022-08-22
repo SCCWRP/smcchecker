@@ -21,13 +21,13 @@ def distance_between(x1, x2, wkid=4326):
     return distance
 
 def read_shapefile(path):
-    fname = pathlib.Path(path).name.replace(".zip","")
+    path = pathlib.Path(path)
+    fname = path.name.replace(".zip","")
     with zipfile.ZipFile(path, 'r') as zip_ref:
-        zip_ref.extractall(fname)
+        zip_ref.extractall(os.path.join(path.parent, fname))
     shp_dir = glob.glob(
         os.path.join(
-            os.getcwd(),
-            fname,
+            os.path.join(path.parent, fname),
             "*.shp"
         )
     )

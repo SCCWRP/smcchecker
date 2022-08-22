@@ -77,15 +77,31 @@
             /* submit as array to as file array - otherwise will fail */
             formData.append('files[]', dropped_files[i]);
         }
+        // Get the type of each files in dropped files
+        var dropped_files_type = []
+        Array.from(dropped_files).forEach(file => {dropped_files_type.push(file.type)});
         
-        const response = await fetch(`/${script_root}/upload`, {
-            method: 'post',
-            body: formData
-        });
+        // Response variable defined in the if-block is only available within the block, not outside of it
+        // Hence need to initiate response var outside of if-block.
+        var response = '';
+        if (dropped_files_type.every(function (item){
+            return item.includes("application/x-zip-compressed")
+        })){
+            console.log("Shapefile submitted, redirecting to shapefile processing route")
+            response = await fetch(`/${script_root}/sfprocessing`, {
+                method: 'post',
+                body: formData
+            });
+        } else {
+            response = await fetch(`/${script_root}/upload`, {
+                method: 'post',
+                body: formData
+            });
+        }
         document.getElementById("loader-gif-container").classList.add("hidden");
         document.querySelector(".after-submit").classList.remove("hidden");
-        console.log(response);
         const result = await response.json();
+        console.log(response);
         console.log(result);
 
         // handling the case where there was a critical error

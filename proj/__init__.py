@@ -11,7 +11,8 @@ from .load import finalsubmit
 from .download import download
 from .scraper import scraper
 from .templater import templater # for dynamic lookup lists called into template before output to user
-
+from .process_shapefile import sfprocessing 
+from .load_shapefile import sfloading 
 
 CUSTOM_CONFIG_PATH = os.path.join(os.getcwd(), 'proj', 'config')
 
@@ -138,9 +139,12 @@ for datasetname, dataset in app.datasets.items():
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
 
 app.register_blueprint(upload)
+app.register_blueprint(sfprocessing)
+app.register_blueprint(sfloading)
 app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
 app.register_blueprint(download)
 app.register_blueprint(scraper)
 app.register_blueprint(templater)
+
 
