@@ -5,7 +5,7 @@ from gc import collect
 import os
 import pandas as pd
 from pathlib import Path
-from .utils.read_shapefile import read_shapefile
+from .utils.read_shapefile import build_all_dfs_from_sf
 from .utils.exceptions import default_exception_handler
 
 # # custom imports, from local files
@@ -64,35 +64,9 @@ def process_sf():
     print("original file path")
     original_file_path = Path(original_file_path)
     parent_zipfile_path = original_file_path.parent
-    all_dfs = {'gissites':'', 'giscatchments':''}
-    print(parent_zipfile_path)
 
-    for zipfile in list(parent_zipfile_path.glob('*.*')):
-        print(f"Reading {zipfile}")
-        df = read_shapefile(zipfile)
-        print(df)
-        df.columns = list(map(str.lower, df.columns))
-        df.drop(columns=['index','objectid'],inplace=True)
-        if all(df['shape'].geom.geometry_type == 'point'):
-            df.rename(columns = {
-                'stationcod':'stationcode',
-                'snapcommen':'snapcomments',
-                'snapdistan':'snapdistance'
-            }, inplace=True)
-            all_dfs['gissites'] = df
-
-        elif all(df['shape'].geom.geometry_type == 'polygon'):
-            df.rename(
-                columns = {
-                    'stationcod': 'stationcode',
-                    'delinmetho': 'delinmethod',
-                    'delinmet_1': 'delinmethodcomments',
-                    'delincomme': 'delincomments'
-                }
-            , inplace=True)
-            all_dfs['giscatchments'] = df
+    all_dfs = build_all_dfs_from_sf(parent_zipfile_path)
             
-
     print("all_dfs")
     print(all_dfs)
 

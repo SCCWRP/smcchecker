@@ -36,9 +36,33 @@ def read_shapefile(path):
     else:
         print("No shp found in folder")
 
-# if __name__ == '__main__':
-#     path_to_zipfile = "Stations_Map.zip"
-#     df = read_shapefile(path_to_zipfile)
-#     x1 = df['SHAPE'].iloc[0]
-#     x2 = df['SHAPE'].iloc[1]
-#     distance = distance_between(x1, x2)
+
+def build_all_dfs_from_sf(path_to_shapefiles):
+    all_dfs = {'gissites':'', 'giscatchments':''}
+    print(path_to_shapefiles)
+
+    for zipfile in list(path_to_shapefiles.glob('*.*')):
+        print(f"Reading {zipfile}")
+        df = read_shapefile(zipfile)
+        print(df)
+        df.columns = list(map(str.lower, df.columns))
+        df.drop(columns=['index','objectid'],inplace=True)
+        if all(df['shape'].geom.geometry_type == 'point'):
+            df.rename(columns = {
+                'stationcod':'stationcode',
+                'snapcommen':'snapcomments',
+                'snapdistan':'snapdistance'
+            }, inplace=True)
+            all_dfs['gissites'] = df
+
+        elif all(df['shape'].geom.geometry_type == 'polygon'):
+            df.rename(
+                columns = {
+                    'stationcod': 'stationcode',
+                    'delinmetho': 'delinmethod',
+                    'delinmet_1': 'delinmethodcomments',
+                    'delincomme': 'delincomments'
+                }
+            , inplace=True)
+            all_dfs['giscatchments'] = df
+    return all_dfs
