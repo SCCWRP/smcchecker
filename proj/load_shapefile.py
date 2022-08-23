@@ -23,23 +23,31 @@ def load_sf():
     print(session['submissionid'])
     all_dfs = build_all_dfs_from_sf(path_to_shapefiles)
     for tbl in all_dfs:
-        if tbl == 'gissites':
-            print(all_dfs[tbl].columns)
-            all_dfs[tbl]['shape'] = all_dfs[tbl]['shape'].apply(
+        df = all_dfs[tbl].get('data')
+        if tbl == 'gissites': 
+            df['shape'] = df['shape'].apply(
                 lambda cell: f"SRID={cell.spatialReference.get('wkid')};POINT({cell.x} {cell.y})"
             )
-            all_dfs[tbl] = all_dfs[tbl].assign(
-                objectid = f"sde.next_rowid('sde','{tbl}')",
-                #globalid = "sde.next_globalid()",
-                created_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
-                created_user = 'checker',
-                last_edited_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
-                last_edited_user = 'checker',
-                #submissionid = session['submissionid'],
-                approve = 'not_reviewed'
+        else:
+            df['shape'] = df["shape"].apply(
+                lambda cell: ",".join(
+                    [
+                        " ".join([str(y) for y in x]) for x in cell.get("rings")[0]
+                    ]
+                )
             )
-            all_dfs[tbl] = GeoDBDataFrame(all_dfs[tbl])
-            all_dfs[tbl].to_geodb(tbl, g.eng)
+        df = df.assign(
+            objectid = f"sde.next_rowid('sde','{tbl}')",
+            #globalid = "sde.next_globalid()",
+            created_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
+            created_user = 'checker',
+            last_edited_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
+            last_edited_user = 'checker',
+            #submissionid = session['submissionid'],
+            approve = 'not_reviewed'
+        )
+        df = GeoDBDataFrame(df)
+        df.to_geodb(tbl, g.eng)
 
     # Load to AWS S3
     url_list = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")

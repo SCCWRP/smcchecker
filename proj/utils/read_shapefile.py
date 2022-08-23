@@ -53,7 +53,12 @@ def build_all_dfs_from_sf(path_to_shapefiles):
                 'snapcommen':'snapcomments',
                 'snapdistan':'snapdistance'
             }, inplace=True)
-            all_dfs['gissites'] = df
+            info = {
+                'filename': zipfile,
+                'geom_type':'point',
+                'data': df
+            }
+            all_dfs['gissites'] = info
 
         elif all(df['shape'].geom.geometry_type == 'polygon'):
             df.rename(
@@ -64,5 +69,10 @@ def build_all_dfs_from_sf(path_to_shapefiles):
                     'delincomme': 'delincomments'
                 }
             , inplace=True)
-            all_dfs['giscatchments'] = df
+            info = {
+                'filename': zipfile,
+                'geom_type':'polygon',
+                'data': df
+            }
+            all_dfs['giscatchments'] = info
     return all_dfs

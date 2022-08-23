@@ -159,7 +159,7 @@
             document.getElementById('warnings-report-header').classList.remove('warning-alert');
             document.getElementById('warnings-report-header').innerText = document.getElementById('warnings-report-header').innerText.replace('⚠️ ','')
         }
-
+        console.log(result)
         buildReport(result);
         
         // we can possibly validate the email address on the python side and return a message in "result"

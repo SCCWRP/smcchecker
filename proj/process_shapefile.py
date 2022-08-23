@@ -70,25 +70,32 @@ def process_sf():
     print("all_dfs")
     print(all_dfs)
 
-# Running match schema routine     # -------------------------------------------------------------------------------- #
-# This is simplified version of match.py
+    # Running match schema routine     # -------------------------------------------------------------------------------- #
+    # This is simplified version of match.py
     match_report = []
+    table_to_tab_map = dict()
     for k, v in all_dfs.items():
         match_tbls_sql = f"""
             SELECT table_name, string_agg(column_name, ', ') AS colnames
             FROM information_schema.columns 
-            WHERE table_name = 'giscatchments'
+            WHERE table_name = '{k}'
             AND column_name NOT IN ('{"','".join(current_app.system_fields)}')
             AND column_name NOT LIKE 'login_%%'
             group by table_name
             ;"""
-        db_cols = pd.read_sql(match_tbls_sql, g.eng).colnames
-        df = deepcopy(all_dfs[k])
+        db_cols = [x.replace(" ","") for x in pd.read_sql(match_tbls_sql, g.eng).colnames.iloc[0].split(",")]
+        df = deepcopy(all_dfs[k].get('data'))
+        print("db_cols")
+        print(set(db_cols))
+        print("df.columns")
+        print(set(df.columns))
+        print("diff")
+        print(', '.join(list(set(df.columns) - set(db_cols))))
         if len(set(df.columns).symmetric_difference(set(db_cols))) > 0:
             match_report.append(
                 {
-                    "sheetname"        : "",
-                    "tablename"        : k, 
+                    "sheetname"        : k,
+                    "tablename"        : '', 
                     "in_tab_not_table" : ', '.join(list(set(df.columns) - set(db_cols))),
                     "in_table_not_tab" : ', '.join(list(set(db_cols) - set(df.columns))), 
                     "closest_tbl"      : k
@@ -97,20 +104,22 @@ def process_sf():
         else:
             match_report.append(
                 {
-                    "sheetname"        : "",
+                    "sheetname"        : k,
                     "tablename"        : k, 
                     "in_tab_not_table" : "",
                     "in_table_not_tab" : "", 
                     "closest_tbl"      : k
                 }
-            ) 
+            )
+        table_to_tab_map[k] = k
         
 #     # -------------------------------------------------------------------------------- #
 
 
 #     # These are the values we are returning to the browser as a json
 #     # https://pics.me.me/code-comments-be-like-68542608.png
-            
+    print("match_report")        
+    print(match_report)        
     returnvals = {
         "filename" : ", ".join([f.filename for f in files]),
         #"marked_filename" : f"{filename.rsplit('.',1)[0]}-marked.{filename.rsplit('.',1)[-1]}",
@@ -123,7 +132,7 @@ def process_sf():
         "submissionid": session.get("submissionid"),
         "critical_error": False,
         "all_datasets": list(current_app.datasets.keys()),
-        "table_to_tab_map" : dict()
+        "table_to_tab_map" : table_to_tab_map
         #"table_to_tab_map" : session['table_to_tab_map']
     }
     
