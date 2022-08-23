@@ -1,3 +1,4 @@
+from ssl import SSL_ERROR_SSL
 from flask import Blueprint, current_app, session, jsonify, g
 from .utils.db import GeoDBDataFrame
 from .utils.mail import data_receipt
@@ -16,6 +17,7 @@ def load_sf():
     print("REQUEST MADE TO /loadsf")
     excel_path = session['excel_path']
     print(excel_path)
+    print(session['submissionid'])
     return jsonify(user_error_message='Will add code to load sf data to db')
     assert session.get('submissionid') is not None, "No submissionID, session may have expired"
     # Errors and warnings are stored in a directory in a json since it is likely that they will exceed 4kb in many cases
