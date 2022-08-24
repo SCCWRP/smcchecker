@@ -36,6 +36,9 @@ def load_sf():
                     ]
                 )
             )
+            df['shape'] = df["shape"].apply(
+                lambda cell: f"SRID=4326; POLYGON(({cell}))"
+            )
         df = df.assign(
             objectid = f"sde.next_rowid('sde','{tbl}')",
             #globalid = "sde.next_globalid()",

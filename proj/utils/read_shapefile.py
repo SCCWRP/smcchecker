@@ -61,6 +61,11 @@ def build_all_dfs_from_sf(path_to_shapefiles):
             all_dfs['gissites'] = info
 
         elif all(df['shape'].geom.geometry_type == 'polygon'):
+                    
+            ##### REMOVE AFTER GETTING WORKFLOW DONE
+            df = df.drop(columns=['shape_area', 'shape__len', 'shape__are'])
+            #####
+            
             df.rename(
                 columns = {
                     'stationcod': 'stationcode',

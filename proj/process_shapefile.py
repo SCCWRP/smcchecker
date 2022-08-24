@@ -85,6 +85,9 @@ def process_sf():
             ;"""
         db_cols = [x.replace(" ","") for x in pd.read_sql(match_tbls_sql, g.eng).colnames.iloc[0].split(",")]
         df = deepcopy(all_dfs[k].get('data'))
+        
+
+        
         print("db_cols")
         print(set(db_cols))
         print("df.columns")
