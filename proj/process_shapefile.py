@@ -32,7 +32,7 @@ def process_sf():
     # routine to grab the uploaded file
     print("App should route to this function")
     files = request.files.getlist('files[]')
-    sys_fields = current_app.system_fields + ['approve', 'download_url', 'filename']
+    sys_fields = current_app.system_fields + ['approve', 'download_url', 'filename','gdb_geomattr_data']
     print("files")
     print(files)
 
