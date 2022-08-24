@@ -51,7 +51,7 @@ def load_sf():
         df = df.assign(
             objectid = f"sde.next_rowid('sde','{tbl}')",
             created_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
-            created_user = 'checker',
+            created_user = session.get('login_info').get('login_email'),
             last_edited_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
             last_edited_user = 'checker',
             submissionid = session['submissionid'],
