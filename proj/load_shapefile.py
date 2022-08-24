@@ -21,8 +21,17 @@ def load_sf():
     path_to_shapefiles = Path(session['excel_path']).parent
     print(path_to_shapefiles)
     print(session['submissionid'])
+    
+    # Load the files to AWS S3
+    url_list_dict = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")
+    print(url_list_dict)
+    print()
+    # Now load the data to our db
     all_dfs = build_all_dfs_from_sf(path_to_shapefiles)
+
+    
     for tbl in all_dfs:
+        print(url_list_dict.get(all_dfs[tbl].get('filename')))
         df = all_dfs[tbl].get('data')
         if tbl == 'gissites': 
             df['shape'] = df['shape'].apply(
@@ -41,20 +50,19 @@ def load_sf():
             )
         df = df.assign(
             objectid = f"sde.next_rowid('sde','{tbl}')",
-            #globalid = "sde.next_globalid()",
             created_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
             created_user = 'checker',
             last_edited_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
             last_edited_user = 'checker',
-            #submissionid = session['submissionid'],
-            approve = 'not_reviewed'
+            submissionid = session['submissionid'],
+            approve = 'not_reviewed',
+            filename = all_dfs[tbl].get('filename'),
+            download_url = url_list_dict.get(all_dfs[tbl].get('filename'))
         )
         df = GeoDBDataFrame(df)
         df.to_geodb(tbl, g.eng)
 
-    # Load to AWS S3
-    url_list = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")
-    print(url_list)
+
     session.clear()
     return jsonify(user_error_message='Loaded successfully')
 

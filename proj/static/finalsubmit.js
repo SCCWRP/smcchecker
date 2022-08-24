@@ -14,7 +14,7 @@ const addFinalSubmitListener = () => {
         
         var response = '';
         // Route the different route
-        if (document.querySelector("#submission-type").innerText === 'Shapefile'){
+        if (document.querySelector("#submission-type").innerText === 'Shapefile Submission'){
             console.log("Attempting to load shapefiles")
             response = await fetch(`/${script_root}/sfloading`, {
                 method: 'post',

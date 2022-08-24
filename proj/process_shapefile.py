@@ -32,6 +32,7 @@ def process_sf():
     # routine to grab the uploaded file
     print("App should route to this function")
     files = request.files.getlist('files[]')
+    sys_fields = current_app.system_fields + ['approve', 'download_url', 'filename']
     print("files")
     print(files)
 
@@ -50,8 +51,6 @@ def process_sf():
         # To be accessed later by the upload routine that loads data to the tables
         session['excel_path'] = original_file_path if extension in ('xls','xlsx') else f"""{original_file_path.rsplit('.',1)[0]}.xlsx"""
 
-
-
         # Put their original filename in the submission tracking table
         g.eng.execute(
             f"""
@@ -60,18 +59,14 @@ def process_sf():
             WHERE submissionid = {session.get('submissionid')};
             """
         )
-    print("DONE uploading files")
-    print("original file path")
+
     original_file_path = Path(original_file_path)
     parent_zipfile_path = original_file_path.parent
 
     all_dfs = build_all_dfs_from_sf(parent_zipfile_path)
-            
-    print("all_dfs")
-    print(all_dfs)
-
+    
     # Running match schema routine     # -------------------------------------------------------------------------------- #
-    # This is simplified version of match.py
+    # This is simplified version of match.py - Only apply to this specific case
     match_report = []
     table_to_tab_map = dict()
     for k, v in all_dfs.items():
@@ -79,21 +74,13 @@ def process_sf():
             SELECT table_name, string_agg(column_name, ', ') AS colnames
             FROM information_schema.columns 
             WHERE table_name = '{k}'
-            AND column_name NOT IN ('{"','".join(current_app.system_fields)}')
+            AND column_name NOT IN ('{"','".join(sys_fields)}')
             AND column_name NOT LIKE 'login_%%'
             group by table_name
             ;"""
         db_cols = [x.replace(" ","") for x in pd.read_sql(match_tbls_sql, g.eng).colnames.iloc[0].split(",")]
         df = deepcopy(all_dfs[k].get('data'))
         
-
-        
-        print("db_cols")
-        print(set(db_cols))
-        print("df.columns")
-        print(set(df.columns))
-        print("diff")
-        print(', '.join(list(set(df.columns) - set(db_cols))))
         if len(set(df.columns).symmetric_difference(set(db_cols))) > 0:
             match_report.append(
                 {
@@ -129,7 +116,7 @@ def process_sf():
         "marked_filename" : "",
         "match_report" : match_report,
         "matched_all_tables" : True,
-        "match_dataset" : ['Shapefile'],
+        "match_dataset" : ['Shapefile Submission'],
         "errs" : [],
         "warnings": [],
         "submissionid": session.get("submissionid"),

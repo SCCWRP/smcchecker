@@ -162,6 +162,11 @@
         console.log(result)
         buildReport(result);
         
+        // Remove the excel download link if they submit shapefui
+        if (document.querySelector("#submission-type").innerText === 'Shapefile Submission') {
+            document.getElementById("excel-markup-download").classList.add('hidden')
+        }
+
         // we can possibly validate the email address on the python side and return a message in "result"
         // and handle the situation accordingly
         //document.querySelector(".file-form-container").classList.add("hidden");

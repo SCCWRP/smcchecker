@@ -2,7 +2,7 @@ from arcgis.features import GeoAccessor
 from arcgis import geometry
 import os
 import zipfile
-import pathlib
+from pathlib import Path
 import glob
 
 # Distance: https://developers.arcgis.com/rest/services-reference/enterprise/distance.htm
@@ -21,7 +21,7 @@ def distance_between(x1, x2, wkid=4326):
     return distance
 
 def read_shapefile(path):
-    path = pathlib.Path(path)
+    path = Path(path)
     fname = path.name.replace(".zip","")
     with zipfile.ZipFile(path, 'r') as zip_ref:
         zip_ref.extractall(os.path.join(path.parent, fname))
@@ -54,7 +54,7 @@ def build_all_dfs_from_sf(path_to_shapefiles):
                 'snapdistan':'snapdistance'
             }, inplace=True)
             info = {
-                'filename': zipfile,
+                'filename': Path(zipfile).name,
                 'geom_type':'point',
                 'data': df
             }
@@ -75,7 +75,7 @@ def build_all_dfs_from_sf(path_to_shapefiles):
                 }
             , inplace=True)
             info = {
-                'filename': zipfile,
+                'filename': Path(zipfile).name,
                 'geom_type':'polygon',
                 'data': df
             }
