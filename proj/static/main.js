@@ -84,9 +84,9 @@
         // Response variable defined in the if-block is only available within the block, not outside of it
         // Hence need to initiate response var outside of if-block.
         var response = '';
-        if (dropped_files_type.every(function (item){
-            return item.includes("application/x-zip-compressed")
-        })){
+
+        // condition returns True if all the filetypes are x-zip-compressed
+        if (dropped_files_type.every(function (item){return item.includes("application/x-zip-compressed")})) {
             console.log("Shapefile submitted, redirecting to shapefile processing route")
             response = await fetch(`/${script_root}/sfprocessing`, {
                 method: 'post',

@@ -11,7 +11,9 @@ const addFinalSubmitListener = () => {
         document.getElementById("loader-gif-container").classList.remove("hidden");
 
         const formData = new FormData(this);
-        let response = '';
+        
+        var response = '';
+        // Route the different route
         if (document.querySelector("#submission-type").innerText === 'Shapefile'){
             console.log("Attempting to load shapefiles")
             response = await fetch(`/${script_root}/sfloading`, {
