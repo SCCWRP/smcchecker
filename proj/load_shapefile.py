@@ -6,6 +6,7 @@ from .utils.exceptions import default_exception_handler
 from .utils.read_shapefile import build_all_dfs_from_sf
 from .utils.uploadAWSS3 import s3Client, upload_and_retrieve
 from .utils.mail import data_receipt
+from .utils.convert_coordinates import *
 from psycopg2.errors import ForeignKeyViolation
 from pathlib import Path
 import pandas as pd
@@ -29,10 +30,25 @@ def load_sf():
     for tbl in all_dfs:
         df = all_dfs[tbl].get('data')
         if tbl == 'gissites': 
-            df['shape'] = df['shape'].apply(
-                lambda cell: f"SRID={cell.spatialReference.get('wkid')};POINT({cell.x} {cell.y})"
-            )
+            df = df.assign(
+                shape = df.apply(
+                lambda row: 
+                    f"SRID={row['shape'].spatialReference.get('wkid')};POINT({row.new_long} {row.new_lat})",
+                    axis=1
+            ))
         else:
+            df['shape'] = df['shape'].apply(
+                lambda cell: {
+                    'rings':
+                        [
+                            list(
+                                map(convert_coor, cell.get('rings')[0]) # cell.get('rings') always have 1 element
+                            )
+                        ], 
+                    'spatialReference': {'wkid': 4326}
+                }
+            )
+
             df['shape'] = df["shape"].apply(
                 lambda cell: ",".join(
                     [
@@ -45,6 +61,7 @@ def load_sf():
             )
         df = df.assign(
             objectid = f"sde.next_rowid('sde','{tbl}')",
+            globalid = "sde.next_globalid()",
             created_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
             created_user = session.get('login_info').get('login_email'),
             last_edited_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
