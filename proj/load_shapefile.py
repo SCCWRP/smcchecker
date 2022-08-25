@@ -5,7 +5,7 @@ from .utils.mail import data_receipt
 from .utils.exceptions import default_exception_handler
 from .utils.read_shapefile import build_all_dfs_from_sf
 from .utils.uploadAWSS3 import s3Client, upload_and_retrieve
-
+from .utils.mail import data_receipt
 from psycopg2.errors import ForeignKeyViolation
 from pathlib import Path
 import pandas as pd
@@ -19,19 +19,14 @@ def load_sf():
     # This was put in because there was a bug on the JS side where the form was submitting twice, causing data to attempt to load twice, causing a critical error
     print("REQUEST MADE TO /loadsf")
     path_to_shapefiles = Path(session['excel_path']).parent
-    print(path_to_shapefiles)
-    print(session['submissionid'])
+
     
-    # Load the files to AWS S3
     url_list_dict = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")
-    print(url_list_dict)
-    print()
     # Now load the data to our db
     all_dfs = build_all_dfs_from_sf(path_to_shapefiles)
 
     
     for tbl in all_dfs:
-        print(url_list_dict.get(all_dfs[tbl].get('filename')))
         df = all_dfs[tbl].get('data')
         if tbl == 'gissites': 
             df['shape'] = df['shape'].apply(
@@ -61,7 +56,20 @@ def load_sf():
         )
         df = GeoDBDataFrame(df)
         df.to_geodb(tbl, g.eng)
-
+    
+    # Send email to user
+    data_receipt(
+        send_from = 'admin@checker.sccwrp.org',
+        always_send_to = current_app.maintainers,
+        login_email = session.get('login_info').get('login_email'),
+        dtype = session.get('datatype'),
+        submissionid = session.get('submissionid'),
+        originalfile = None,
+        tables = all_dfs.keys(),
+        eng = g.eng,
+        mailserver = current_app.config['MAIL_SERVER'],
+        login_info = session.get('login_info')
+    )
 
     session.clear()
     return jsonify(user_error_message='Loaded successfully')
