@@ -63,7 +63,7 @@ def build_all_dfs_from_sf(path_to_shapefiles):
         elif all(df['shape'].geom.geometry_type == 'polygon'):
                     
             ##### REMOVE AFTER GETTING WORKFLOW DONE
-            df = df.drop(columns=['shape_area', 'shape__len', 'shape__are'])
+            df = df.drop(columns=['shape_area', 'shape__len', 'shape__are'], errors='ignore')
             #####
             
             df.rename(

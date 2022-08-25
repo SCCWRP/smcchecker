@@ -7,17 +7,8 @@ import pandas as pd
 from pathlib import Path
 from .utils.read_shapefile import build_all_dfs_from_sf
 from .utils.exceptions import default_exception_handler
+from .custom.shapefile_custom import shapefile
 
-# # custom imports, from local files
-# from .preprocess import clean_data
-# from .match import match
-# from .core.core import core
-# from .core.functions import fetch_meta
-# from .utils.generic import save_errors, correct_row_offset
-# from .utils.excel import mark_workbook
-# from .utils.phab import extract_phab_data
-# from .custom.functions import check_schema # for the phab access databases
-# from .custom import *
 
 
 
@@ -65,7 +56,10 @@ def process_sf():
 
     all_dfs = build_all_dfs_from_sf(parent_zipfile_path)
     
-    # Running match schema routine     # -------------------------------------------------------------------------------- #
+
+    # ------------------ Running match schema routine ----------------------- #
+    # ------------------------------------------------------------------------ #
+
     # This is simplified version of match.py - Only apply to this specific case
     match_report = []
     table_to_tab_map = dict()
@@ -102,9 +96,53 @@ def process_sf():
                 }
             )
         table_to_tab_map[k] = k
-        
-#     # -------------------------------------------------------------------------------- #
+    # ------------------------------------------------------------------------ #
+    
+    
+    
+    errs = []
+    warnings = []
+    
+    
+    
+    # ------------------ CUSTOM CHECK ----------------------- #
+    print("Custom Checks")
+    # custom output should be a dictionary where errors and warnings are the keys and the values are a list of "errors" 
+    # initialize errors and warnings
+    # (structured the same way as errors are as seen in core checks section)
+    
+    # The custom checks function is stored in __init__.py in the datasets dictionary and accessed and called accordingly
+    # match_dataset is a string, which should also be the same as one of the function names imported from custom, so we can "eval" it
+    try:
+        custom_output = shapefile(all_dfs)
+    except NameError as err:
+        raise Exception(f"""Error calling custom checks function for shapefile submission- may not be defined, or was not imported correctly.""")
+    
+    print("custom_output: ")
+    print(custom_output)
+    #example
+    #map_output = current_app.datasets.get(match_dataset).get('map_function')(all_dfs)
 
+    assert isinstance(custom_output, dict), \
+        "custom output is not a dictionary. custom function is not written correctly"
+    assert set(custom_output.keys()) == {'errors','warnings'}, \
+        "Custom output dictionary should have keys which are only 'errors' and 'warnings'"
+
+    # tack on errors and warnings
+    # errs and warnings are lists initialized in the Core Checks section (above)
+    errs.extend(custom_output.get('errors'))
+    warnings.extend(custom_output.get('warnings'))
+
+    errs = [e for e in errs if len(e) > 0]
+    warnings = [w for w in warnings if len(w) > 0]
+
+    # commenting out errs and warnings print statements
+    #print("errs")
+    #print(errs)
+    #print("warnings")
+    #print(warnings)
+
+    print("DONE - Custom Checks")
 
 #     # These are the values we are returning to the browser as a json
 #     # https://pics.me.me/code-comments-be-like-68542608.png
@@ -117,8 +155,8 @@ def process_sf():
         "match_report" : match_report,
         "matched_all_tables" : True,
         "match_dataset" : ['Shapefile Submission'],
-        "errs" : [],
-        "warnings": [],
+        "errs" : errs,
+        "warnings": warnings,
         "submissionid": session.get("submissionid"),
         "critical_error": False,
         "all_datasets": list(current_app.datasets.keys()),
