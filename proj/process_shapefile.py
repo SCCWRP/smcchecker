@@ -30,8 +30,7 @@ def process_sf():
     if len(files) != 2:
         print("Returning")
         return jsonify(user_error_msg='You need to submit exactly 2 shapefiles \n One for point and one for polygon')
-           # i'd like to figure a way we can do it without writing the thing to an excel file
-    
+           
     for f in files:
         filename = secure_filename(f.filename)
         extension = secure_filename(f.filename).rsplit('.',1)[-1]
@@ -56,11 +55,23 @@ def process_sf():
 
     all_dfs = build_all_dfs_from_sf(parent_zipfile_path)
     
+    '''
+    Example all_dfs: {
+        'gissites':
+            {
+                'filename': filename, 'geom_type':'point', 'data': df}
+            }, 
+        'giscatchments':
+            {
+                'filename': filename, 'geom_type':'polygon', 'data': df}
+            }
+    }
+    '''
 
     # ------------------ Running match schema routine ----------------------- #
     # ------------------------------------------------------------------------ #
 
-    # This is simplified version of match.py - Only apply to this specific case
+    # This is simplified version of match.py - Only applies to this specific case
     match_report = []
     table_to_tab_map = dict()
     for k, v in all_dfs.items():
@@ -116,7 +127,7 @@ def process_sf():
     try:
         custom_output = shapefile(all_dfs)
     except NameError as err:
-        raise Exception(f"""Error calling custom checks function for shapefile submission- may not be defined, or was not imported correctly.""")
+        raise Exception("Error calling custom checks function for shapefile submission- may not be defined, or was not imported correctly.")
     
     print("custom_output: ")
     print(custom_output)
@@ -173,16 +184,16 @@ def process_sf():
 
 
 # # When an exception happens when the browser is sending requests to the upload blueprint, this routine runs
-# @upload.errorhandler(Exception)
-# def upload_error_handler(error):
-#     response = default_exception_handler(
-#         mail_from = current_app.mail_from,
-#         errmsg = str(error),
-#         maintainers = current_app.maintainers,
-#         project_name = current_app.project_name,
-#         attachment = session.get('excel_path'),
-#         login_info = session.get('login_info'),
-#         submissionid = session.get('submissionid'),
-#         mail_server = current_app.config['MAIL_SERVER']
-#     )
-#     return response
+@sfprocessing.errorhandler(Exception)
+def upload_error_handler(error):
+    response = default_exception_handler(
+        mail_from = current_app.mail_from,
+        errmsg = str(error),
+        maintainers = current_app.maintainers,
+        project_name = current_app.project_name,
+        attachment = session.get('excel_path'),
+        login_info = session.get('login_info'),
+        submissionid = session.get('submissionid'),
+        mail_server = current_app.config['MAIL_SERVER']
+    )
+    return response
