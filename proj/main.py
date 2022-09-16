@@ -80,7 +80,7 @@ def main():
         "Number of rows to offset in excel file must be an integer. Check__init__.py"
 
     
-    if extension not in ('xls','xlsx'):
+    if extension in ('mdb','accdb'):
         # 8/16/2022 - I think we will throw zip files at a separate route
         # This block should cover the case when PHAB data is submitted via access database
         # filename is defined above, and it is the original filename of the submission

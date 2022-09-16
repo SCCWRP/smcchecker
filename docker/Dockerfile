@@ -39,7 +39,22 @@ RUN pip3 install pandas_access
 
 #RUN pip3 install opencv-python
 
+# Install what we need for the analysis indices
+RUN apt-get install r-base
+WORKDIR /tmp
+RUN git clone https://github.com/SCCWRP/CSCI
+RUN git clone https://github.com/SCCWRP/ASCI
+RUN git clone https://github.com/SCCWRP/PHAB
+RUN git clone https://github.com/SCCWRP/PHABMetrics
+
+RUN R CMD INSTALL --no-multiarch --with-keep.source CSCI
+RUN R CMD INSTALL --no-multiarch --with-keep.source ASCI
+RUN R CMD INSTALL --no-multiarch --with-keep.source PHAB
+RUN R CMD INSTALL --no-multiarch --with-keep.source PHABMetrics
+
+
 RUN mkdir -p /var/www/checker/
+WORKDIR /var/www/checker/
 
 # this Dockerfile is for the SMC checker, since there are certain libraries that are unique to this checking system
 # sudo docker image build -t sccwrp/flask:smcchecker .
