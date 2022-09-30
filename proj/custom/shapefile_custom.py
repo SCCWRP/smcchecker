@@ -32,17 +32,19 @@ def shapefile(all_dfs):
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
     for key in all_dfs:
+        print(key)
         df = all_dfs[key].get('data')
         print(df.columns)
         print(df[~df['stationcode'].isin(lu_stations)].index.tolist())
+        badrows = df[~df['stationcode'].isin(lu_stations)].index.tolist()
         args = {
             "dataframe": key,
             "tablename": key,
-            "badrows": df[~df['stationcode'].isin(lu_stations)].index.tolist(),
+            "badrows": badrows,
             "badcolumn": "stationcode",
             "error_type": "Lookup Failed",
             "is_core_error": False,
-            "error_message": "Stations not found in lookup list"
+            "error_message": f"Stations ({','.join(df[~df['stationcode'].isin(lu_stations)].stationcode.tolist())}) not found in lookup list"
         }
         errs = [*errs, checkData(**args)]
 

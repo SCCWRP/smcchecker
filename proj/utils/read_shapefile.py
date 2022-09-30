@@ -34,7 +34,17 @@ def read_shapefile(path):
     if len(shp_dir) > 0: 
         return GeoAccessor.from_featureclass(shp_dir[0])
     else:
-        print("No shp found in folder")
+        print("try another layer of folder")
+        try:
+            shp_dir = glob.glob(
+                os.path.join(
+                    os.path.join(path.parent, fname, fname),
+                    "*.shp"
+                )
+            )
+            return GeoAccessor.from_featureclass(shp_dir[0])
+        except:
+            print("No shp found in folder")
 
 
 def build_all_dfs_from_sf(path_to_shapefiles):
