@@ -74,7 +74,15 @@ def taxonomy(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
-
+    # errs.append(
+    #     checkData(
+    #         'tbl_algae', 
+    #         algae[(algae.sampletypecode == 'Epiphyte') & (algae.baresult == -88)].tmp_row.tolist(),
+    #         'BAResult',
+    #         'Undefined Error', 
+    #         'SampleTypeCode is Epiphyte. BAResult is a required field.'
+    #     )
+    # )    
 
 
     return {'errors': errs, 'warnings': warnings}
