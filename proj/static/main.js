@@ -112,7 +112,7 @@
             alert(result.user_error_msg);
             window.location = `/${script_root}`;
         }
-
+        console.log(result)
         //show the final submit buttin
         if (Object.keys(result).includes("errs")) {
             if (result['errs'].length == 0){
@@ -165,6 +165,10 @@
         // Remove the excel download link if they submit shapefui
         if (document.querySelector("#submission-type").innerText === 'Shapefile Submission') {
             document.getElementById("excel-markup-download").classList.add('hidden')
+        }
+
+        if(!result['matched_all_tables']) {
+            document.querySelector("#final-submit-button-container").classList.add("hidden");
         }
 
         // we can possibly validate the email address on the python side and return a message in "result"

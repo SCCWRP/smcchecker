@@ -74,6 +74,8 @@ def process_sf():
     # This is simplified version of match.py - Only applies to this specific case
     match_report = []
     table_to_tab_map = dict()
+    matched_all_tables = []
+    
     for k, v in all_dfs.items():
         match_tbls_sql = f"""
             SELECT table_name, string_agg(column_name, ', ') AS colnames
@@ -87,6 +89,7 @@ def process_sf():
         df = deepcopy(all_dfs[k].get('data'))
         
         if len(set(df.columns).symmetric_difference(set(db_cols))) > 0:
+            matched_all_tables.append(False)
             match_report.append(
                 {
                     "sheetname"        : k,
@@ -97,6 +100,7 @@ def process_sf():
                 }
             )
         else:
+            matched_all_tables.append(True)
             match_report.append(
                 {
                     "sheetname"        : k,
@@ -108,7 +112,7 @@ def process_sf():
             )
         table_to_tab_map[k] = k
     # ------------------------------------------------------------------------ #
-    
+    matched_all_tables = all(matched_all_tables)
     
     
     errs = []
@@ -164,7 +168,7 @@ def process_sf():
         #"marked_filename" : f"{filename.rsplit('.',1)[0]}-marked.{filename.rsplit('.',1)[-1]}",
         "marked_filename" : "",
         "match_report" : match_report,
-        "matched_all_tables" : True,
+        "matched_all_tables" : matched_all_tables,
         "match_dataset" : ['Shapefile Submission'],
         "errs" : errs,
         "warnings": warnings,
