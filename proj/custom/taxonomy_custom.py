@@ -1,8 +1,10 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
 from .functions import checkData
+import pandas as pd
+
 
 def taxonomy(all_dfs):
     
@@ -50,10 +52,13 @@ def taxonomy(all_dfs):
     # errs = [*errs, checkData(**args)]
 
     # return {'errors': errs, 'warnings': warnings}
-
+    
+    #df = pd.read_sql("SELECT * from <table you want to query>", g.eng)
     taxonomysampleinfo = all_dfs['tbl_taxonomysampleinfo']
     taxonomyresults = all_dfs['tbl_taxonomyresults']
 
+    taxonomysampleinfo = taxonomysampleinfo.assign(tmp_row = taxonomysampleinfo.index)
+    taxonomyresults = taxonomyresults.assign(tmp_row = taxonomyresults.index)
 
     taxonomysampleinfo_args = {
         "dataframe": taxonomysampleinfo,
@@ -74,13 +79,15 @@ def taxonomy(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
-    # errs.append(
+
+    # Check 1: Within chemistry, taxonomy or toxicity data, return a warning if a submission contains multiple dates within a single site
+    # warnings.append(
     #     checkData(
-    #         'tbl_algae', 
-    #         algae[(algae.sampletypecode == 'Epiphyte') & (algae.baresult == -88)].tmp_row.tolist(),
-    #         'BAResult',
-    #         'Undefined Error', 
-    #         'SampleTypeCode is Epiphyte. BAResult is a required field.'
+    #         'tbl_taxonomyresults', 
+    #             taxonomyresults[taxonomyresults['baresult'] == 9999].tmp_row.tolist(),
+    #         'baresult',
+    #         'Value Error', 
+    #         'Hey you have a value called test in your finalid. FIX IT!'
     #     )
     # )    
 
