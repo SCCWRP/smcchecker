@@ -51,8 +51,8 @@ def chemistry(all_dfs):
 
     # return {'errors': errs, 'warnings': warnings}
 
-    chemistrybatch = all_dfs['tbl_chemistrybatch']
-    chemistryresults = all_dfs['tbl_chemistryresults']
+    chemistrybatch = all_dfs['tbl_chemistrybatch'].assign(tmp_row = all_dfs['tbl_chemistrybatch'].index)
+    chemistryresults = all_dfs['tbl_chemistryresults'].assign(tmp_row = all_dfs['tbl_chemistryresults'].index)
 
 
     chemistrybatch_args = {
@@ -75,6 +75,23 @@ def chemistry(all_dfs):
         "error_message": ""
     }
 
+    # Check 1: Within taxonomy data, return a warning if a submission contains multiple dates within a single site
 
+    # group by station code and sampledate, grab the first index of each unique date, reset to dataframe, group by stationcode again in order to filter counts per station later
+    chem_results = chemistryresults.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index().groupby('stationcode')
+    # filter on grouped stations that have more than one unique sample date, output sorted list of indices 
+    results_badrows = sorted(list(set(chem_results.filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
+    # count number of unique dates within a stationcode
+    num_unique_results_sample_dates = len(results_badrows)
+
+    warnings.append(
+        checkData(
+            'tbl_chemistryresults', 
+                results_badrows,
+            'sampledate',
+            'Value Error', 
+            f'Warning! You are submitting chemistry data with multiple dates for the same site. {num_unique_results_sample_dates} unique sample dates were submitted. Is this correct?'
+        )
+    )  
 
     return {'errors': errs, 'warnings': warnings}

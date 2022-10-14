@@ -3,6 +3,7 @@
 from inspect import currentframe
 from flask import current_app
 from .functions import checkData
+import pandas as pd
 
 def toxicity(all_dfs):
     
@@ -56,6 +57,10 @@ def toxicity(all_dfs):
     toxicitysummary = all_dfs['tbl_toxicitysummary']
 
 
+    toxicitybatch = toxicitybatch.assign(tmp_row = toxicitybatch.index)
+    toxicityresults = toxicityresults.assign(tmp_row = toxicityresults.index)
+    toxicitysummary = toxicitysummary.assign(tmp_row = toxicitysummary.index)
+
     toxicitybatch_args = {
         "dataframe": toxicitybatch,
         "tablename": 'tbl_toxicitybatch',
@@ -86,6 +91,38 @@ def toxicity(all_dfs):
         "error_message": ""
     }
 
+    # Check 1: Within toxicity data, return a warning if a submission contains multiple dates within a single site
+    
+    # group by station code and sampledate, grab the first index of each unique date, reset to dataframe, group by stationcode again in order to filter counts per station later
+    toxicity_results_groupby = toxicityresults.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index().groupby('stationcode')
+    # filter on grouped stations that have more than one unique sample date, output sorted list of indices 
+    results_badrows = sorted(list(set(toxicity_results_groupby.filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
+    # count number of unique dates within a stationcode
+    num_unique_results_sample_dates = len(results_badrows)
+    
+    toxicity_summary_groupby = toxicitysummary.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index().groupby('stationcode')
+    summary_badrows = sorted(list(set(toxicity_summary_groupby.filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
+    num_unique_summary_sample_dates = len(summary_badrows)
+    
 
+    warnings.append(
+        checkData(
+            'tbl_toxicityresults', 
+                results_badrows,
+            'sampledate',
+            'Value Error', 
+            f'Warning! You are submitting toxicity data with multiple dates for the same site. {num_unique_results_sample_dates} unique sample dates were submitted. Is this correct?'
+        )
+    )    
+
+    warnings.append(
+        checkData(
+            'tbl_toxicitysummary', 
+                summary_badrows,
+            'sampledate',
+            'Value Error', 
+            f'Warning! You are submitting toxicity data with multiple dates for the same site. {num_unique_summary_sample_dates} unique sample dates were submitted. Is this correct?'
+        )
+    )  
 
     return {'errors': errs, 'warnings': warnings}

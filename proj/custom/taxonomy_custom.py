@@ -80,16 +80,39 @@ def taxonomy(all_dfs):
         "error_message": ""
     }
 
-    # Check 1: Within chemistry, taxonomy or toxicity data, return a warning if a submission contains multiple dates within a single site
-    # warnings.append(
-    #     checkData(
-    #         'tbl_taxonomyresults', 
-    #             taxonomyresults[taxonomyresults['baresult'] == 9999].tmp_row.tolist(),
-    #         'baresult',
-    #         'Value Error', 
-    #         'Hey you have a value called test in your finalid. FIX IT!'
-    #     )
-    # )    
+    # Check 1: Within taxonomy data, return a warning if a submission contains multiple dates within a single site
+    
+    # group by station code and sampledate, grab the first index of each unique date, reset to dataframe, group by stationcode again in order to filter counts per station later
+    taxonomy_info_groupby = taxonomysampleinfo.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index().groupby('stationcode')
+    # filter on grouped stations that have more than one unique sample date, output sorted list of indices 
+    info_badrows = sorted(list(set(taxonomy_info_groupby.filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
+    # count number of unique dates within a stationcode
+    num_unique_info_sample_dates = len(info_badrows)
+    
+    taxonomy_results_groupby = taxonomyresults.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index().groupby('stationcode')
+    results_badrows = sorted(list(set(taxonomy_results_groupby.filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
+    num_unique_results_sample_dates = len(results_badrows)
+    
+
+    warnings.append(
+        checkData(
+            'tbl_taxonomysampleinfo', 
+                info_badrows,
+            'sampledate',
+            'Value Error', 
+            f'Warning! You are submitting taxonomy data with multiple dates for the same site. {num_unique_info_sample_dates} unique sample dates were submitted. Is this correct?'
+        )
+    )    
+
+    warnings.append(
+        checkData(
+            'tbl_taxonomyresults', 
+                results_badrows,
+            'sampledate',
+            'Value Error', 
+            f'Warning! You are submitting taxonomy data with multiple dates for the same site. {num_unique_results_sample_dates} unique sample dates were submitted. Is this correct?'
+        )
+    )  
 
 
     return {'errors': errs, 'warnings': warnings}
