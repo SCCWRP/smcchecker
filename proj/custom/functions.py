@@ -75,8 +75,10 @@ def check_multiple_dates_within_site(submission):
 
     # group by station code and sampledate, grab the first index of each unique date, reset to dataframe
     submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
+
     # filter on grouped stations that have more than one unique sample date, output sorted list of indices 
     badrows = sorted(list(set(submission_groupby.groupby('stationcode').filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
+
     # count number of unique dates within a stationcode
     num_unique_sample_dates = len(badrows)
     return (badrows, num_unique_sample_dates)
@@ -90,12 +92,22 @@ def check_missing_phab_data(submission, phab_data):
     assert not submission.empty, "submission dataframe is empty"
     assert not phab_data.empty, "phab dataframe is empty"
 
+    # group by stationcode and sampledate, grab first row in each group, reset back to dataframe from pandas groupby object 
     submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
 
+    # join submission df on phab_data on the stationcode in order to compare sampledates from both dfs
+    # note that the 2 distinct sampledate columns get _sub and _phab added to differentiate them
+    # left join in case there is no record in the phab table for a particular stationcode 
     merge_sub_with_phab = pd.merge(submission_groupby, phab_data, how = 'left', on = 'stationcode', suffixes=("_sub", "_phab"))
+
+    # boolean mask that checks if the years in the sampledate columns are the same
     is_same_year = merge_sub_with_phab['sampledate_sub'].dt.year == merge_sub_with_phab['sampledate_phab'].dt.year
     
+    # get all rows that do not have matching years
     mismatched_years = merge_sub_with_phab[~is_same_year]
+
+    # get sorted lists of indices and stationcodes of rows with mismatched years 
+    # used in the warning message later
     badrows = sorted(list(set(mismatched_years['tmp_row'])))
     badsites = list(set(mismatched_years['stationcode']))
     return (badrows, badsites)
@@ -109,14 +121,24 @@ def check_mismatched_phab_date(submission, phab_data):
     assert not submission.empty, "submission dataframe is empty"
     assert not phab_data.empty, "phab dataframe is empty"
 
+    # group by stationcode and sampledate, grab first row in each group, reset back to dataframe from pandas groupby object 
     submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
 
+    # join submission df on phab_data on the stationcode in order to compare sampledates from both dfs
+    # note that the 2 distinct sampledate columns get _sub and _phab added to differentiate them
+    # left join in case there is no record in the phab table for a particular stationcode 
     merge_sub_with_phab = pd.merge(submission_groupby, phab_data, how = 'left', on = 'stationcode', suffixes=("_sub", "_phab"))
 
+    # boolean mask that checks if the years in the sampledate columns are the same
     is_same_year = merge_sub_with_phab['sampledate_sub'].dt.year == merge_sub_with_phab['sampledate_phab'].dt.year
+    # boolean mask that checks if the dates in the sampledate columns are the same
     is_same_date = merge_sub_with_phab['sampledate_sub'] == merge_sub_with_phab['sampledate_phab']
 
+    # get all rows that have same year but not same date
     matched_years = merge_sub_with_phab[is_same_year & ~is_same_date]
+
+    # get sorted lists of indices and stationcodes of rows with same years but mismatched dates
+    # used in the warning message later
     badrows = sorted(list(matched_years['tmp_row']))
     phabdates = list(set(matched_years['sampledate_phab'].dt.strftime('%m-%d-%Y')))
     return (badrows, phabdates)
