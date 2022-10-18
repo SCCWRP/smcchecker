@@ -1,4 +1,5 @@
 import pandas_access as mdb
+import pandas as pd
 
 def checkData(tablename, badrows, badcolumn, error_type, error_message = "Error", is_core_error = False, errors_list = [], q = None, **kwargs):
     
@@ -65,6 +66,60 @@ def checkLogic(df1, df2, cols: list, error_type = "Logic Error", df1_name = "", 
 
     return(badrows)
 
+# ---- A few custom checks common to taxonomy, toxicity, and chemistry ---- #
+def check_multiple_dates_within_site(submission):
+    assert 'stationcode' in submission.columns, "'stationcode' is not a column in submission dataframe"
+    assert 'sampledate' in submission.columns, "'sampledate' is not a column in submission dataframe"
+    assert 'tmp_row' in submission.columns, "'tmp_row' is not a column in submission dataframe"
+    assert not submission.empty, "submission dataframe is empty"
+
+    # group by station code and sampledate, grab the first index of each unique date, reset to dataframe
+    submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
+    # filter on grouped stations that have more than one unique sample date, output sorted list of indices 
+    badrows = sorted(list(set(submission_groupby.groupby('stationcode').filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
+    # count number of unique dates within a stationcode
+    num_unique_sample_dates = len(badrows)
+    return (badrows, num_unique_sample_dates)
+
+def check_missing_phab_data(submission, phab_data):
+    assert 'stationcode' in submission.columns, "'stationcode' is not a column in submission dataframe"
+    assert 'sampledate' in submission.columns, "'sampledate' is not a column in submission dataframe"
+    assert 'tmp_row' in submission.columns, "'tmp_row' is not a column in submission dataframe"
+    assert 'stationcode' in phab_data.columns, "'stationcode' is not a column in phab dataframe"
+    assert 'sampledate' in phab_data.columns, "'sampledate' is not a column in phab dataframe"
+    assert not submission.empty, "submission dataframe is empty"
+    assert not phab_data.empty, "phab dataframe is empty"
+
+    submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
+
+    merge_sub_with_phab = pd.merge(submission_groupby, phab_data, how = 'left', on = 'stationcode', suffixes=("_sub", "_phab"))
+    is_same_year = merge_sub_with_phab['sampledate_sub'].dt.year == merge_sub_with_phab['sampledate_phab'].dt.year
+    
+    mismatched_years = merge_sub_with_phab[~is_same_year]
+    badrows = sorted(list(set(mismatched_years['tmp_row'])))
+    badsites = list(set(mismatched_years['stationcode']))
+    return (badrows, badsites)
+
+def check_mismatched_phab_date(submission, phab_data):
+    assert 'stationcode' in submission.columns, "'stationcode' is not a column in submission dataframe"
+    assert 'sampledate' in submission.columns, "'sampledate' is not a column in submission dataframe"
+    assert 'tmp_row' in submission.columns, "'tmp_row' is not a column in submission dataframe"
+    assert 'stationcode' in phab_data.columns, "'stationcode' is not a column in phab dataframe"
+    assert 'sampledate' in phab_data.columns, "'sampledate' is not a column in phab dataframe"
+    assert not submission.empty, "submission dataframe is empty"
+    assert not phab_data.empty, "phab dataframe is empty"
+
+    submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
+
+    merge_sub_with_phab = pd.merge(submission_groupby, phab_data, how = 'left', on = 'stationcode', suffixes=("_sub", "_phab"))
+
+    is_same_year = merge_sub_with_phab['sampledate_sub'].dt.year == merge_sub_with_phab['sampledate_phab'].dt.year
+    is_same_date = merge_sub_with_phab['sampledate_sub'] == merge_sub_with_phab['sampledate_phab']
+
+    matched_years = merge_sub_with_phab[is_same_year & ~is_same_date]
+    badrows = sorted(list(matched_years['tmp_row']))
+    phabdates = list(set(matched_years['sampledate_phab'].dt.strftime('%m-%d-%Y')))
+    return (badrows, phabdates)
 
 
 # ---- Below is just for PHAB ---- #
