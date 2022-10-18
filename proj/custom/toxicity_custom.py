@@ -1,8 +1,8 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
-from .functions import checkData
+from flask import current_app, g
+from .functions import checkData, check_multiple_dates_within_site, check_missing_phab_data, check_mismatched_phab_date
 import pandas as pd
 
 def toxicity(all_dfs):
@@ -52,14 +52,9 @@ def toxicity(all_dfs):
 
     # return {'errors': errs, 'warnings': warnings}
 
-    toxicitybatch = all_dfs['tbl_toxicitybatch']
-    toxicityresults = all_dfs['tbl_toxicityresults']
-    toxicitysummary = all_dfs['tbl_toxicitysummary']
-
-
-    toxicitybatch = toxicitybatch.assign(tmp_row = toxicitybatch.index)
-    toxicityresults = toxicityresults.assign(tmp_row = toxicityresults.index)
-    toxicitysummary = toxicitysummary.assign(tmp_row = toxicitysummary.index)
+    toxicitybatch = all_dfs['tbl_toxicitybatch'].assign(tmp_row = all_dfs['tbl_toxicitybatch'].index)
+    toxicityresults = all_dfs['tbl_toxicityresults'].assign(tmp_row = all_dfs['tbl_toxicityresults'].index)
+    toxicitysummary = all_dfs['tbl_toxicitysummary'].assign(tmp_row = all_dfs['tbl_toxicitysummary'].index)
 
     toxicitybatch_args = {
         "dataframe": toxicitybatch,
@@ -91,37 +86,94 @@ def toxicity(all_dfs):
         "error_message": ""
     }
 
-    # Check 1: Within toxicity data, return a warning if a submission contains multiple dates within a single site
-    
-    # group by station code and sampledate, grab the first index of each unique date, reset to dataframe, group by stationcode again in order to filter counts per station later
-    toxicity_results_groupby = toxicityresults.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index().groupby('stationcode')
-    # filter on grouped stations that have more than one unique sample date, output sorted list of indices 
-    results_badrows = sorted(list(set(toxicity_results_groupby.filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
-    # count number of unique dates within a stationcode
-    num_unique_results_sample_dates = len(results_badrows)
-    
-    toxicity_summary_groupby = toxicitysummary.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index().groupby('stationcode')
-    summary_badrows = sorted(list(set(toxicity_summary_groupby.filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
-    num_unique_summary_sample_dates = len(summary_badrows)
-    
+    # Check 1: Within toxicity data, return a warning if a submission contains multiple dates within a single site    
+    multiple_dates_within_site_summary = check_multiple_dates_within_site(toxicitysummary)
+    multiple_dates_within_site_results = check_multiple_dates_within_site(toxicityresults)
 
     warnings.append(
         checkData(
-            'tbl_toxicityresults', 
-                results_badrows,
+            'tbl_toxicitysummary', 
+                multiple_dates_within_site_summary[0],
             'sampledate',
             'Value Error', 
-            f'Warning! You are submitting toxicity data with multiple dates for the same site. {num_unique_results_sample_dates} unique sample dates were submitted. Is this correct?'
+            f'Warning! You are submitting toxicity data with multiple dates for the same site. {multiple_dates_within_site_summary[1]} unique sample dates were submitted. Is this correct?'
         )
     )    
 
     warnings.append(
         checkData(
-            'tbl_toxicitysummary', 
-                summary_badrows,
+            'tbl_toxicityresults', 
+                multiple_dates_within_site_results[0],
             'sampledate',
             'Value Error', 
-            f'Warning! You are submitting toxicity data with multiple dates for the same site. {num_unique_summary_sample_dates} unique sample dates were submitted. Is this correct?'
+            f'Warning! You are submitting toxicity data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
+        )
+    )  
+
+    # phab data that will be used in checks 2 and 3 below
+    summary_sites = list(set(toxicitysummary['stationcode'].unique()))
+    results_sites = list(set(toxicityresults['stationcode'].unique()))
+    assert summary_sites == results_sites, "unique stationcodes do not match between summary and results dataframes"
+
+
+    sql_query = f"""
+        SELECT DISTINCT STATIONCODE,
+	    SAMPLEDATE
+        FROM UNIFIED_PHAB
+        WHERE RECORD_ORIGIN = 'SMC'
+	    AND STATIONCODE in ('{"','".join(summary_sites)}')
+        ;"""
+    phab_data = pd.read_sql(sql_query, g.eng)
+
+    # Check 2: Return warnings on missing phab data
+
+    # test_phab = pd.DataFrame({'stationcode' : ['410M01628', 'SMC01972'], 'sampledate': ['2018-06-28 00:00:00', '2010-06-07 00:00:00']})
+    # test_phab['sampledate'] = pd.to_datetime(test_phab['sampledate'])
+
+    missing_phab_data_summary = check_missing_phab_data(toxicitysummary, phab_data)
+    missing_phab_data_results = check_missing_phab_data(toxicityresults, phab_data)
+
+    warnings.append(
+        checkData(
+            'tbl_toxicitysummary', 
+                missing_phab_data_summary[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_summary[1])}. If PHAB data are available, please submit those data before submitting toxicity data.'
+        )
+    )  
+
+    warnings.append(
+        checkData(
+            'tbl_toxicityresults', 
+                missing_phab_data_results[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting toxicity data.'
+        )
+    )  
+
+    # Check 3: Return warnings on submission dates mismatching with phab dates
+    mismatched_phab_date_summary = check_mismatched_phab_date(toxicitysummary, phab_data)
+    mismatched_phab_date_results = check_mismatched_phab_date(toxicityresults, phab_data)
+
+    warnings.append(
+        checkData(
+            'tbl_toxicitysummary', 
+                mismatched_phab_date_summary[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_summary[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+        )
+    )  
+
+    warnings.append(
+        checkData(
+            'tbl_toxicityresults', 
+                mismatched_phab_date_results[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
         )
     )  
 

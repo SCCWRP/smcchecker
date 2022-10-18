@@ -1,8 +1,9 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
-from .functions import checkData
+from flask import current_app, g
+from .functions import checkData, check_multiple_dates_within_site, check_missing_phab_data, check_mismatched_phab_date
+import pandas as pd
 
 def chemistry(all_dfs):
     
@@ -75,23 +76,56 @@ def chemistry(all_dfs):
         "error_message": ""
     }
 
-    # Check 1: Within taxonomy data, return a warning if a submission contains multiple dates within a single site
-
-    # group by station code and sampledate, grab the first index of each unique date, reset to dataframe, group by stationcode again in order to filter counts per station later
-    chem_results = chemistryresults.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index().groupby('stationcode')
-    # filter on grouped stations that have more than one unique sample date, output sorted list of indices 
-    results_badrows = sorted(list(set(chem_results.filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
-    # count number of unique dates within a stationcode
-    num_unique_results_sample_dates = len(results_badrows)
+    # Check 1: Within chemistry data, return a warning if a submission contains multiple dates within a single site    
+    multiple_dates_within_site_results = check_multiple_dates_within_site(chemistryresults)   
 
     warnings.append(
         checkData(
             'tbl_chemistryresults', 
-                results_badrows,
+                multiple_dates_within_site_results[0],
             'sampledate',
             'Value Error', 
-            f'Warning! You are submitting chemistry data with multiple dates for the same site. {num_unique_results_sample_dates} unique sample dates were submitted. Is this correct?'
+            f'Warning! You are submitting chemistry data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
         )
     )  
 
+    # phab data that will be used in checks 2 and 3 below
+    results_sites = list(set(chemistryresults['stationcode'].unique()))
+
+    sql_query = f"""
+        SELECT DISTINCT STATIONCODE,
+	    SAMPLEDATE
+        FROM UNIFIED_PHAB
+        WHERE RECORD_ORIGIN = 'SMC'
+	    AND STATIONCODE in ('{"','".join(results_sites)}')
+        ;"""
+    phab_data = pd.read_sql(sql_query, g.eng)
+
+
+    # Check 2: Return warnings on missing phab data
+    missing_phab_data_results = check_missing_phab_data(chemistryresults, phab_data)
+
+    warnings.append(
+        checkData(
+            'tbl_chemistryresults', 
+                missing_phab_data_results[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting chemistry data.'
+        )
+    )  
+
+
+    # Check 3: Return warnings on submission dates mismatching with phab dates
+    mismatched_phab_date_results = check_mismatched_phab_date(chemistryresults, phab_data)
+
+    warnings.append(
+        checkData(
+            'tbl_chemistryresults', 
+                mismatched_phab_date_results[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+        )
+    )  
     return {'errors': errs, 'warnings': warnings}

@@ -2,9 +2,8 @@
 
 from inspect import currentframe
 from flask import current_app, g
-from .functions import checkData
+from .functions import checkData, check_multiple_dates_within_site, check_missing_phab_data, check_mismatched_phab_date
 import pandas as pd
-
 
 def taxonomy(all_dfs):
     
@@ -53,12 +52,8 @@ def taxonomy(all_dfs):
 
     # return {'errors': errs, 'warnings': warnings}
     
-    #df = pd.read_sql("SELECT * from <table you want to query>", g.eng)
-    taxonomysampleinfo = all_dfs['tbl_taxonomysampleinfo']
-    taxonomyresults = all_dfs['tbl_taxonomyresults']
-
-    taxonomysampleinfo = taxonomysampleinfo.assign(tmp_row = taxonomysampleinfo.index)
-    taxonomyresults = taxonomyresults.assign(tmp_row = taxonomyresults.index)
+    taxonomysampleinfo = all_dfs['tbl_taxonomysampleinfo'].assign(tmp_row = all_dfs['tbl_taxonomysampleinfo'].index)
+    taxonomyresults = all_dfs['tbl_taxonomyresults'].assign(tmp_row = all_dfs['tbl_taxonomyresults'].index)
 
     taxonomysampleinfo_args = {
         "dataframe": taxonomysampleinfo,
@@ -80,39 +75,95 @@ def taxonomy(all_dfs):
         "error_message": ""
     }
 
-    # Check 1: Within taxonomy data, return a warning if a submission contains multiple dates within a single site
-    
-    # group by station code and sampledate, grab the first index of each unique date, reset to dataframe, group by stationcode again in order to filter counts per station later
-    taxonomy_info_groupby = taxonomysampleinfo.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index().groupby('stationcode')
-    # filter on grouped stations that have more than one unique sample date, output sorted list of indices 
-    info_badrows = sorted(list(set(taxonomy_info_groupby.filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
-    # count number of unique dates within a stationcode
-    num_unique_info_sample_dates = len(info_badrows)
-    
-    taxonomy_results_groupby = taxonomyresults.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index().groupby('stationcode')
-    results_badrows = sorted(list(set(taxonomy_results_groupby.filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
-    num_unique_results_sample_dates = len(results_badrows)
-    
+    # Check 1: Within taxonomy data, return a warning if a submission contains multiple dates within a single site    
+    multiple_dates_within_site_info = check_multiple_dates_within_site(taxonomysampleinfo)
+    multiple_dates_within_site_results = check_multiple_dates_within_site(taxonomyresults)
 
     warnings.append(
         checkData(
             'tbl_taxonomysampleinfo', 
-                info_badrows,
+                multiple_dates_within_site_info[0],
             'sampledate',
             'Value Error', 
-            f'Warning! You are submitting taxonomy data with multiple dates for the same site. {num_unique_info_sample_dates} unique sample dates were submitted. Is this correct?'
+            f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_info[1]} unique sample dates were submitted. Is this correct?'
         )
     )    
 
     warnings.append(
         checkData(
             'tbl_taxonomyresults', 
-                results_badrows,
+                multiple_dates_within_site_results[0],
             'sampledate',
             'Value Error', 
-            f'Warning! You are submitting taxonomy data with multiple dates for the same site. {num_unique_results_sample_dates} unique sample dates were submitted. Is this correct?'
+            f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
         )
     )  
 
+    # phab data that will be used in checks 2 and 3 below
+    info_sites = list(set(taxonomysampleinfo['stationcode'].unique()))
+    results_sites = list(set(taxonomyresults['stationcode'].unique()))
+    assert info_sites == results_sites, "unique stationcodes do not match between sampleinfo and results dataframes"
+
+
+    sql_query = f"""
+        SELECT DISTINCT STATIONCODE,
+	    SAMPLEDATE
+        FROM UNIFIED_PHAB
+        WHERE RECORD_ORIGIN = 'SMC'
+	    AND STATIONCODE in ('{"','".join(info_sites)}')
+        ;"""
+    phab_data = pd.read_sql(sql_query, g.eng)
+
+    # Check 2: Return warnings on missing phab data
+
+    # test_phab = pd.DataFrame({'stationcode' : ['410M01628', 'SMC01972'], 'sampledate': ['2018-06-28 00:00:00', '2010-06-07 00:00:00']})
+    # test_phab['sampledate'] = pd.to_datetime(test_phab['sampledate'])
+
+    missing_phab_data_info = check_missing_phab_data(taxonomysampleinfo, phab_data)
+    missing_phab_data_results = check_missing_phab_data(taxonomyresults, phab_data)
+
+    warnings.append(
+        checkData(
+            'tbl_taxonomysampleinfo', 
+                missing_phab_data_info[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_info[1])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
+        )
+    )  
+
+    warnings.append(
+        checkData(
+            'tbl_taxonomyresults', 
+                missing_phab_data_results[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
+        )
+    )  
+
+    # Check 3: Return warnings on submission dates mismatching with phab dates
+    mismatched_phab_date_info = check_mismatched_phab_date(taxonomysampleinfo, phab_data)
+    mismatched_phab_date_results = check_mismatched_phab_date(taxonomyresults, phab_data)
+
+    warnings.append(
+        checkData(
+            'tbl_taxonomysampleinfo', 
+                mismatched_phab_date_info[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_info[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+        )
+    )  
+
+    warnings.append(
+        checkData(
+            'tbl_taxonomyresults', 
+                mismatched_phab_date_results[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+        )
+    )  
 
     return {'errors': errs, 'warnings': warnings}
