@@ -90,7 +90,6 @@ def check_missing_phab_data(submission, phab_data):
     assert 'stationcode' in phab_data.columns, "'stationcode' is not a column in phab dataframe"
     assert 'sampledate' in phab_data.columns, "'sampledate' is not a column in phab dataframe"
     assert not submission.empty, "submission dataframe is empty"
-    assert not phab_data.empty, "phab dataframe is empty"
 
     # group by stationcode and sampledate, grab first row in each group, reset back to dataframe from pandas groupby object 
     submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
@@ -100,6 +99,8 @@ def check_missing_phab_data(submission, phab_data):
     # left join in case there is no record in the phab table for a particular stationcode 
     merge_sub_with_phab = pd.merge(submission_groupby, phab_data, how = 'left', on = 'stationcode', suffixes=("_sub", "_phab"))
 
+    merge_sub_with_phab['sampledate_sub'] = pd.to_datetime(merge_sub_with_phab['sampledate_sub'])
+    merge_sub_with_phab['sampledate_phab'] = pd.to_datetime(merge_sub_with_phab['sampledate_phab'])
     # boolean mask that checks if the years in the sampledate columns are the same
     is_same_year = merge_sub_with_phab['sampledate_sub'].dt.year == merge_sub_with_phab['sampledate_phab'].dt.year
     
@@ -119,7 +120,6 @@ def check_mismatched_phab_date(submission, phab_data):
     assert 'stationcode' in phab_data.columns, "'stationcode' is not a column in phab dataframe"
     assert 'sampledate' in phab_data.columns, "'sampledate' is not a column in phab dataframe"
     assert not submission.empty, "submission dataframe is empty"
-    assert not phab_data.empty, "phab dataframe is empty"
 
     # group by stationcode and sampledate, grab first row in each group, reset back to dataframe from pandas groupby object 
     submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
@@ -129,6 +129,8 @@ def check_mismatched_phab_date(submission, phab_data):
     # left join in case there is no record in the phab table for a particular stationcode 
     merge_sub_with_phab = pd.merge(submission_groupby, phab_data, how = 'left', on = 'stationcode', suffixes=("_sub", "_phab"))
 
+    merge_sub_with_phab['sampledate_sub'] = pd.to_datetime(merge_sub_with_phab['sampledate_sub'])
+    merge_sub_with_phab['sampledate_phab'] = pd.to_datetime(merge_sub_with_phab['sampledate_phab'])
     # boolean mask that checks if the years in the sampledate columns are the same
     is_same_year = merge_sub_with_phab['sampledate_sub'].dt.year == merge_sub_with_phab['sampledate_phab'].dt.year
     # boolean mask that checks if the dates in the sampledate columns are the same
