@@ -1,4 +1,4 @@
-#FROM debian:latest
+#FROM ubuntu:latest
 FROM debian:sid
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update 
@@ -40,17 +40,34 @@ RUN pip3 install pandas_access
 #RUN pip3 install opencv-python
 
 # Install what we need for the analysis indices
-RUN apt-get install r-base
+RUN apt-get install -y r-base
+RUN apt-get install -y git
 WORKDIR /tmp
 RUN git clone https://github.com/SCCWRP/CSCI
 RUN git clone https://github.com/SCCWRP/ASCI
 RUN git clone https://github.com/SCCWRP/PHAB
 RUN git clone https://github.com/SCCWRP/PHABMetrics
+RUN git clone https://github.com/SCCWRP/BMIMetrics
 
+# Install dependencies
+# CSCI dependencies
+RUN Rscript -e 'install.packages(c("randomForest", "reshape2", "ggplot2", "mapproj", "maps", "plyr", "stringr", "vegan"))'
+
+# ASCI dependencies (minus the ones already installed for CSCI)
+RUN Rscript -e 'install.packages(c("dplyr", "magrittr", "purrr", "quantregForest",  "tibble", "tidyr", "glue"))'
+
+# PHABMetrics dependencies (minus the ones installed for the previous packages)
+RUN Rscript -e 'install.packages("reshape")'
+
+# IPI (aka PHAB) dependencies (minus the ones installed for the previous packages)
+# All dependencies are already installed
+
+# BMIMetrics is a dependency for CSCI so it must be installed before CSCI
+RUN R CMD INSTALL --no-multiarch --with-keep.source BMIMetrics
 RUN R CMD INSTALL --no-multiarch --with-keep.source CSCI
 RUN R CMD INSTALL --no-multiarch --with-keep.source ASCI
-RUN R CMD INSTALL --no-multiarch --with-keep.source PHAB
 RUN R CMD INSTALL --no-multiarch --with-keep.source PHABMetrics
+RUN R CMD INSTALL --no-multiarch --with-keep.source PHAB
 
 
 RUN mkdir -p /var/www/checker/
