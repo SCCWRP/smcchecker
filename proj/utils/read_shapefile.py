@@ -32,7 +32,7 @@ def read_shapefile(path):
 
 
 def build_all_dfs_from_sf(path_to_shapefiles):
-    all_dfs = {'gissites':'', 'giscatchments':''}
+    all_dfs = {'gissites':''}
     print(path_to_shapefiles)
 
     for zipfile in list(path_to_shapefiles.glob('*.*')):
