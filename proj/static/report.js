@@ -7,6 +7,13 @@ const buildReport = (res) => {
     document.getElementById("submission-type").innerHTML = res.match_dataset ? res.match_dataset : "Undetermined (<strong>Unable to match submission with any data type</strong>)";
     console.log(res.match_report)
 
+    // Rafi wants to change this so the notification makes sense
+    if (document.getElementById("submission-type").innerHTML == 'Shapefile Submission'){
+        excelOrSDF = 'submitted spatial dataframe'
+    } else {
+        excelOrSDF = 'Excel tab'
+    }
+
     document.getElementById("tab-table-comparison-list").innerHTML = res.match_report.map(
         r => {
             s = r.tablename ? 
@@ -14,17 +21,17 @@ const buildReport = (res) => {
             `<li class="list-group-item">
                 <div class="card">
                     <div class="card-header">
-                        <span class="table-not-matched">UNABLE TO MATCH</span> Excel sheet ${r.sheetname} with any table (<strong><u>most closely matched ${r.closest_tbl}</u></strong>)
+                        <span class="table-not-matched">UNABLE TO MATCH</span> ${excelOrSDF} ${r.sheetname} with any table (<strong><u>most closely matched ${r.closest_tbl}</u></strong>)
                     </div> 
                     <div class="card-body">
                         <!--<ul>-->
                             <!--<li class="list-group-item">-->
-                                <p>In database table ${r.closest_tbl} but <em><u>not</u></em> Excel tab ${r.sheetname}:</p>
+                                <p>In database table ${r.closest_tbl} but <em><u>not</u></em> ${excelOrSDF} ${r.sheetname}:</p>
                                 <p>${r.in_table_not_tab}</p>
                                 <hr>
                             <!--</li>-->
                             <!--<li class="list-group-item">-->
-                                <p>In Excel tab ${r.sheetname} but <em><u>not</u></em> database table ${r.closest_tbl}:</p>
+                                <p>In ${excelOrSDF} ${r.sheetname} but <em><u>not</u></em> database table ${r.closest_tbl}:</p>
                                 <p>${r.in_tab_not_table}</p>
                             <!--</li> -->
                         <!--</ul>-->
