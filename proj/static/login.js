@@ -64,9 +64,17 @@
 
 
     document.getElementById('datatype-select')?.addEventListener('change', function(e){
+
         Array.from(document.getElementsByClassName('login-form')).forEach(loginForm => {
             loginForm.classList.add('hidden');
         })
         document.getElementById(`${this.value}-login-form`).classList.remove('hidden');
+        
+        if (document.getElementById('datatype-select').value == 'shapefile'){
+            document.getElementById('link-download-shapefile-page').classList.remove('hidden')
+        } else {
+            document.getElementById('link-download-shapefile-page').classList.add('hidden')
+        }
+        
     })
 }

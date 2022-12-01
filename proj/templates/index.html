@@ -85,11 +85,17 @@ i
                   </div>  
                   <br>
                   {% endfor %}
-                
+                  
+                  <br>
                   <div class="login-input-container form form-group" id="login-form-submit-btn-container">
                     <button class="btn btn-secondary" type="submit">Sign in</button>
                   </div>
                 </form>
+                
+                <div class='link-download-shapefile-page-container hidden' id="link-download-shapefile-page">
+                  <a href="https://nexus.sccwrp.org/smcchecker/downloadsf">Click this link to go to the download page for shapefile submission</a>
+                </div>
+                
               </div>
               {%endfor%}
             </div>
@@ -97,6 +103,7 @@ i
           </div>
         </div>
       </div>
+
       <!--End login screen-->
       {% else %}
       <script src="{{url_for('static', filename='drop.js')}}"></script>

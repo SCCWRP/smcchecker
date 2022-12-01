@@ -1,6 +1,7 @@
 import os
-from flask import send_file, Blueprint, jsonify, request, g, current_app
+from flask import send_file, Blueprint, jsonify, request, g, current_app, render_template
 from pandas import read_sql
+import pandas as pd
 
 download = Blueprint('download', __name__)
 @download.route('/download/<submissionid>/<filename>', methods = ['GET','POST'])
@@ -37,3 +38,32 @@ def template_file():
 
     else:
         return jsonify(message = "neither a filename nor a database tablename were provided")
+
+
+@download.route('/downloadsf', methods = ['GET'])
+def download_shapefile():
+    print("download shapefile route")
+    
+    login_agencies = pd.read_sql("SELECT DISTINCT login_agency from gissites", g.eng).login_agency.values
+
+
+    return render_template("downloadsf.html", login_agencies=login_agencies)
+
+@download.route('/getmasterid', methods = ['POST','GET'])
+def get_masterid():
+    
+    agency = request.form.get('selected_agency')
+    masterids = pd.read_sql(f"SELECT DISTINCT masterid from gissites where login_agency = '{agency}'", g.eng).masterid.tolist()
+
+    return jsonify(masterids=masterids)
+
+@download.route('/getdownloadlink', methods = ['POST','GET'])
+def get_download_link():
+    print("download shapefile route")
+    
+    agency = request.form.get('selected_agency')
+    masterid = request.form.get('masterid')
+
+    dl_link = pd.read_sql(f"SELECT download_url FROM gissites where masterid = '{masterid}' and login_agency = '{agency}'", g.eng).download_url.iloc[0]
+
+    return jsonify(dl_link=dl_link)
