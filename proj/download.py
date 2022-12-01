@@ -64,6 +64,7 @@ def get_download_link():
     agency = request.form.get('selected_agency')
     masterid = request.form.get('masterid')
 
-    dl_link = pd.read_sql(f"SELECT download_url FROM gissites where masterid = '{masterid}' and login_agency = '{agency}'", g.eng).download_url.iloc[0]
+    dl_link_sites = pd.read_sql(f"SELECT download_url FROM gissites where masterid = '{masterid}' and login_agency = '{agency}'", g.eng).download_url.iloc[0]
+    dl_link_catchments = pd.read_sql(f"SELECT download_url FROM giscatchments where masterid = '{masterid}' and login_agency = '{agency}'", g.eng).download_url.iloc[0]
 
-    return jsonify(dl_link=dl_link)
+    return jsonify(dl_link_sites=dl_link_sites, dl_link_catchments=dl_link_catchments)

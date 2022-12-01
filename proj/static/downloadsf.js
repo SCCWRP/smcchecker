@@ -1,6 +1,5 @@
 document.getElementById("agency-sf").addEventListener("change",
 async function(e){
-    console.log("changed")
     let selectedAgency = document.getElementById("agency-sf").value
     
     formData = new FormData()
@@ -33,8 +32,11 @@ document.getElementById("masterid-sf").addEventListener("change", async function
     });
         
     let data = await resp.json()
-    let downLoadLink = data['dl_link']
+    
+    let downLoadLinkSites = data['dl_link_sites']
+    let downLoadLinkCatchments = data['dl_link_catchments']
 
-    document.getElementById("download-button-sf").setAttribute("onclick", `location.href='${downLoadLink}'` )
+    document.getElementById("download-button-sf-sites").setAttribute("onclick", `location.href='${downLoadLinkSites}'` )
+    document.getElementById("download-button-sf-catchments").setAttribute("onclick", `location.href='${downLoadLinkCatchments}'` )
 
 })

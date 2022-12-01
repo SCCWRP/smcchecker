@@ -2,32 +2,54 @@
 <html>
 
 <body>
-    
-    <div>
-        <label for="agency-sf">Choose an agency:</label>
+    <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
 
-        <select name="agency-sf" id="agency-sf">
-            <option value="" disabled selected>Select your agency</option>
-            {% for login_agency in login_agencies %}
-            <option value="{{login_agency}}">{{login_agency}}</option>
-            {% endfor %}
-        </select>
+    <div class="container" id="main-outer-container">
+        <div class="card inner-container">
+            <div class="card-body">
+                
+                <div class="card-header">
+                    Shapefile Download Tool
+                  </div>
 
+                <div>
+                    <label for="agency-sf">Choose an agency: </label>
+                    <select name="agency-sf" id="agency-sf">
+                        <option value="" disabled selected>Select your agency</option>
+                        {% for login_agency in login_agencies %}
+                        <option value="{{login_agency}}">{{login_agency}}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+                
+                <br>
+
+                <div>
+                    <label for="masterid-sf">Choose a MasterID: </label>
+
+                    <select id="masterid-sf">
+                    </select>
+                </div>
+                
+                <br>
+                
+                <div>
+                    <button id="download-button-sf-sites">
+                        Download shapefile for sites
+                    </button>
+
+                    <button id="download-button-sf-catchments">
+                        Download shapefile for catchments
+                    </button>
+
+                </div>
+            
+            </div>
+        </div>
     </div>
-
-    <div>
-        <label for="masterid-sf">Choose a MasterID:</label>
-
-        <select id="masterid-sf">
-        </select>
-    </div>
-
-    <div>
-        <button id="download-button-sf">
-            Download Shapefile
-        </button>
-    </div>
-
 </body>
 <script src="{{url_for('static', filename='downloadsf.js')}}"></script>
+
 </html>
