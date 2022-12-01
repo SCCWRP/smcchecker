@@ -13,7 +13,7 @@ async function(e){
     let data = await resp.json()
     let masterids = data['masterids']
 
-    var contentString = ` <option value="" disabled selected>Select MasterID</option>`
+    var contentString = ` <option value="" disabled selected></option>`
     Array.from(masterids).forEach(item => {
         contentString += `<option value= "${item}"> ${item}</option>`
     })
@@ -36,6 +36,7 @@ document.getElementById("masterid-sf").addEventListener("change", async function
     let downLoadLinkSites = data['dl_link_sites']
     let downLoadLinkCatchments = data['dl_link_catchments']
 
+    document.querySelector(".download-button-container").classList.remove("hidden")
     document.getElementById("download-button-sf-sites").setAttribute("onclick", `location.href='${downLoadLinkSites}'` )
     document.getElementById("download-button-sf-catchments").setAttribute("onclick", `location.href='${downLoadLinkCatchments}'` )
 

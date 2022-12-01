@@ -16,7 +16,7 @@
                 <div>
                     <label for="agency-sf">Choose an agency: </label>
                     <select name="agency-sf" id="agency-sf">
-                        <option value="" disabled selected>Select your agency</option>
+                        <option value="" disabled selected></option>
                         {% for login_agency in login_agencies %}
                         <option value="{{login_agency}}">{{login_agency}}</option>
                         {% endfor %}
@@ -35,7 +35,7 @@
                 
                 <br>
                 
-                <div>
+                <div class="download-button-container hidden">
                     <button id="download-button-sf-sites">
                         Download shapefile for sites
                     </button>
