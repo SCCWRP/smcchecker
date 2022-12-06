@@ -111,6 +111,7 @@ def process_sf():
                 }
             )
         table_to_tab_map[k] = k
+        
     # ------------------------------------------------------------------------ #
     matched_all_tables = all(matched_all_tables)
     
@@ -119,7 +120,7 @@ def process_sf():
     warnings = []
     
     
-    
+    print(matched_all_tables)
     # ------------------ CUSTOM CHECK ----------------------- #
     print("Custom Checks")
     # custom output should be a dictionary where errors and warnings are the keys and the values are a list of "errors" 
@@ -128,36 +129,37 @@ def process_sf():
     
     # The custom checks function is stored in __init__.py in the datasets dictionary and accessed and called accordingly
     # match_dataset is a string, which should also be the same as one of the function names imported from custom, so we can "eval" it
-    try:
-        custom_output = shapefile(all_dfs)
-    except NameError as err:
-        raise Exception("Error calling custom checks function for shapefile submission- may not be defined, or was not imported correctly.")
-    
-    print("custom_output: ")
-    print(custom_output)
-    #example
-    #map_output = current_app.datasets.get(match_dataset).get('map_function')(all_dfs)
+    if matched_all_tables == True: 
+        try:
+            custom_output = shapefile(all_dfs)
+        except NameError as err:
+            raise Exception("Error calling custom checks function for shapefile submission- may not be defined, or was not imported correctly.")
+        
+        print("custom_output: ")
+        print(custom_output)
+        #example
+        #map_output = current_app.datasets.get(match_dataset).get('map_function')(all_dfs)
 
-    assert isinstance(custom_output, dict), \
-        "custom output is not a dictionary. custom function is not written correctly"
-    assert set(custom_output.keys()) == {'errors','warnings'}, \
-        "Custom output dictionary should have keys which are only 'errors' and 'warnings'"
+        assert isinstance(custom_output, dict), \
+            "custom output is not a dictionary. custom function is not written correctly"
+        assert set(custom_output.keys()) == {'errors','warnings'}, \
+            "Custom output dictionary should have keys which are only 'errors' and 'warnings'"
 
-    # tack on errors and warnings
-    # errs and warnings are lists initialized in the Core Checks section (above)
-    errs.extend(custom_output.get('errors'))
-    warnings.extend(custom_output.get('warnings'))
+        # tack on errors and warnings
+        # errs and warnings are lists initialized in the Core Checks section (above)
+        errs.extend(custom_output.get('errors'))
+        warnings.extend(custom_output.get('warnings'))
 
-    errs = [e for e in errs if len(e) > 0]
-    warnings = [w for w in warnings if len(w) > 0]
+        errs = [e for e in errs if len(e) > 0]
+        warnings = [w for w in warnings if len(w) > 0]
 
-    # commenting out errs and warnings print statements
-    #print("errs")
-    #print(errs)
-    #print("warnings")
-    #print(warnings)
+        # commenting out errs and warnings print statements
+        #print("errs")
+        #print(errs)
+        #print("warnings")
+        #print(warnings)
 
-    print("DONE - Custom Checks")
+        print("DONE - Custom Checks")
 
 #     # These are the values we are returning to the browser as a json
 #     # https://pics.me.me/code-comments-be-like-68542608.png

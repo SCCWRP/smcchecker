@@ -19,8 +19,11 @@ def shapefile(all_dfs):
         f"""In function {current_function_name} - {expectedtables - set(all_dfs.keys())} not found in keys of all_dfs ({','.join(all_dfs.keys())})"""
 
 
-    sites = all_dfs['sites']
-    catchments = all_dfs['catchments']
+    sites = all_dfs['gissites'].get('data')
+    catchments = all_dfs['giscatchments'].get('data')
+
+    print(sites)
+    print(catchments)
 
     # define errors and warnings list
     errs = []
@@ -57,6 +60,7 @@ def shapefile(all_dfs):
     db_recs = db_recs.assign(already_in_db = True)
     
     # Check Sites
+    pkey = ['masterid']
     merged = sites.merge(db_recs, on = pkey, how = 'left')
     args.update({
         "dataframe": sites,
