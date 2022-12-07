@@ -55,8 +55,11 @@ def index():
         );
         """
     )
-    
-    return render_template('index.html', projectname = current_app.project_name, dtypes = current_app.datasets, login_info = False )
+
+    print(current_app.datasets)
+
+    #return render_template('index.html', projectname = current_app.project_name, dtypes = current_app.datasets, login_info = False )
+    return render_template('index.html', projectname = current_app.project_name, dtypes = {k:current_app.datasets.get(k) for k in current_app.datasets.keys() if k == 'shapefile'}, login_info = False )
 
 
 @homepage.route('/login_values')

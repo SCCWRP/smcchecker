@@ -54,7 +54,7 @@ def get_masterid():
     
     agency = request.form.get('selected_agency')
     masterids = pd.read_sql(f"SELECT DISTINCT masterid from gissites where login_agency = '{agency}'", g.eng).masterid.tolist()
-
+    masterids.sort()
     return jsonify(masterids=masterids)
 
 @download.route('/getdownloadlink', methods = ['POST','GET'])
