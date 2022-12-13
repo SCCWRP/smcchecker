@@ -7,6 +7,8 @@ import pandas as pd
 from pathlib import Path
 from .utils.read_shapefile import build_all_dfs_from_sf
 from .utils.exceptions import default_exception_handler
+from .core.functions import fetch_meta
+from .core.core import core
 from .custom.shapefile_custom import shapefile
 
 
@@ -121,8 +123,7 @@ def process_sf():
     
     
     print(matched_all_tables)
-    # ------------------ CUSTOM CHECK ----------------------- #
-    print("Custom Checks")
+
     # custom output should be a dictionary where errors and warnings are the keys and the values are a list of "errors" 
     # initialize errors and warnings
     # (structured the same way as errors are as seen in core checks section)
@@ -130,36 +131,61 @@ def process_sf():
     # The custom checks function is stored in __init__.py in the datasets dictionary and accessed and called accordingly
     # match_dataset is a string, which should also be the same as one of the function names imported from custom, so we can "eval" it
     if matched_all_tables == True: 
-        try:
-            custom_output = shapefile(all_dfs)
-        except NameError as err:
-            raise Exception("Error calling custom checks function for shapefile submission- may not be defined, or was not imported correctly.")
-        
-        print("custom_output: ")
-        print(custom_output)
-        #example
-        #map_output = current_app.datasets.get(match_dataset).get('map_function')(all_dfs)
 
-        assert isinstance(custom_output, dict), \
-            "custom output is not a dictionary. custom function is not written correctly"
-        assert set(custom_output.keys()) == {'errors','warnings'}, \
-            "Custom output dictionary should have keys which are only 'errors' and 'warnings'"
+        #meta data is needed for the core checks to run, to check precision, length, datatypes, etc
+        dbmetadata = {
+            tblname: fetch_meta(tblname, g.eng)
+            for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
+        }
 
-        # tack on errors and warnings
-        # errs and warnings are lists initialized in the Core Checks section (above)
-        errs.extend(custom_output.get('errors'))
-        warnings.extend(custom_output.get('warnings'))
+    
+        # tack on core errors to errors list
+        # debug = False will cause corechecks to run with multiprocessing, 
+        # but the logs will not show as much useful information
+        print("Right before core runs")
+        #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
 
-        errs = [e for e in errs if len(e) > 0]
-        warnings = [w for w in warnings if len(w) > 0]
+        all_dfs_data = {
+            k: all_dfs.get(k).get('data').drop(columns=['shape'])
+            for k in all_dfs.keys()
+        }
+        core_output = core(all_dfs_data, g.eng, dbmetadata, debug = True)
 
-        # commenting out errs and warnings print statements
-        #print("errs")
-        #print(errs)
-        #print("warnings")
-        #print(warnings)
+        errs.extend(core_output['core_errors'])
+        warnings.extend(core_output['core_warnings'])
 
-        print("DONE - Custom Checks")
+        if len(errs) == 0:
+            
+            try:
+                custom_output = shapefile(all_dfs)
+            except NameError as err:
+                raise Exception("Error calling custom checks function for shapefile submission- may not be defined, or was not imported correctly.")
+            
+            print("custom_output: ")
+            print(custom_output)
+            #example
+            #map_output = current_app.datasets.get(match_dataset).get('map_function')(all_dfs)
+
+            assert isinstance(custom_output, dict), \
+                "custom output is not a dictionary. custom function is not written correctly"
+            assert set(custom_output.keys()) == {'errors','warnings'}, \
+                "Custom output dictionary should have keys which are only 'errors' and 'warnings'"
+
+            # tack on errors and warnings
+            # errs and warnings are lists initialized in the Core Checks section (above)
+            errs.extend(custom_output.get('errors'))
+            warnings.extend(custom_output.get('warnings'))
+
+            errs = [e for e in errs if len(e) > 0]
+            warnings = [w for w in warnings if len(w) > 0]
+
+            # commenting out errs and warnings print statements
+            #print("errs")
+            #print(errs)
+            #print("warnings")
+            #print(warnings)
+
+            print("DONE - Custom Checks")
 
 #     # These are the values we are returning to the browser as a json
 #     # https://pics.me.me/code-comments-be-like-68542608.png

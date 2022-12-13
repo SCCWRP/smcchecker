@@ -34,7 +34,7 @@ def shapefile(all_dfs):
     # we assign dataframes of all_dfs to variables and go from there
     # This is the convention that was followed in the old checker
     
-    ## Check if the masterid in lu_stations
+    # Check if the masterid in lu_stations
     lu_stations = pd.read_sql("SELECT masterid from lu_stations", g.eng).masterid.to_list()
     for key in all_dfs:
         print(key)
@@ -54,38 +54,7 @@ def shapefile(all_dfs):
         errs = [*errs, checkData(**args)]
     print("check ran -  Check if the masterid in lu_stations") 
 
-    # Check if they have already submitted the shapefiles (similar to the duplicated record check) based on the primary keys
-    db_recs = pd.read_sql("SELECT DISTINCT masterid, new_lat, new_long from gissites",g.eng)
-
-    db_recs = db_recs.assign(already_in_db = True)
-    
-    # Check Sites
-    pkey = ['masterid']
-    merged = sites.merge(db_recs, on = pkey, how = 'left')
-    args.update({
-        "dataframe": sites,
-        "tablename": "gissites",
-        "badrows": merged[merged.already_in_db == True].index.tolist(), 
-        "badcolumn": "masterid, new_lat, new_long",
-        "error_type": "Logic Error",
-        "error_message": "You have already submitted this station to the database"
-    })
-    errs = [*errs, checkData(**args)]
-    
-    # Check Catchments
-    merged = catchments.merge(db_recs, on = pkey, how = 'left')
-    args.update({
-        "dataframe": catchments,
-        "tablename": "giscatchments",
-        "badrows": merged[merged.already_in_db == True].index.tolist(), 
-        "badcolumn": "masterid, new_lat, new_long",
-        "error_type": "Logic Error",
-        "error_message": "You have already submitted this station to the database"
-    })
-    errs = [*errs, checkData(**args)]    
-
-    # Check stationcode should match between site and catchment shapefile
-    
+    ## Check masterid should match between site and catchment shapefile
     badrows = pd.merge(
         sites.assign(tmp_row=sites.index),
         catchments, 
@@ -94,14 +63,14 @@ def shapefile(all_dfs):
         indicator='in_which_df'
     ).query("in_which_df == 'left_only'").get('tmp_row').tolist()
     
-    args.update({
+    args = {
         "dataframe": sites,
         "tablename": "gissites",
         "badrows": badrows, 
         "badcolumn": "masterid",
         "error_type": "Logic Error",
         "error_message": "These stations are in sites but not in catchments"
-    })
+    }
     errs = [*errs, checkData(**args)]
     
     ####

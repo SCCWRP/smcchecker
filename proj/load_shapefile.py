@@ -11,17 +11,21 @@ from psycopg2.errors import ForeignKeyViolation
 from pathlib import Path
 import pandas as pd
 import json, os
+from arcgis.geometry import Point, Polyline, Polygon, Geometry
+from arcgis.geometry import lengths, areas_and_lengths, project
+from arcgis.gis import GIS
 
 
 sfloading = Blueprint('sfloading', __name__)
 @sfloading.route('/sfloading', methods = ['GET','POST'])
 def load_sf():
-
-    # This was put in because there was a bug on the JS side where the form was submitting twice, causing data to attempt to load twice, causing a critical error
     print("REQUEST MADE TO /loadsf")
+    
+    # Creates a GIS connection
+    gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html",os.environ.get('ARCGIS_USER'),os.environ.get('ARCGIS_PASSWORD'))
+    
     path_to_shapefiles = Path(session['excel_path']).parent
 
-    
     url_list_dict = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")
     # Now load the data to our db
     all_dfs = build_all_dfs_from_sf(path_to_shapefiles)
@@ -29,6 +33,7 @@ def load_sf():
     
     for tbl in all_dfs:
         df = all_dfs[tbl].get('data')
+        
         if tbl == 'gissites': 
             df = df.assign(
                 shape = df.apply(
@@ -37,18 +42,8 @@ def load_sf():
                     axis=1
             ))
         else:
-            df['shape'] = df['shape'].apply(
-                lambda cell: {
-                    'rings':
-                        [
-                            list(
-                                map(convert_coor, cell.get('rings')[0]) # cell.get('rings') always have 1 element
-                            )
-                        ], 
-                    'spatialReference': {'wkid': 4326}
-                }
-            )
-
+            df['shape'] = pd.Series(project(geometries=df['shape'].tolist(), in_sr=3857, out_sr=4326))
+            print(df['shape'])
             df['shape'] = df["shape"].apply(
                 lambda cell: ",".join(
                     [
@@ -62,6 +57,8 @@ def load_sf():
         df = df.assign(
             objectid = f"sde.next_rowid('sde','{tbl}')",
             globalid = "sde.next_globalid()",
+            login_email = session.get('login_info').get('login_email'),
+            login_agency = session.get('login_info').get('login_agency'),
             created_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
             created_user = session.get('login_info').get('login_email'),
             last_edited_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
@@ -92,16 +89,16 @@ def load_sf():
     return jsonify(user_error_message='Loaded successfully')
 
 # # When an exception happens when the browser is sending requests to the finalsubmit blueprint, this routine runs
-# @finalsubmit.errorhandler(Exception)
-# def finalsubmit_error_handler(error):
-#     response = default_exception_handler(
-#         mail_from = current_app.mail_from,
-#         errmsg = str(error),
-#         maintainers = current_app.maintainers,
-#         project_name = current_app.project_name,
-#         attachment = session.get('excel_path'),
-#         login_info = session.get('login_info'),
-#         submissionid = session.get('submissionid'),
-#         mail_server = current_app.config['MAIL_SERVER']
-#     )
-#     return response
+@sfloading.errorhandler(Exception)
+def sfloading_error_handler(error):
+    response = default_exception_handler(
+        mail_from = current_app.mail_from,
+        errmsg = str(error),
+        maintainers = current_app.maintainers,
+        project_name = current_app.project_name,
+        attachment = session.get('excel_path'),
+        login_info = session.get('login_info'),
+        submissionid = session.get('submissionid'),
+        mail_server = current_app.config['MAIL_SERVER']
+    )
+    return response

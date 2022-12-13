@@ -43,7 +43,7 @@ def build_all_dfs_from_sf(path_to_shapefiles):
         df.drop(columns=['index','objectid'],inplace=True)
         if all(df['shape'].geom.geometry_type == 'point'):
             
-            df['snapdist_m'] = ''
+            df['snapdist_m'] = -88
             
             info = {
                 'filename': Path(zipfile).name,
