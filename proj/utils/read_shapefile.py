@@ -42,28 +42,19 @@ def build_all_dfs_from_sf(path_to_shapefiles):
         df.columns = list(map(str.lower, df.columns))
         df.drop(columns=['index','objectid'],inplace=True)
         if all(df['shape'].geom.geometry_type == 'point'):
-            df.rename(columns = {
-                'stationcod':'stationcode',
-                'snapcommen':'snapcomments',
-                'snapdistan':'snapdistance'
-            }, inplace=True)
+            
+            df['snapdist_m'] = ''
+            
             info = {
                 'filename': Path(zipfile).name,
                 'geom_type':'point',
                 'data': df
             }
+            
             all_dfs['gissites'] = info
 
         elif all(df['shape'].geom.geometry_type == 'polygon'):
-            df.rename(
-                columns = {
-                    'stationcod': 'stationcode',
-                    'delinmetho': 'delinmethod',
-                    'delinmet_1': 'delinmethodcomments',
-                    'delincomme': 'delincomments'
-                },
-                inplace=True
-            )
+            
             info = {
                 'filename': Path(zipfile).name,
                 'geom_type':'polygon',

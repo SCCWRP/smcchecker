@@ -49,7 +49,7 @@ def shapefile(all_dfs):
             "badcolumn": "masterid",
             "error_type": "Lookup Failed",
             "is_core_error": False,
-            "error_message": f"Stations ({','.join(df[~df['masterid'].isin(lu_stations)].masterid.tolist())}) not found in lookup list"
+            "error_message": f"Stations not found in lookup list lu_stations"
         }
         errs = [*errs, checkData(**args)]
     print("check ran -  Check if the masterid in lu_stations") 
@@ -78,7 +78,7 @@ def shapefile(all_dfs):
         "dataframe": catchments,
         "tablename": "giscatchments",
         "badrows": merged[merged.already_in_db == True].index.tolist(), 
-        "badcolumn": "masterid",
+        "badcolumn": "masterid, new_lat, new_long",
         "error_type": "Logic Error",
         "error_message": "You have already submitted this station to the database"
     })
