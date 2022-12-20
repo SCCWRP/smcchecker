@@ -124,13 +124,7 @@ def process_sf():
     
     print(matched_all_tables)
 
-    # custom output should be a dictionary where errors and warnings are the keys and the values are a list of "errors" 
-    # initialize errors and warnings
-    # (structured the same way as errors are as seen in core checks section)
-    
-    # The custom checks function is stored in __init__.py in the datasets dictionary and accessed and called accordingly
-    # match_dataset is a string, which should also be the same as one of the function names imported from custom, so we can "eval" it
-    if matched_all_tables == True: 
+    if matched_all_tables: 
 
         #meta data is needed for the core checks to run, to check precision, length, datatypes, etc
         dbmetadata = {
@@ -143,7 +137,6 @@ def process_sf():
         # debug = False will cause corechecks to run with multiprocessing, 
         # but the logs will not show as much useful information
         print("Right before core runs")
-        #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
 
         all_dfs_data = {
             k: all_dfs.get(k).get('data').drop(columns=['shape'])

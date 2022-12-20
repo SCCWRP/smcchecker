@@ -35,24 +35,24 @@ def shapefile(all_dfs):
     # This is the convention that was followed in the old checker
     
     # Check if the masterid in lu_stations
-    lu_stations = pd.read_sql("SELECT masterid from lu_stations", g.eng).masterid.to_list()
-    for key in all_dfs:
-        print(key)
-        df = all_dfs[key].get('data')
-        print(df.columns)
-        print(df[~df['masterid'].isin(lu_stations)].index.tolist())
-        badrows = df[~df['masterid'].isin(lu_stations)].index.tolist()
-        args = {
-            "dataframe": key,
-            "tablename": key,
-            "badrows": badrows,
-            "badcolumn": "masterid",
-            "error_type": "Lookup Failed",
-            "is_core_error": False,
-            "error_message": f"Stations not found in lookup list lu_stations"
-        }
-        errs = [*errs, checkData(**args)]
-    print("check ran -  Check if the masterid in lu_stations") 
+    # lu_stations = pd.read_sql("SELECT masterid from lu_stations", g.eng).masterid.to_list()
+    # for key in all_dfs:
+    #     print(key)
+    #     df = all_dfs[key].get('data')
+    #     print(df.columns)
+    #     print(df[~df['masterid'].isin(lu_stations)].index.tolist())
+    #     badrows = df[~df['masterid'].isin(lu_stations)].index.tolist()
+    #     args = {
+    #         "dataframe": key,
+    #         "tablename": key,
+    #         "badrows": badrows,
+    #         "badcolumn": "masterid",
+    #         "error_type": "Lookup Failed",
+    #         "is_core_error": False,
+    #         "error_message": f"Stations not found in lookup list lu_stations"
+    #     }
+    #     errs = [*errs, checkData(**args)]
+    # print("check ran -  Check if the masterid in lu_stations") 
 
     ## Check masterid should match between site and catchment shapefile
     badrows = pd.merge(
