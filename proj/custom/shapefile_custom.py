@@ -1,10 +1,12 @@
-# Dont touch this file! This is intended to be a template for implementing new custom checks
-
 from inspect import currentframe
 from flask import current_app, g
 from .functions import checkData
 import pandas as pd
-
+from arcgis.geometry import lengths, areas_and_lengths, project,distance
+from arcgis.geometry.filters import within, contains
+from arcgis.geometry import Point, Polyline, Polygon
+from arcgis.gis import GIS
+import os
 
 def shapefile(all_dfs):
     
@@ -32,6 +34,7 @@ def shapefile(all_dfs):
     errs = []
     warnings = []
 
+    gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html",os.environ.get('ARCGIS_USER'),os.environ.get('ARCGIS_PASSWORD'))
 
     # since often times checks are done by merging tables (Paul calls those logic checks)
     # we assign dataframes of all_dfs to variables and go from there
@@ -58,24 +61,29 @@ def shapefile(all_dfs):
     print("check ran -  Check if the masterid in lu_stations") 
 
     ## Check if the points are in the polygon
-    merged = sites[['masterid','tmp_row','SHAPE']].rename(columns={'SHAPE':'POINT_SHAPE'}).merge(
-        catchments[['masterid','SHAPE']].rename(columns={'SHAPE':'POLYGON_SHAPE'}), 
+    merged = sites[['masterid','tmp_row','shape']].rename(columns={'shape':'POINT_shape'}).merge(
+        catchments[['masterid','shape']].rename(columns={'shape':'POLYGON_shape'}), 
         on='masterid', 
         how='left'
     )
 
-    badrows = merged[~merged.apply(lambda x: Point(x['POINT_SHAPE']).within(Polygon(x['POLYGON_SHAPE'])), axis=1)]['tmp_row'].tolist()
-    args = {
-            "dataframe": 'gissite',
-            "tablename": 'gissite',
-            "badrows": badrows,
-            "badcolumn": "SHAPE",
-            "error_type": "Geometry Error",
-            "is_core_error": False,
-            "error_message": f"These points are not in their associated polygon based on masterid"
-        }
-    errs = [*errs, checkData(**args)]
-    
+    badrows = merged[~merged.apply(lambda x: Point(x['POINT_shape']).within(Polygon(x['POLYGON_shape'])), axis=1)]
+    if not badrows.empty:
+        print("inside if")
+        print(not badrows.empty)
+        badrows = badrows['tmp_row'].tolist()
+        args = {
+                "dataframe": 'gissite',
+                "tablename": 'gissite',
+                "badrows": badrows,
+                "badcolumn": "shape",
+                "error_type": "Geometry Error",
+                "is_core_error": False,
+                "error_message": f"These points are not in their associated polygon based on masterid"
+            }
+        errs = [*errs, checkData(**args)]
+    print("check ran -  Check if the points are in the polygon") 
+
     ## Check masterid should match between site and catchment shapefile
     badrows = pd.merge(
         sites.assign(tmp_row=sites.tmp_row),
@@ -83,17 +91,19 @@ def shapefile(all_dfs):
         on=['masterid'],
         how='left',
         indicator='in_which_df'
-    ).query("in_which_df == 'left_only'").get('tmp_row').tolist()
-    
-    args = {
-        "dataframe": sites,
-        "tablename": "gissites",
-        "badrows": badrows, 
-        "badcolumn": "masterid",
-        "error_type": "Logic Error",
-        "error_message": "These stations are in sites but not in catchments"
-    }
-    errs = [*errs, checkData(**args)]
+    ).query("in_which_df == 'left_only'")
+
+    if not badrows.empty:
+        badrows = badrows.get('tmp_row').tolist()
+        args = {
+            "dataframe": sites,
+            "tablename": "gissites",
+            "badrows": badrows, 
+            "badcolumn": "masterid",
+            "error_type": "Logic Error",
+            "error_message": "These stations are in sites but not in catchments"
+        }
+        errs = [*errs, checkData(**args)]
     
     badrows = pd.merge(
         catchments.assign(tmp_row=catchments.tmp_row),
@@ -101,39 +111,41 @@ def shapefile(all_dfs):
         on=['masterid'],
         how='left',
         indicator='in_which_df'
-    ).query("in_which_df == 'left_only'").get('tmp_row').tolist()
+    ).query("in_which_df == 'left_only'")
     
-    args.update({
-        "dataframe": catchments,
-        "tablename": "giscatchments",
-        "badrows": badrows, 
-        "badcolumn": "masterid",
-        "error_type": "Logic Error",
-        "error_message": "These stations are in catchments but not in sites"
-    })
-    errs = [*errs, checkData(**args)]
+    if not badrows.empty:
+        badrows = badrows.get('tmp_row').tolist()
+        args.update({
+            "dataframe": catchments,
+            "tablename": "giscatchments",
+            "badrows": badrows, 
+            "badcolumn": "masterid",
+            "error_type": "Logic Error",
+            "error_message": "These stations are in catchments but not in sites"
+        })
+        errs = [*errs, checkData(**args)]
     print("check ran -  Check stationcode should match between site and catchment shapefile")  
 
     ## Warning stationcode points should be no more than 300m from lu_station reference site
-    merged = pd.merge(lu_stations[['masterid','longitude','latitude']], sites, on='masterid', how='inner')
+    merged = pd.merge(pd.read_sql("SELECT masterid,longitude,latitude from lu_stations", g.eng)[['masterid','longitude','latitude']], sites, on='masterid', how='inner')
 
-    merged['LU_SHAPE'] = merged.apply(lambda x: Point({'x':x['longitude'],'y':x['latitude'],'spatialReference':{'wkid':4326}}), axis=1)
-    merged['LU_SHAPE']  = pd.Series(project(geometries=merged['LU_SHAPE'].tolist(), in_sr=4326, out_sr=3857))
+    merged['LU_shape'] = merged.apply(lambda x: Point({'x':x['longitude'],'y':x['latitude'],'spatialReference':{'wkid':4326}}), axis=1)
+    merged['LU_shape']  = pd.Series(project(geometries=merged['LU_shape'].tolist(), in_sr=4326, out_sr=3857))
 
     merged['distance_from_lu_reference_meters'] = merged.apply(
-        lambda x: distance(3857, x['LU_SHAPE'], x['SHAPE'], 9001, False).get('distance'), 
+        lambda x: distance(3857, x['LU_shape'], x['shape'], 9001, False).get('distance'), 
         axis=1
     )
 
-    badrows = merged[merged['distance_from_lu_reference'] > 300]['tmp_row'].tolist()
+    badrows = merged[merged['distance_from_lu_reference_meters'] > 300]['tmp_row'].tolist()
     args.update({
-        "dataframe": gissites,
+        "dataframe": sites,
         "tablename": "gissites",
         "badrows": badrows, 
-        "badcolumn": "SHAPE",
+        "badcolumn": "shape",
         "error_type": "Geometry Error",
         "error_message": "These stations are more than 300 meters away from their lookup station references."
     })
-    errs = [*errs, checkData(**args)]
-
+    warnings = [*warnings, checkData(**args)]
+    print("check ran -  Warning stationcode points should be no more than 300m from lu_station reference site")  
     return {'errors': errs, 'warnings': warnings}
