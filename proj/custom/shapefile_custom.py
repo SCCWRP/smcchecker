@@ -25,6 +25,9 @@ def shapefile(all_dfs):
     print(sites)
     print(catchments)
 
+    sites['tmp_row'] = sites.index
+    catchments['tmp_row'] = catchments.index
+
     # define errors and warnings list
     errs = []
     warnings = []
@@ -34,29 +37,48 @@ def shapefile(all_dfs):
     # we assign dataframes of all_dfs to variables and go from there
     # This is the convention that was followed in the old checker
     
-    # Check if the masterid in lu_stations
-    # lu_stations = pd.read_sql("SELECT masterid from lu_stations", g.eng).masterid.to_list()
-    # for key in all_dfs:
-    #     print(key)
-    #     df = all_dfs[key].get('data')
-    #     print(df.columns)
-    #     print(df[~df['masterid'].isin(lu_stations)].index.tolist())
-    #     badrows = df[~df['masterid'].isin(lu_stations)].index.tolist()
-    #     args = {
-    #         "dataframe": key,
-    #         "tablename": key,
-    #         "badrows": badrows,
-    #         "badcolumn": "masterid",
-    #         "error_type": "Lookup Failed",
-    #         "is_core_error": False,
-    #         "error_message": f"Stations not found in lookup list lu_stations"
-    #     }
-    #     errs = [*errs, checkData(**args)]
-    # print("check ran -  Check if the masterid in lu_stations") 
+    ## Check if the masterid in lu_stations
+    lu_stations = pd.read_sql("SELECT masterid from lu_stations", g.eng).masterid.to_list()
+    for key in all_dfs:
+        print(key)
+        df = all_dfs[key].get('data')
+        print(df.columns)
+        print(df[~df['masterid'].isin(lu_stations)].tmp_row.tolist())
+        badrows = df[~df['masterid'].isin(lu_stations)].tmp_row.tolist()
+        args = {
+            "dataframe": key,
+            "tablename": key,
+            "badrows": badrows,
+            "badcolumn": "masterid",
+            "error_type": "Lookup Failed",
+            "is_core_error": False,
+            "error_message": f"Stations not found in lookup list lu_stations"
+        }
+        errs = [*errs, checkData(**args)]
+    print("check ran -  Check if the masterid in lu_stations") 
 
+    ## Check if the points are in the polygon
+    merged = sites[['masterid','tmp_row','SHAPE']].rename(columns={'SHAPE':'POINT_SHAPE'}).merge(
+        catchments[['masterid','SHAPE']].rename(columns={'SHAPE':'POLYGON_SHAPE'}), 
+        on='masterid', 
+        how='left'
+    )
+
+    badrows = merged[~merged.apply(lambda x: Point(x['POINT_SHAPE']).within(Polygon(x['POLYGON_SHAPE'])), axis=1)]['tmp_row'].tolist()
+    args = {
+            "dataframe": 'gissite',
+            "tablename": 'gissite',
+            "badrows": badrows,
+            "badcolumn": "SHAPE",
+            "error_type": "Geometry Error",
+            "is_core_error": False,
+            "error_message": f"These points are not in their associated polygon based on masterid"
+        }
+    errs = [*errs, checkData(**args)]
+    
     ## Check masterid should match between site and catchment shapefile
     badrows = pd.merge(
-        sites.assign(tmp_row=sites.index),
+        sites.assign(tmp_row=sites.tmp_row),
         catchments, 
         on=['masterid'],
         how='left',
@@ -73,9 +95,8 @@ def shapefile(all_dfs):
     }
     errs = [*errs, checkData(**args)]
     
-    ####
     badrows = pd.merge(
-        catchments.assign(tmp_row=catchments.index),
+        catchments.assign(tmp_row=catchments.tmp_row),
         sites, 
         on=['masterid'],
         how='left',
@@ -93,5 +114,26 @@ def shapefile(all_dfs):
     errs = [*errs, checkData(**args)]
     print("check ran -  Check stationcode should match between site and catchment shapefile")  
 
+    ## Warning stationcode points should be no more than 300m from lu_station reference site
+    merged = pd.merge(lu_stations[['masterid','longitude','latitude']], sites, on='masterid', how='inner')
+
+    merged['LU_SHAPE'] = merged.apply(lambda x: Point({'x':x['longitude'],'y':x['latitude'],'spatialReference':{'wkid':4326}}), axis=1)
+    merged['LU_SHAPE']  = pd.Series(project(geometries=merged['LU_SHAPE'].tolist(), in_sr=4326, out_sr=3857))
+
+    merged['distance_from_lu_reference_meters'] = merged.apply(
+        lambda x: distance(3857, x['LU_SHAPE'], x['SHAPE'], 9001, False).get('distance'), 
+        axis=1
+    )
+
+    badrows = merged[merged['distance_from_lu_reference'] > 300]['tmp_row'].tolist()
+    args.update({
+        "dataframe": gissites,
+        "tablename": "gissites",
+        "badrows": badrows, 
+        "badcolumn": "SHAPE",
+        "error_type": "Geometry Error",
+        "error_message": "These stations are more than 300 meters away from their lookup station references."
+    })
+    errs = [*errs, checkData(**args)]
 
     return {'errors': errs, 'warnings': warnings}
