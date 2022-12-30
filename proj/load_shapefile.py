@@ -20,7 +20,7 @@ sfloading = Blueprint('sfloading', __name__)
 @sfloading.route('/sfloading', methods = ['GET','POST'])
 def load_sf():
     print("REQUEST MADE TO /loadsf")
-    
+
     # Creates a GIS connection
     gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html",os.environ.get('ARCGIS_USER'),os.environ.get('ARCGIS_PASSWORD'))
     
@@ -73,10 +73,10 @@ def load_sf():
     
     # Send email to user
     data_receipt(
-        send_from = 'admin@checker.sccwrp.org',
+        send_from = current_app.mail_from,
         always_send_to = current_app.maintainers,
         login_email = session.get('login_info').get('login_email'),
-        dtype = session.get('datatype'),
+        dtype = 'Shapefile',
         submissionid = session.get('submissionid'),
         originalfile = None,
         tables = all_dfs.keys(),
@@ -96,7 +96,7 @@ def sfloading_error_handler(error):
         errmsg = str(error),
         maintainers = current_app.maintainers,
         project_name = current_app.project_name,
-        attachment = session.get('excel_path'),
+        attachment = None,
         login_info = session.get('login_info'),
         submissionid = session.get('submissionid'),
         mail_server = current_app.config['MAIL_SERVER']

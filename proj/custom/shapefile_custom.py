@@ -40,7 +40,7 @@ def shapefile(all_dfs):
     # we assign dataframes of all_dfs to variables and go from there
     # This is the convention that was followed in the old checker
     
-    ## Check if the masterid in lu_stations
+    ## 1. Check if the masterid in lu_stations
     lu_stations = pd.read_sql("SELECT masterid from lu_stations", g.eng).masterid.to_list()
     for key in all_dfs:
         print(key)
@@ -60,7 +60,10 @@ def shapefile(all_dfs):
         errs = [*errs, checkData(**args)]
     print("check ran -  Check if the masterid in lu_stations") 
 
-    ## Check if the points are in the polygon
+    ## 2. Check they have already submitted the shapefiles (similar to the duplicate records in database check) based on the primary keys
+    ## Taken care of by core checks
+
+    ## 3. Check if the points are in the polygon
     merged = sites[['masterid','tmp_row','shape']].rename(columns={'shape':'POINT_shape'}).merge(
         catchments[['masterid','shape']].rename(columns={'shape':'POLYGON_shape'}), 
         on='masterid', 
@@ -69,8 +72,6 @@ def shapefile(all_dfs):
 
     badrows = merged[~merged.apply(lambda x: Point(x['POINT_shape']).within(Polygon(x['POLYGON_shape'])), axis=1)]
     if not badrows.empty:
-        print("inside if")
-        print(not badrows.empty)
         badrows = badrows['tmp_row'].tolist()
         args = {
                 "dataframe": 'gissite',
@@ -84,7 +85,7 @@ def shapefile(all_dfs):
         errs = [*errs, checkData(**args)]
     print("check ran -  Check if the points are in the polygon") 
 
-    ## Check masterid should match between site and catchment shapefile
+    ## 4.. Check masterid should match between site and catchment shapefile
     badrows = pd.merge(
         sites.assign(tmp_row=sites.tmp_row),
         catchments, 
@@ -126,7 +127,32 @@ def shapefile(all_dfs):
         errs = [*errs, checkData(**args)]
     print("check ran -  Check stationcode should match between site and catchment shapefile")  
 
-    ## Warning stationcode points should be no more than 300m from lu_station reference site
+    ## 5. Warning if the points are outside of California   
+    badrows = sites[(sites['new_long'] < -114.0430560959) | (sites['new_long'] > -124.5020404709)].tmp_row.tolist()
+    args.update({
+        "dataframe": sites,
+        "tablename": "gissites",
+        "badrows": badrows, 
+        "badcolumn": "new_long",
+        "error_type": "Geometry Error",
+        "error_message": "Your longitude coordinate is outside of California"
+    })
+    warnings = [*warnings, checkData(**args)]
+
+    badrows = sites[(sites['new_lat'] < 32.5008497379) | (sites['new_lat'] > 41.9924715343)].tmp_row.tolist()
+    args.update({
+        "dataframe": sites,
+        "tablename": "gissites",
+        "badrows": badrows, 
+        "badcolumn": "new_lat",
+        "error_type": "Geometry Error",
+        "error_message": "Your latitude coordinate is outside of California"
+    })
+    warnings = [*warnings, checkData(**args)]
+    print("check ran -  Warning if the points are outside of California ")
+
+
+    ## 6. Warning stationcode points should be no more than 300m from lu_station reference site
     merged = pd.merge(pd.read_sql("SELECT masterid,longitude,latitude from lu_stations", g.eng)[['masterid','longitude','latitude']], sites, on='masterid', how='inner')
 
     merged['LU_shape'] = merged.apply(lambda x: Point({'x':x['longitude'],'y':x['latitude'],'spatialReference':{'wkid':4326}}), axis=1)
@@ -148,4 +174,14 @@ def shapefile(all_dfs):
     })
     warnings = [*warnings, checkData(**args)]
     print("check ran -  Warning stationcode points should be no more than 300m from lu_station reference site")  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     return {'errors': errs, 'warnings': warnings}
