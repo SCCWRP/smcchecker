@@ -67,35 +67,38 @@ def shapefile(all_dfs):
     merged = sites[['masterid','tmp_row','shape']].rename(columns={'shape':'POINT_shape'}).merge(
         catchments[['masterid','shape']].rename(columns={'shape':'POLYGON_shape'}), 
         on='masterid', 
-        how='left'
+        how='inner'
     )
-
-    badrows = merged[~merged.apply(lambda x: Point(x['POINT_shape']).within(Polygon(x['POLYGON_shape'])), axis=1)]
-    if not badrows.empty:
-        badrows = badrows['tmp_row'].tolist()
-        args = {
-                "dataframe": 'gissite',
-                "tablename": 'gissite',
-                "badrows": badrows,
-                "badcolumn": "shape",
-                "error_type": "Geometry Error",
-                "is_core_error": False,
-                "error_message": f"These points are not in their associated polygon based on masterid"
-            }
-        errs = [*errs, checkData(**args)]
+    print(merged)
+    if len(merged) > 0:
+        badrows = merged[~merged.apply(lambda x: Point(x['POINT_shape']).within(Polygon(x['POLYGON_shape'])), axis=1)]
+        print(badrows)
+        if len(badrows) > 0:
+            badrows = badrows['tmp_row'].tolist()
+            args = {
+                    "dataframe": 'gissite',
+                    "tablename": 'gissite',
+                    "badrows": badrows,
+                    "badcolumn": "shape",
+                    "error_type": "Geometry Error",
+                    "is_core_error": False,
+                    "error_message": f"These points are not in their associated polygon based on masterid"
+                }
+            errs = [*errs, checkData(**args)]
     print("check ran -  Check if the points are in the polygon") 
 
     ## 4.. Check masterid should match between site and catchment shapefile
     badrows = pd.merge(
-        sites.assign(tmp_row=sites.tmp_row),
+        sites,
         catchments, 
         on=['masterid'],
         how='left',
+        suffixes=('_site', '_catchment'),
         indicator='in_which_df'
     ).query("in_which_df == 'left_only'")
 
-    if not badrows.empty:
-        badrows = badrows.get('tmp_row').tolist()
+    if len(badrows) > 0:
+        badrows = badrows['tmp_row_site'].tolist()
         args = {
             "dataframe": sites,
             "tablename": "gissites",
@@ -107,15 +110,16 @@ def shapefile(all_dfs):
         errs = [*errs, checkData(**args)]
     
     badrows = pd.merge(
-        catchments.assign(tmp_row=catchments.tmp_row),
+        catchments,
         sites, 
         on=['masterid'],
         how='left',
+        suffixes=('_catchment', '_site'),
         indicator='in_which_df'
     ).query("in_which_df == 'left_only'")
     
-    if not badrows.empty:
-        badrows = badrows.get('tmp_row').tolist()
+    if len(badrows) > 0:
+        badrows = badrows["tmp_row_catchment"].tolist()
         args.update({
             "dataframe": catchments,
             "tablename": "giscatchments",
@@ -162,17 +166,17 @@ def shapefile(all_dfs):
         lambda x: distance(3857, x['LU_shape'], x['shape'], 9001, False).get('distance'), 
         axis=1
     )
-
-    badrows = merged[merged['distance_from_lu_reference_meters'] > 300]['tmp_row'].tolist()
-    args.update({
-        "dataframe": sites,
-        "tablename": "gissites",
-        "badrows": badrows, 
-        "badcolumn": "shape",
-        "error_type": "Geometry Error",
-        "error_message": "These stations are more than 300 meters away from their lookup station references."
-    })
-    warnings = [*warnings, checkData(**args)]
+    if len(merged) > 0:
+        badrows = merged[merged['distance_from_lu_reference_meters'] > 300]['tmp_row'].tolist()
+        args.update({
+            "dataframe": sites,
+            "tablename": "gissites",
+            "badrows": badrows, 
+            "badcolumn": "shape",
+            "error_type": "Geometry Error",
+            "error_message": "These stations are more than 300 meters away from their lookup station references."
+        })
+        warnings = [*warnings, checkData(**args)]
     print("check ran -  Warning stationcode points should be no more than 300m from lu_station reference site")  
     
     
