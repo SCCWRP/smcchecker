@@ -71,8 +71,9 @@ def algae(all_dfs):
     ste = pd.read_sql("SELECT * FROM lu_algae_ste", g.eng).drop('objectid', axis = 1).rename(columns={'order_': 'order'})
 
 
-    # 1. If sampletypecode = 'Integrated' then actualorganismcount and baresult are required fields and cannot be empty or have -88.
+    # 1. If sampletypecode = 'Integrated' then (a) actualorganismcount and (b) baresult are required fields and cannot be empty or have -88.
     print("# 1. If sampletypecode = 'Integrated' then actualorganismcount and baresult are required fields and cannot be empty or have -88.")
+    # 1a. first check if actualorganismcount is empty
     print("# first check if actualorganismcount is empty")
     errs.append(
         checkData(
@@ -83,6 +84,7 @@ def algae(all_dfs):
             'SampleType is Integrated. ActualOrganismCount is a required field.'
         )
     )
+    # 1b. second check if baresult is empty
     print("# second check if baresult is empty")
     errs.append(
         checkData(
@@ -99,6 +101,7 @@ def algae(all_dfs):
     # SampleTypeCode Integrated means it is diatom data
     merged = algae.merge(ste, how = 'inner', on = 'finalid')
 
+    # 2. Warning if species is not in the STE lookup list.
     print("# Warn them if the species is not in the STE lookup list")
     warnings.append(
         checkData(
@@ -110,6 +113,7 @@ def algae(all_dfs):
         )
     )
 
+    # 3. Warning if organism is a diatom (phylum is Bacillariophyta), but sampletypecode does not say Integrated.
     warnings.append(
         checkData(
             'tbl_algae', 
@@ -120,6 +124,7 @@ def algae(all_dfs):
         )
     )
 
+    # 4. Check if sampletypecode is Integrated but phylum is not Bacillariophyta. 
     errs.append(
         checkData(
             'tbl_algae', 
@@ -131,7 +136,8 @@ def algae(all_dfs):
     )
     
     
-    # 2. If sampletypecode = 'Macroalgae' then actualorganismcount and result are required fields and cannot be empty or have -88.
+    # 5. Check if sampletypecode = 'Macroalgae' then result are required fields and cannot be empty or have -88.
+    # SECOND CHECK REMOVED AFTER SPEAKING WITH SUSIE - ActualOrganismCount is not required.
     print("If sampletypecode = 'Macroalgae' then actualorganismcount and result are required fields and cannot be empty or have -88")
     print(algae[(algae.sampletypecode == 'Macroalgae') & (algae.result == '-88')])
     errs.append(
@@ -145,9 +151,9 @@ def algae(all_dfs):
     )    
 
     
-    # 3. If sampletypecode = 'Microalgae' then actualorganismcount and result are required fields and cannot be empty or have -88.
+    # 6. Check if sampletypecode = 'Microalgae' then (a) actualorganismcount and (b) result are required fields and cannot be empty or have -88.
     print("If sampletypecode = 'Microalgae' then actualorganismcount and baresult are required fields and cannot be empty or have -88")    
-    # first check if actualorganismcount is empty
+    # 6a. first check if actualorganismcount is empty
     errs.append(
         checkData(
             'tbl_algae', 
@@ -157,7 +163,7 @@ def algae(all_dfs):
             'SampleType is MicroAlgae. ActualOrganismCount is a required field.'
         )
     )
-    # second check if result is empty
+    # 6b. second check if result is empty
     errs.append(
         checkData(
             'tbl_algae', 
@@ -169,9 +175,9 @@ def algae(all_dfs):
     )
 
 
-    # 4. If sampletypecode = 'Epiphyte' then actualorganismcount and baresult are required fields and cannot be empty or have -88.
+    # 7. Check if sampletypecode = 'Epiphyte' then (a) actualorganismcount and (b) baresult are required fields and cannot be empty or have -88.
     print("If sampletypecode = 'Epiphyte' then actualorganismcount and baresult are required fields and cannot be empty or have -88")
-    # first check if actualorganismcount is empty
+    # 7a. first check if actualorganismcount is empty
     print(algae[(algae.sampletypecode == 'Epiphyte') & (algae.actualorganismcount == -88)])
     errs.append(
         checkData(
@@ -182,7 +188,7 @@ def algae(all_dfs):
             'ActualOrganismCount is a required field.'
         )
     )    
-    # second check if baresult is empty
+    # 7b. second check if baresult is empty
     print(algae[(algae.sampletypecode == 'Epiphyte') & (algae.baresult == -88)])
     errs.append(
         checkData(
