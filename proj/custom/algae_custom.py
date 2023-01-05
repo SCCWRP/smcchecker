@@ -79,7 +79,7 @@ def algae(all_dfs):
         checkData(
             'tbl_algae', 
             algae[(algae.sampletypecode == 'Integrated') & (algae.actualorganismcount == -88)].tmp_row.tolist(),
-            'ActualOrganismCount',
+            'actualorganismcount',
             'Undefined Error', 
             'SampleType is Integrated. ActualOrganismCount is a required field.'
         )
@@ -100,14 +100,14 @@ def algae(all_dfs):
     # We can check this against the STE lookup list 
     # SampleTypeCode Integrated means it is diatom data
     merged = algae.merge(ste, how = 'inner', on = 'finalid')
-
+    
     # 2. Warning if species is not in the STE lookup list.
     print("# Warn them if the species is not in the STE lookup list")
     warnings.append(
         checkData(
             'tbl_algae', 
             algae[~algae.finalid.isin(ste.finalid.tolist())].tmp_row.tolist(),
-            'FinalID',
+            'finalid',
             'Undefined Warning', 
             'This species is not in the STE lookup list, which will affect ASCI scores. If this is a concern to you, you can contact Susie Theroux at susannat@sccwrp.org. For more information, you may refer to the <a target=\\\"blank\\\" href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_algae_ste\\\">STE Lookup List</a>'
         )
@@ -118,33 +118,52 @@ def algae(all_dfs):
         checkData(
             'tbl_algae', 
             merged[(merged['sampletypecode'] != "Integrated") & (merged['phylum'] == "Bacillariophyta")].tmp_row.tolist(),
-            'SampleTypeCode',
+            'sampletypecode',
             'Undefined Warning', 
             'This organism is a diatom (of the Bacillariophyta phylum), but the SampleTypeCode does not say Integrated. For more information, you may refer to the <a target=\\\"blank\\\" href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_algae_ste\\\">STE Lookup List</a>'
         )
     )
 
     # 4. Check if sampletypecode is Integrated but phylum is not Bacillariophyta. 
+    # Issue: phylum values between lu_organismalgae and lu_algae_ste do no always match or lu_algae_ste is missing some finalids
+    #   Example: sampletypecode = 'Macroalgae' and finalid = 'Achnantheiopsis' should issue an ERROR since sampletypecode is expected to be 'Integrated'. 
+    #           Empty dataframe is checked when lu_algae_ste is inner joined with algae (dropped) data. 
+    #           Check is skipped when merged dataframe is empty due to inner join on finalid where finalid does not exist in lu_algae_ste.
     errs.append(
         checkData(
             'tbl_algae', 
             merged[(merged['sampletypecode'] == "Integrated") & (merged['phylum'] != "Bacillariophyta")].tmp_row.tolist(),
-            'FinalID',
+            'finalid',
             'Undefined Error', 
             'The SampleTypeCode is Integrated, but this organism is not a diatom (not of the Bacillariophyta phylum). For more information, you may refer to the <a target=\\\"blank\\\" href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_algae_ste\\\">STE Lookup List</a>'
         )
     )
+    print("merged df subset")
+    # empty dataframe, inner join gives no record to be checked on finalid with lu_algae_ste when finalid exists 
+    # record not checked
+    print(merged[['sampletypecode', 'finalid', 'phylum']])
+    print("dropped data")
+    print(algae[['sampletypecode','finalid']])
     
     
     # 5. Check if sampletypecode = 'Macroalgae' then result are required fields and cannot be empty or have -88.
     # SECOND CHECK REMOVED AFTER SPEAKING WITH SUSIE - ActualOrganismCount is not required.
-    print("If sampletypecode = 'Macroalgae' then actualorganismcount and result are required fields and cannot be empty or have -88")
+    # Issue: result is a varchar column in the database
+    #       -88 (numeric) is flagged when checking result value
+    #       '-88' (text) passes when it SHOULD NOT!
+    #       Either the datatypes for the columns need to be checked first to keep custom checks consistent with database tables 
+    #       or the value should be able to load as a text value but we do not want this value to change which could happen.
+    print("If sampletypecode = 'Macroalgae' then result is a required field and cannot be empty or have -88")
+    print(algae[['sampletypecode', 'result']])
+    print('checking -88 as numeric')
+    print(algae[(algae.sampletypecode == 'Macroalgae') & (algae.result == -88)])
+    print('checking -88 as text')
     print(algae[(algae.sampletypecode == 'Macroalgae') & (algae.result == '-88')])
     errs.append(
         checkData(
             'tbl_algae', 
             algae[(algae.sampletypecode == 'Macroalgae') & (algae.result == '-88')].tmp_row.tolist(),
-            'Result',
+            'result',
             'Undefined Error', 
             'SampleTypeCode is Macroalgae. Result is a required field.'
         )
@@ -158,17 +177,18 @@ def algae(all_dfs):
         checkData(
             'tbl_algae', 
             algae[(algae.sampletypecode == 'Microalgae') & (algae.actualorganismcount == -88)].tmp_row.tolist(),
-            'ActualOrganismCount',
+            'actualorganismcount',
             'Undefined Error', 
             'SampleType is MicroAlgae. ActualOrganismCount is a required field.'
         )
     )
     # 6b. second check if result is empty
+    # result originally checked with '-88' (text)
     errs.append(
         checkData(
             'tbl_algae', 
-            algae[(algae.sampletypecode == 'Microalgae') & (algae.result == '-88')].tmp_row.tolist(),
-            'Result',
+            algae[(algae.sampletypecode == 'Microalgae') & (algae.result == -88)].tmp_row.tolist(),
+            'result',
             'Undefined Error', 
             'SampleTypeCode is Microalgae. Result is a required field.'
         )
@@ -183,7 +203,7 @@ def algae(all_dfs):
         checkData(
             'tbl_algae', 
             algae[(algae.sampletypecode == 'Epiphyte') & (algae.actualorganismcount == -88)].tmp_row.tolist(),
-            'ActualOrganismCount',
+            'actualorganismcount',
             'Undefined Error', 
             'ActualOrganismCount is a required field.'
         )
@@ -194,7 +214,7 @@ def algae(all_dfs):
         checkData(
             'tbl_algae', 
             algae[(algae.sampletypecode == 'Epiphyte') & (algae.baresult == -88)].tmp_row.tolist(),
-            'BAResult',
+            'baresult',
             'Undefined Error', 
             'SampleTypeCode is Epiphyte. BAResult is a required field.'
         )
