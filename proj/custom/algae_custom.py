@@ -90,7 +90,7 @@ def algae(all_dfs):
         checkData(
             'tbl_algae', 
             algae[(algae.sampletypecode == 'Integrated') & (algae.baresult == -88)].tmp_row.tolist(),
-            'BAResult',
+            'baresult',
             'Undefined Error', 
             'SampleTypeCode is Integrated. BAResult is a required field.'
         )
