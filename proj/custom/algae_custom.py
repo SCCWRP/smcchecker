@@ -102,6 +102,8 @@ def algae(all_dfs):
     merged = algae.merge(ste, how = 'inner', on = 'finalid')
     
     # 2. Warning if species is not in the STE lookup list.
+    # Issue: Some finalids provided by lu_algae_ste do not exist in lu_organismalgae and vice versa.
+    #        If LookUp Fail with lu_organismalgae, STE LookUp cannot be checked due to Core Error.
     print("# Warn them if the species is not in the STE lookup list")
     warnings.append(
         checkData(
