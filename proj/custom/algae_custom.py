@@ -2,7 +2,7 @@
 
 from inspect import currentframe
 from flask import current_app, g
-from .functions import checkData
+from .functions import checkData, convert_dtype
 import pandas as pd
 
 
@@ -84,6 +84,7 @@ def algae(all_dfs):
             'SampleType is Integrated. ActualOrganismCount is a required field.'
         )
     )
+
     # 1b. second check if baresult is empty
     print("# second check if baresult is empty")
     errs.append(
@@ -95,7 +96,7 @@ def algae(all_dfs):
             'SampleTypeCode is Integrated. BAResult is a required field.'
         )
     )
-    
+
     # With check #1 it is worth mentioning that the class of the organisms for sampletypecode of "Integrated" should be "Bacillariophyceae"
     # We can check this against the STE lookup list 
     # SampleTypeCode Integrated means it is diatom data
@@ -147,8 +148,18 @@ def algae(all_dfs):
     print("dropped data")
     print(algae[['sampletypecode','finalid']])
     
+    # 5. Check values in result column are numeric.
+    errs.append(
+        checkData(
+            'tbl_algae',
+            algae[algae['result'].apply(lambda x: not convert_dtype('float64', x))].index.to_list(),
+            'result',
+            'Undefined Error',
+            'Result values cannot accept text. Please revise the result to a numeric value. If result should be empty, enter -88.'
+        )
+    )
     
-    # 5. Check if sampletypecode = 'Macroalgae' then result are required fields and cannot be empty or have -88.
+    # 6. Check if sampletypecode = 'Macroalgae' then result are required fields and cannot be empty or have -88.
     # SECOND CHECK REMOVED AFTER SPEAKING WITH SUSIE - ActualOrganismCount is not required.
     # Issue: result is a varchar column in the database
     #       -88 (numeric) is flagged when checking result value
@@ -172,9 +183,9 @@ def algae(all_dfs):
     )    
 
     
-    # 6. Check if sampletypecode = 'Microalgae' then (a) actualorganismcount and (b) result are required fields and cannot be empty or have -88.
+    # 7. Check if sampletypecode = 'Microalgae' then (a) actualorganismcount and (b) result are required fields and cannot be empty or have -88.
     print("If sampletypecode = 'Microalgae' then actualorganismcount and baresult are required fields and cannot be empty or have -88")    
-    # 6a. first check if actualorganismcount is empty
+    # 7a. first check if actualorganismcount is empty
     errs.append(
         checkData(
             'tbl_algae', 
@@ -184,7 +195,7 @@ def algae(all_dfs):
             'SampleType is MicroAlgae. ActualOrganismCount is a required field.'
         )
     )
-    # 6b. second check if result is empty
+    # 7b. second check if result is empty
     # result originally checked with '-88' (text)
     errs.append(
         checkData(
@@ -197,9 +208,9 @@ def algae(all_dfs):
     )
 
 
-    # 7. Check if sampletypecode = 'Epiphyte' then (a) actualorganismcount and (b) baresult are required fields and cannot be empty or have -88.
+    # 8. Check if sampletypecode = 'Epiphyte' then (a) actualorganismcount and (b) baresult are required fields and cannot be empty or have -88.
     print("If sampletypecode = 'Epiphyte' then actualorganismcount and baresult are required fields and cannot be empty or have -88")
-    # 7a. first check if actualorganismcount is empty
+    # 8a. first check if actualorganismcount is empty
     print(algae[(algae.sampletypecode == 'Epiphyte') & (algae.actualorganismcount == -88)])
     errs.append(
         checkData(
@@ -210,7 +221,7 @@ def algae(all_dfs):
             'ActualOrganismCount is a required field.'
         )
     )    
-    # 7b. second check if baresult is empty
+    # 8b. second check if baresult is empty
     print(algae[(algae.sampletypecode == 'Epiphyte') & (algae.baresult == -88)])
     errs.append(
         checkData(
