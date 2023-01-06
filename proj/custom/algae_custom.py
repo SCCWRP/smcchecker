@@ -149,16 +149,17 @@ def algae(all_dfs):
     print(algae[['sampletypecode','finalid']])
     
     # 5. Check values in result column are numeric.
+    #algae = algae[algae['result'].apply(lambda x: convert_dtype(float, x))]
     errs.append(
         checkData(
             'tbl_algae',
-            algae[algae['result'].apply(lambda x: not convert_dtype('float64', x))].index.to_list(),
+            algae[algae['result'].apply(lambda x: not convert_dtype(float, x))].index.to_list(),
             'result',
             'Undefined Error',
             'Result values cannot accept text. Please revise the result to a numeric value. If result should be empty, enter -88.'
         )
     )
-    
+
     # 6. Check if sampletypecode = 'Macroalgae' then result are required fields and cannot be empty or have -88.
     # SECOND CHECK REMOVED AFTER SPEAKING WITH SUSIE - ActualOrganismCount is not required.
     # Issue: result is a varchar column in the database
@@ -166,16 +167,12 @@ def algae(all_dfs):
     #       '-88' (text) passes when it SHOULD NOT!
     #       Either the datatypes for the columns need to be checked first to keep custom checks consistent with database tables 
     #       or the value should be able to load as a text value but we do not want this value to change which could happen.
+    # Note: Check 6 will not run if any text is entered in result column. After these values are corrected to numeric, then data must be dropped again to check values. 
     print("If sampletypecode = 'Macroalgae' then result is a required field and cannot be empty or have -88")
-    print(algae[['sampletypecode', 'result']])
-    print('checking -88 as numeric')
-    print(algae[(algae.sampletypecode == 'Macroalgae') & (algae.result == -88)])
-    print('checking -88 as text')
-    print(algae[(algae.sampletypecode == 'Macroalgae') & (algae.result == '-88')])
     errs.append(
         checkData(
             'tbl_algae', 
-            algae[(algae.sampletypecode == 'Macroalgae') & (algae.result == '-88')].tmp_row.tolist(),
+            algae[(algae.sampletypecode == 'Macroalgae') & (algae.result == -88)].tmp_row.tolist(),
             'result',
             'Undefined Error', 
             'SampleTypeCode is Macroalgae. Result is a required field.'
