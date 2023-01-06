@@ -291,5 +291,23 @@ def check_schema(db):
     print(missing_data_msgs)
     return missing_data_msgs
 
+# The convert_dtype function is added to functions.py for custom checks. This has specifically been added for the result (text) column in multiple datatypes for SMC to ensure
+# that the values for the result column is checked as a float to prevent the submission of any text to the result field. 
+# 
+def convert_dtype(t, x):
+    try:
+        if ((pd.isnull(x)) and (t == float)):
+            # modified to check that t is float instead of int
+            return True
+        t(x)
+        return True
+    except Exception as e:
+        if t == pd.Timestamp:
+            # checking for a valid postgres timestamp literal
+            # Postgres technically also accepts the format like "January 8 00:00:00 1999" but we won't be checking for that unless it becomes a problem
+            datepat = re.compile("\d{4}-\d{1,2}-\d{1,2}\s*(\d{1,2}:\d{1,2}:\d{2}(\.\d+){0,1}){0,1}$")
+            return bool(re.match(datepat, str(x)))
+        return False
+
 
 
