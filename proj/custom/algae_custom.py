@@ -67,8 +67,10 @@ def algae(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
-
-    ste = pd.read_sql("SELECT * FROM lu_algae_ste", g.eng).drop('objectid', axis = 1).rename(columns={'order_': 'order'})
+    # lu_algae_ste no longer used for Algae Checks
+    # For soft-body algae and diatom related checks, refer to the 'algae_type' column in lu_organismalgae, if needed. 25jan2023 zaib
+    #ste = pd.read_sql("SELECT * FROM lu_algae_ste", g.eng).drop('objectid', axis = 1).rename(columns={'order_': 'order'})
+    lu_algae = pd.read_sql("SELECT * FROM lu_organismalgae", g.eng).rename(columns={'order_':'order'})
 
 
     # 1. If sampletypecode = 'Integrated' then (a) actualorganismcount and (b) baresult are required fields and cannot be empty or have -88.
@@ -100,23 +102,28 @@ def algae(all_dfs):
     # With check #1 it is worth mentioning that the class of the organisms for sampletypecode of "Integrated" should be "Bacillariophyceae"
     # We can check this against the STE lookup list 
     # SampleTypeCode Integrated means it is diatom data
-    merged = algae.merge(ste, how = 'inner', on = 'finalid')
+    
+    # not merging on ste lookup anymore -- merge on lu_organismalgae
+    #merged = algae.merge(ste, how = 'inner', on = 'finalid')
+    merged = algae.merge(lu_algae, how = 'inner', on = 'finalid')
     
     # 2. Warning if species is not in the STE lookup list.
     # Issue: Some finalids provided by lu_algae_ste do not exist in lu_organismalgae and vice versa.
-    #        If LookUp Fail with lu_organismalgae, STE LookUp cannot be checked due to Core Error.
-    print("# Warn them if the species is not in the STE lookup list")
-    warnings.append(
-        checkData(
-            'tbl_algae', 
-            algae[~algae.finalid.isin(ste.finalid.tolist())].tmp_row.tolist(),
-            'finalid',
-            'Undefined Warning', 
-            'This species is not in the STE lookup list, which will affect ASCI scores. If this is a concern to you, you can contact Susie Theroux at susannat@sccwrp.org. For more information, you may refer to the <a target=\\\"blank\\\" href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_algae_ste\\\">STE Lookup List</a>'
-        )
-    )
+    #        If LookUp Fail with lu_organismalgae, STE LookUp cannot be checked due to Core Error. - Newly updated lookup lu_organismalgae in database.
+    print("# Warn them if the species is not in the STE lookup list - COMMENTED OUT CHECK FOR STE LOOKUP - NOT RUN") # What is the purpose of this check?
+    # warnings.append(
+    #     checkData(
+    #         'tbl_algae', 
+    #         algae[~algae.finalid.isin(ste.finalid.tolist())].tmp_row.tolist(),
+    #         'finalid',
+    #         'Undefined Warning', 
+    #         'This species is not in the STE lookup list, which will affect ASCI scores. If this is a concern to you, you can contact Susie Theroux at susannat@sccwrp.org. For more information, you may refer to the <a target=\\\"blank\\\" href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_algae_ste\\\">STE Lookup List</a>'
+    #     )
+    # )
+
 
     # 3. Warning if organism is a diatom (phylum is Bacillariophyta), but sampletypecode does not say Integrated.
+    # Consider revising the warning message as STE lookup no longer stands. - Zaib
     warnings.append(
         checkData(
             'tbl_algae', 
