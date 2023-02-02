@@ -19,13 +19,5 @@
   <body>
     <div id="viewDiv"></div>
   </body>
-  <!-- <script>
-    
-    const submissionID = {{ submissionid|safe }}
-    const script_root = {{request.script_root|tojson|safe}};
-    
-    sessionStorage.submissionid = submissionID
-    sessionStorage.script_root = script_root
-    </script> -->
   <script src="{{url_for('static', filename='visual_map.js')}}"></script>
 </html>

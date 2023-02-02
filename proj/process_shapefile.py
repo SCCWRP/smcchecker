@@ -6,6 +6,7 @@ import os
 import pandas as pd
 from pathlib import Path
 from .utils.read_shapefile import build_all_dfs_from_sf
+from .utils.sdf_to_json import export_sdf_to_json
 from .utils.exceptions import default_exception_handler
 from .core.functions import fetch_meta
 from .core.core import core
@@ -37,12 +38,12 @@ def process_sf():
         filename = secure_filename(f.filename)
         extension = secure_filename(f.filename).rsplit('.',1)[-1]
         
-        original_file_path = os.path.join( session['submission_dir'], str(filename) )
+        original_file_path = os.path.join(session['submission_dir'], str(filename))
         f.save(original_file_path)
         
         # To be accessed later by the upload routine that loads data to the tables
-        session['excel_path'] = original_file_path if extension in ('xls','xlsx') else f"""{original_file_path.rsplit('.',1)[0]}.xlsx"""
-
+        session['shapefile_path'] = original_file_path 
+        
         # Put their original filename in the submission tracking table
         g.eng.execute(
             f"""
@@ -57,6 +58,14 @@ def process_sf():
 
     all_dfs = build_all_dfs_from_sf(parent_zipfile_path)
     
+    # Save shapefile data as json so we can map them
+    for key in all_dfs:
+        if key == 'gissites':
+            export_sdf_to_json(os.path.join(parent_zipfile_path, "sites.json"), all_dfs[key]['data'], ["masterid"])
+        else:
+            export_sdf_to_json(os.path.join(parent_zipfile_path, "catchments.json"), all_dfs[key]['data'], ["masterid"])
+
+
     '''
     Example all_dfs: {
         'gissites':

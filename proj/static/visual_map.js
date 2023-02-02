@@ -9,31 +9,41 @@ require([
     "esri/layers/MapImageLayer",
     "esri/layers/GeoJSONLayer",
     "esri/Graphic",
-    "esri/layers/GraphicsLayer"
-], function(esriConfig, Map, Graphic, MapView, FeatureLayer, LayerList, Legend, GeoJSONLayer, MapImageLayer, Graphic, GraphicsLayer) {
+    "esri/layers/GraphicsLayer",
+    "esri/geometry/Polyline",
+    "esri/geometry/Point",
+    "esri/geometry/Polygon"
 
-    console.log("test")
+], function(
+    esriConfig, 
+    Map, 
+    Graphic, 
+    MapView, 
+    FeatureLayer, 
+    LayerList, 
+    Legend, 
+    GeoJSONLayer, 
+    MapImageLayer, 
+    Graphic, 
+    GraphicsLayer, 
+    Polyline, 
+    Point,
+    Polygon) {
+
     fetch(`/smcchecker/getmapinfo`, {
         method: 'POST'
-    }).then(
-        function (response) 
+    }).then(function (response) 
         {return response.json()
     }).then(function (data) {
-        console.log(data)
-        // var points = data['points']
-        // var polylines = data['polylines']
-        // var polygons = data['polygons']
-        
-        // console.log(points)
-        // console.log(polylines)
-        // console.log(polygons)
 
-        arcGISAPIKey = data['arcgis_api_key']
+        const sitesData = data['sites']
+        const catchmentsData = data['catchments']
+        
+        console.log(sitesData)
+        console.log(catchmentsData)
+
+        const arcGISAPIKey = data['arcgis_api_key']
         esriConfig.apiKey = arcGISAPIKey
-        
-        console.log("arcGISAPIKey")
-        console.log(arcGISAPIKey)
-        
         
         const map = new Map({
             basemap: "arcgis-topographic" // Basemap layer service
@@ -46,109 +56,105 @@ require([
             container: "viewDiv"
         });
         
+        // Create a graphics layer
         const graphicsLayer = new GraphicsLayer();
         map.add(graphicsLayer);
         
-
-        let attr = {
-            Name: "Station out of bight strata", // The name of the pipeline
-            Recommendation: "Check the Error Tab", // The name of the pipeline
+        ////////////////// Ploting the sites //////////////////
+        let simpleMarkerSymbol = {
+            type: "simple-marker",
+            color: [255, 0, 0],  // Red
+            size: "15px",
+            outline: {
+                color: [255, 255, 255], // White
+                width: 2
+            }
         };
+        for (let i = 0; i < sitesData['coordinates'].length; i++){
+            
+            let coord = sitesData['coordinates'][i]
+            let masterID = sitesData['masterid'][i]
+            console.log(coord)
+            
+            let attr = {
+                masterID: masterID
+            };
 
-        let popUp = {
-            title: "{Name}",
-            content: [
-              {
-                type: "fields",
-                fieldInfos: [
-                  {
-                    fieldName: "Name"
-                  },
-                  {
-                    fieldName: "Recommendation"
-                  }
+            let popUp = {
+                title: "Sites",
+                content: [
+                    {
+                        type: "fields",
+                        fieldInfos: [
+                            {
+                                fieldName: "masterID"
+                            }
+                        ]
+                    }
                 ]
-              }
-            ]
+            }
+
+            let pointGraphic = new Graphic({
+                geometry: coord,
+                symbol: simpleMarkerSymbol,
+                attributes: attr,
+                popupTemplate: popUp
+            });
+
+            graphicsLayer.add(pointGraphic);
         }
 
-        if (points !== "None" ) {
-            for (let i = 0; i < points.length; i++){
-                
-                let point = points[i]
-                console.log(point)
-                let simpleMarkerSymbol = {
-                    type: "simple-marker",
-                    color: [255,0,0],  // Red
-                    size: "15px",
-                    outline: {
-                        color: [255, 255, 255], // White
-                        width: 2
-                    }
-                };
-                
-                let pointGraphic = new Graphic({
-                    geometry: point,
-                    symbol: simpleMarkerSymbol,
-                    attributes: attr,
-                    popupTemplate: popUp
-                    });
+        ////////////////////////////////////////////////////////////
 
-                graphicsLayer.add(pointGraphic);
+        ////////////////// Ploting the catchments //////////////////
+        let simpleFillSymbol = {
+            type: "simple-fill",
+            color: [227, 139, 79, 0.2],  // Orange, opacity 80%
+            size: "15px",
+            outline: {
+                color: [255, 255, 255],
+                width: 1
             }
-        }
-
-        if (polylines !== "None" ) {
-            for (let i = 0; i < polylines.length; i++){
-                let polyline = polylines[i]
-                
-                let simpleLineSymbol = {
-                    type: "simple-line",
-                    color: [255,0,0], // RED
-                    size: "15px"
-                };
-                
-                let polylineGraphic  = new Graphic({
-                    geometry: polyline,
-                    symbol: simpleLineSymbol,
-                    attributes: attr,
-                    popupTemplate: popUp
-                });
-                graphicsLayer.add(polylineGraphic);
-            }
-        }
-
-        if (polygons !== "None" ) {
-            let popupTemplate = {
-                title: "{Name}"
-            }
-            let attributes = {
-                Name: "Bight Strata Layer"
-            }
-
-            for (let i = 0; i < polygons.length; i++){
-                let polygon = polygons[i]
-                
-                let simpleFillSymbol = {
-                    type: "simple-fill",
-                    color: [227, 139, 79, 0.8],  // Orange, opacity 80%
-                    size: "15px",
-                    outline: {
-                        color: [255, 255, 255],
-                        width: 1
-                    }
-                };
-                
-                let polygonGraphic  = new Graphic({
-                    geometry: polygon,
-                    symbol: simpleFillSymbol,
-                    attributes: attributes,
-                    popupTemplate: popupTemplate
-                });
-                graphicsLayer.add(polygonGraphic);
-            }
-        }
+        };
         
+        for (let i = 0; i < catchmentsData['coordinates'].length; i++){
+            console.log("in catchments")
+            let coord = catchmentsData['coordinates'][i]
+            let masterID = catchmentsData['masterid'][i]
+            console.log(coord)
+            
+            let attr = {
+                masterID: masterID
+            };
+            let popUp = {
+                title: "Catchments",
+                content: [
+                    {
+                        type: "fields",
+                        fieldInfos: [
+                            {
+                                fieldName: "masterID"
+                            }
+                        ]
+                    }
+                ]
+            }
+            var polygonGraphic  = new Graphic({
+                geometry: coord,
+                symbol: simpleFillSymbol,
+                attributes: attr,
+                popupTemplate: popUp
+            });
+            graphicsLayer.add(polygonGraphic);
+
+        }
+        ////////////////////////////////////////////////////////////
+
+        
+        view.goTo({
+            target: polygonGraphic.geometry.extent,
+            scale: 50000
+        });
 
     }
     )

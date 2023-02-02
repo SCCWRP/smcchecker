@@ -22,16 +22,19 @@ def load_sf():
     print("REQUEST MADE TO /loadsf")
 
     # Creates a GIS connection
-    gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html",os.environ.get('ARCGIS_USER'),os.environ.get('ARCGIS_PASSWORD'))
-    
+    gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html", os.environ.get('ARCGIS_USER'), os.environ.get('ARCGIS_PASSWORD'))
+
     path_to_shapefiles = Path(session['excel_path']).parent
 
     url_list_dict = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")
+    
     # Now load the data to our db
     all_dfs = build_all_dfs_from_sf(path_to_shapefiles)
 
+
     
     for tbl in all_dfs:
+        
         df = all_dfs[tbl].get('data')
         
         if tbl == 'gissites': 
