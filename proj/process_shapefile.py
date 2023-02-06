@@ -8,6 +8,7 @@ from pathlib import Path
 from .utils.read_shapefile import build_all_dfs_from_sf
 from .utils.sdf_to_json import export_sdf_to_json
 from .utils.exceptions import default_exception_handler
+from .utils.convert_projection import convert_projection
 from .core.functions import fetch_meta
 from .core.core import core
 from .custom.shapefile_custom import shapefile
@@ -58,12 +59,17 @@ def process_sf():
 
     all_dfs = build_all_dfs_from_sf(parent_zipfile_path)
     
-    # Save shapefile data as json so we can map them
+    ## Preprocess
     for key in all_dfs:
+
+        # Convert all projections to 4326
+        all_dfs[key]['data'] = convert_projection(all_dfs[key]['data'])
+
+        # Save shapefile data as json so we can map them
         if key == 'gissites':
-            export_sdf_to_json(os.path.join(parent_zipfile_path, "sites.json"), all_dfs[key]['data'], ["masterid"])
+            export_sdf_to_json(os.path.join(parent_zipfile_path, "sites.json"), all_dfs[key]['data'], ["stationid"])
         else:
-            export_sdf_to_json(os.path.join(parent_zipfile_path, "catchments.json"), all_dfs[key]['data'], ["masterid"])
+            export_sdf_to_json(os.path.join(parent_zipfile_path, "catchments.json"), all_dfs[key]['data'], ["stationid"])
 
 
     '''

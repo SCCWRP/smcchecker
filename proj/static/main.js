@@ -101,8 +101,7 @@
         document.getElementById("loader-gif-container").classList.add("hidden");
         document.querySelector(".after-submit").classList.remove("hidden");
         const result = await response.json();
-        console.log(response);
-        console.log(result);
+
 
         // handling the case where there was a critical error
         if (result.critical_error) {
@@ -112,7 +111,7 @@
             alert(result.user_error_msg);
             window.location = `/${script_root}`;
         }
-        console.log(result)
+        // console.log(result)
         //show the final submit buttin
         if (Object.keys(result).includes("errs")) {
             if (result['errs'].length == 0){
@@ -159,7 +158,7 @@
             document.getElementById('warnings-report-header').classList.remove('warning-alert');
             document.getElementById('warnings-report-header').innerText = document.getElementById('warnings-report-header').innerText.replace('⚠️ ','')
         }
-        console.log(result)
+        // console.log(result)
         buildReport(result);
         
         // Remove the excel download link if they submit shapefui

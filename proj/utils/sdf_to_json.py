@@ -15,9 +15,6 @@ def export_sdf_to_json(path, sdf, cols_to_display):
 
     """
 
-    sdf['shape'] = pd.Series(project(geometries=sdf['shape'].tolist(), in_sr=3857, out_sr=4326))
-    print(sdf['shape'])
-
     if "paths" in sdf['shape'].iloc[0].keys():
         data = {
             **{col: sdf[col].tolist() for col in cols_to_display},

@@ -39,9 +39,6 @@ require([
         const sitesData = data['sites']
         const catchmentsData = data['catchments']
         
-        console.log(sitesData)
-        console.log(catchmentsData)
-
         const arcGISAPIKey = data['arcgis_api_key']
         esriConfig.apiKey = arcGISAPIKey
         
@@ -73,11 +70,10 @@ require([
         for (let i = 0; i < sitesData['coordinates'].length; i++){
             
             let coord = sitesData['coordinates'][i]
-            let masterID = sitesData['masterid'][i]
-            console.log(coord)
+            let stationid = sitesData['stationid'][i]
             
             let attr = {
-                masterID: masterID
+                stationid: stationid
             };
 
             let popUp = {
@@ -87,7 +83,7 @@ require([
                         type: "fields",
                         fieldInfos: [
                             {
-                                fieldName: "masterID"
+                                fieldName: "stationid"
                             }
                         ]
                     }
@@ -118,13 +114,12 @@ require([
         };
         
         for (let i = 0; i < catchmentsData['coordinates'].length; i++){
-            console.log("in catchments")
+
             let coord = catchmentsData['coordinates'][i]
-            let masterID = catchmentsData['masterid'][i]
-            console.log(coord)
+            let stationid = catchmentsData['stationid'][i]
             
             let attr = {
-                masterID: masterID
+                stationid: stationid
             };
             let popUp = {
                 title: "Catchments",
@@ -133,7 +128,7 @@ require([
                         type: "fields",
                         fieldInfos: [
                             {
-                                fieldName: "masterID"
+                                fieldName: "stationid"
                             }
                         ]
                     }
@@ -153,7 +148,7 @@ require([
         
         view.goTo({
             target: polygonGraphic.geometry.extent,
-            scale: 50000
+            scale: 30000
         });
 
     }
