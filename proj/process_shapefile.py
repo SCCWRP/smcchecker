@@ -63,6 +63,7 @@ def process_sf():
     for key in all_dfs:
 
         # Convert all projections to 4326
+        print("Convert all projections to 4326")
         all_dfs[key]['data'] = convert_projection(all_dfs[key]['data'])
 
         # Save shapefile data as json so we can map them

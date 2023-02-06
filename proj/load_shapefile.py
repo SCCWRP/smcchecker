@@ -24,8 +24,8 @@ def load_sf():
     # Creates a GIS connection
     gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html", os.environ.get('ARCGIS_USER'), os.environ.get('ARCGIS_PASSWORD'))
 
-    path_to_shapefiles = Path(session['excel_path']).parent
-
+    path_to_shapefiles = Path(session['shapefile_path']).parent
+    print(path_to_shapefiles)
     url_list_dict = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")
     
     # Now start the process to load data
@@ -37,9 +37,11 @@ def load_sf():
         df = all_dfs[tbl].get('data')
 
         # Convert whatever projection user submitted to 4326
+        print("Convert whatever projection user submitted to 4326")
         df = convert_projection(df)
 
         # Append masterid column
+        print("Append masterid column")
         lu_stations = pd.read_sql("SELECT DISTINCT stationid, masterid FROM lu_stations", con=g.eng)
         df['masterid'] = df.apply(
             lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
@@ -47,6 +49,7 @@ def load_sf():
         )
 
         # Convert the shape column to sql command so the database knows to insert the points/polygons
+        print("Convert the shape column to sql command so the database knows to insert the points/polygons")
         if tbl == 'gissites': 
             df['shape'] = df['shape'].apply(
                 lambda cell: f"SRID=4326;POINT({cell.x} {cell.y})"
@@ -64,6 +67,7 @@ def load_sf():
             )
 
         # system fields
+        print("appending system fields")
         df = df.assign(
             objectid = f"sde.next_rowid('sde','{tbl}')",
             globalid = "sde.next_globalid()",
