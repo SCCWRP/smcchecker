@@ -49,7 +49,7 @@ require([
         const view = new MapView({
             map: map,
             center: [-118.193741, 33.770050], //California
-            zoom: 10,
+            zoom: 5,
             container: "viewDiv"
         });
         
@@ -146,10 +146,10 @@ require([
         ////////////////////////////////////////////////////////////
 
         
-        view.goTo({
-            target: polygonGraphic.geometry.extent,
-            scale: 30000
-        });
+        // view.goTo({
+        //     target: polygonGraphic.geometry.extent,
+        //     scale: 30000
+        // });
 
     }
     )

@@ -30,7 +30,7 @@ def shapefile(all_dfs):
     sites['tmp_row'] = sites.index
     catchments['tmp_row'] = catchments.index
 
-    lu_stations = pd.read_sql("SELECT distinct stationid, masterid FROM lu_stations", con=g.eng)
+    lu_stations = pd.read_sql("SELECT distinct stationid, masterid, longitude,latitude FROM lu_stations", con=g.eng)
 
     # At this point, the stationids should be in lu_stations. Then we look up the associated masterid and 
     # append it the dataframe.
@@ -218,38 +218,41 @@ def shapefile(all_dfs):
     print("check ran -  Warning if the points are outside of California ")
 
 
-    ## 6. Warning stationcode points should be no more than 300m from lu_station reference site
-    ## commented out on 02/06/23 - bug found but not sure how to fix
-    # merged = pd.merge(
-    #     pd.read_sql("SELECT masterid,longitude,latitude from lu_stations", g.eng)[['masterid','longitude','latitude']], 
-    #     sites, 
-    #     on='masterid', 
-    #     how='inner'
-    # )
+    ## 5. Warning stationcode points should be no more than 300m from lu_station reference site
+    merged = pd.merge(
+        sites, 
+        lu_stations[['stationid','longitude','latitude']], 
+        on='stationid', 
+        how='left'
+    ).rename(
+        columns={
+            'longitude':'lu_longitude',
+            'latitude':'lu_latitude'
+        }
+    )
 
-    # merged['LU_shape'] = merged.apply(
-    #     lambda x: Point({'x':x['longitude'],'y':x['latitude'],'spatialReference':{'wkid':4326}}), 
-    #     axis=1
-    # )
+    merged['lu_shape'] = merged.apply(
+        lambda x: Point({'x':x['lu_longitude'],'y':x['lu_latitude'],'spatialReference':{'wkid':4326}}), 
+        axis=1
+    )
+
+    merged['distance_from_lu_reference_meters'] = merged.apply(
+        lambda x: x['shape'].distance_to(x['lu_shape']), 
+        axis=1
+    )
     
-    # # 9001 means distance in meters
-    # merged['distance_from_lu_reference_meters'] = merged.apply(
-    #     lambda x: distance(4326, x['LU_shape'], x['shape'], 9001, False).get('distance'), 
-    #     axis=1
-    # )
-
-    # if len(merged) > 0:
-    #     badrows = merged[merged['distance_from_lu_reference_meters'] > 300]['tmp_row'].tolist()
-    #     args.update({
-    #         "dataframe": sites,
-    #         "tablename": "gissites",
-    #         "badrows": badrows, 
-    #         "badcolumn": "shape",
-    #         "error_type": "Geometry Error",
-    #         "error_message": "These stations are more than 300 meters away from their lookup station references."
-    #     })
-    #     warnings = [*warnings, checkData(**args)]
-    # print("check ran -  Warning stationcode points should be no more than 300m from lu_station reference site")  
+    if len(merged) > 0:
+        badrows = merged[merged['distance_from_lu_reference_meters'] > 300]['tmp_row'].tolist()
+        args.update({
+            "dataframe": sites,
+            "tablename": "gissites",
+            "badrows": badrows, 
+            "badcolumn": "stationid",
+            "error_type": "Geometry Error",
+            "error_message": "These stations are more than 300 meters away from their lookup station references."
+        })
+        warnings = [*warnings, checkData(**args)]
+    print("check ran -  Warning stationcode points should be no more than 300m from lu_station reference site")  
     
     
     
