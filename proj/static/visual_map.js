@@ -12,7 +12,8 @@ require([
     "esri/layers/GraphicsLayer",
     "esri/geometry/Polyline",
     "esri/geometry/Point",
-    "esri/geometry/Polygon"
+    "esri/geometry/Polygon",
+    "esri/widgets/Measurement"
 
 ], function(
     esriConfig, 
@@ -28,7 +29,10 @@ require([
     GraphicsLayer, 
     Polyline, 
     Point,
-    Polygon) {
+    Polygon,
+    Measurement
+    
+    ) {
 
     fetch(`/smcchecker/getmapinfo`, {
         method: 'POST'
@@ -144,13 +148,17 @@ require([
 
         }
         ////////////////////////////////////////////////////////////
-
-        
-        // view.goTo({
-        //     target: polygonGraphic.geometry.extent,
-        //     scale: 30000
-        // });
-
+        const measurement = new Measurement({
+            view: view,
+            activeTool: "distance"
+          });
+          view.ui.add(measurement, "top-right");
+          
+          // Switch between area and distance measurement
+          function switchTool() {
+           const tool = measurement.activeTool === "distance" ? "area" : "distance";
+           measurement.activeTool = tool;
+        }
     }
     )
 });

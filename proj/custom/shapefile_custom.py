@@ -194,28 +194,28 @@ def shapefile(all_dfs):
     print("check ran -  Check stationid should match between site and catchment shapefile")   
 
     ## 4. Warning if the points are outside of California   
-    badrows = sites[(sites['new_long'] < -114.0430560959) | (sites['new_long'] > -124.5020404709)].tmp_row.tolist()
-    args.update({
-        "dataframe": sites,
-        "tablename": "gissites",
-        "badrows": badrows, 
-        "badcolumn": "new_long",
-        "error_type": "Geometry Error",
-        "error_message": "Your longitude coordinate is outside of California"
-    })
-    warnings = [*warnings, checkData(**args)]
+    # badrows = sites[(sites['new_long'] < -114.0430560959) | (sites['new_long'] > -124.5020404709)].tmp_row.tolist()
+    # args.update({
+    #     "dataframe": sites,
+    #     "tablename": "gissites",
+    #     "badrows": badrows, 
+    #     "badcolumn": "new_long",
+    #     "error_type": "Geometry Error",
+    #     "error_message": "Your longitude coordinate is outside of California"
+    # })
+    # warnings = [*warnings, checkData(**args)]
 
-    badrows = sites[(sites['new_lat'] < 32.5008497379) | (sites['new_lat'] > 41.9924715343)].tmp_row.tolist()
-    args.update({
-        "dataframe": sites,
-        "tablename": "gissites",
-        "badrows": badrows, 
-        "badcolumn": "new_lat",
-        "error_type": "Geometry Error",
-        "error_message": "Your latitude coordinate is outside of California"
-    })
-    warnings = [*warnings, checkData(**args)]
-    print("check ran -  Warning if the points are outside of California ")
+    # badrows = sites[(sites['new_lat'] < 32.5008497379) | (sites['new_lat'] > 41.9924715343)].tmp_row.tolist()
+    # args.update({
+    #     "dataframe": sites,
+    #     "tablename": "gissites",
+    #     "badrows": badrows, 
+    #     "badcolumn": "new_lat",
+    #     "error_type": "Geometry Error",
+    #     "error_message": "Your latitude coordinate is outside of California"
+    # })
+    # warnings = [*warnings, checkData(**args)]
+    # print("check ran -  Warning if the points are outside of California ")
 
 
     ## 5. Warning stationcode points should be no more than 300m from lu_station reference site

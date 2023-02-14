@@ -242,10 +242,10 @@ const buildReport = (res) => {
 
 
     // display the map if applicable
-    if (document.getElementById("submission-type").innerText && res.errs.length > 0){
-        document.getElementById("map-report-header").classList.remove("hidden")
-        document.getElementById('visual-map').setAttribute('src',`/${script_root}/map`)
-    }
+
+    document.getElementById("map-report-header").classList.remove("hidden")
+    document.getElementById('visual-map').setAttribute('src',`/${script_root}/map`)
+    
 
 
     
