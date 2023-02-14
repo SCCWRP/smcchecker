@@ -59,18 +59,7 @@ def process_sf():
 
     all_dfs = build_all_dfs_from_sf(parent_zipfile_path)
     
-    ## Preprocess
-    for key in all_dfs:
 
-        # Convert all projections to 4326
-        print("Convert all projections to 4326")
-        all_dfs[key]['data'] = convert_projection(all_dfs[key]['data'])
-
-        # Save shapefile data as json so we can map them
-        if key == 'gissites':
-            export_sdf_to_json(os.path.join(parent_zipfile_path, "sites.json"), all_dfs[key]['data'], ["stationid"])
-        else:
-            export_sdf_to_json(os.path.join(parent_zipfile_path, "catchments.json"), all_dfs[key]['data'], ["stationid"])
 
 
     '''
@@ -141,6 +130,20 @@ def process_sf():
     print(matched_all_tables)
 
     if matched_all_tables: 
+        
+        ## Preprocess
+        for key in all_dfs:
+
+            # Convert all projections to 4326
+            print("Convert all projections to 4326")
+            all_dfs[key]['data'] = convert_projection(all_dfs[key]['data'])
+
+            # Save shapefile data as json so we can map them
+            if key == 'gissites':
+                export_sdf_to_json(os.path.join(parent_zipfile_path, "sites.json"), all_dfs[key]['data'], ["stationid"])
+            else:
+                export_sdf_to_json(os.path.join(parent_zipfile_path, "catchments.json"), all_dfs[key]['data'], ["stationid"])
+
 
         #meta data is needed for the core checks to run, to check precision, length, datatypes, etc
         dbmetadata = {
