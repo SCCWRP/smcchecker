@@ -53,9 +53,9 @@ def download_shapefile():
 def get_masterid():
     
     agency = request.form.get('selected_agency')
-    masterids = pd.read_sql(f"SELECT DISTINCT masterid from gissites where login_agency = '{agency}'", g.eng).masterid.tolist()
-    masterids.sort()
-    return jsonify(masterids=masterids)
+    stationids = pd.read_sql(f"SELECT DISTINCT stationid from gissites where login_agency = '{agency}'", g.eng).stationid.tolist()
+    stationids.sort()
+    return jsonify(stationids=stationids)
 
 @download.route('/getdownloadlink', methods = ['POST','GET'])
 def get_download_link():

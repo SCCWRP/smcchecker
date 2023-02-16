@@ -87,43 +87,42 @@ def shapefile(all_dfs):
 
     # 1. Check if the masterid, date already exists in the database
     # 1a. Check sites
-    records_db = pd.read_sql("SELECT DISTINCT masterid, snapdate FROM gissites", g.eng)
-    sites['snapdate'] = sites['snapdate'].apply(lambda x: pd.Timestamp(x))
-    merged = pd.merge(sites, records_db, on=['masterid','snapdate'], how='left', indicator='exists')
+    records_db = pd.read_sql("SELECT DISTINCT masterid FROM gissites", g.eng)
+    merged = pd.merge(sites, records_db, on=['masterid'], how='left', indicator='exists')
     baddf = merged[merged['exists']=='both']
     badrows = baddf.tmp_row.tolist()
-    bad_stationid_date = ','.join([f'({x}, {y})' for x,y in zip(baddf.stationid, baddf.snapdate)])
+    bad_stationid_date = ', '.join([x for x in baddf.stationid])
     args = {
         "dataframe": 'gissites',
         "tablename": 'gissites',
         "badrows": badrows,
-        "badcolumn": "stationid,snapdate",
+        "badcolumn": "stationid",
         "error_type": "Duplicated Submission",
         "is_core_error": False,
         "error_message": 
-            f"These station-date pairs already exist in the database: {bad_stationid_date}"
+            f"You have already submitted shapefiles for these stations: {bad_stationid_date}"
     }
     errs = [*errs, checkData(**args)]
 
     # 1b. Check catchments
-    records_db = pd.read_sql("SELECT DISTINCT masterid, delindate FROM giscatchments", g.eng)
+    records_db = pd.read_sql("SELECT DISTINCT masterid FROM giscatchments", g.eng)
     catchments['delindate'] = catchments['delindate'].apply(lambda x: pd.Timestamp(x))
-    merged = pd.merge(catchments, records_db, on=['masterid','delindate'], how='left', indicator='exists')
+    merged = pd.merge(catchments, records_db, on=['masterid'], how='left', indicator='exists')
     baddf = merged[merged['exists']=='both']
     badrows = baddf.tmp_row.tolist()
-    bad_stationid_date = ','.join([f'({x}, {y})' for x,y in zip(baddf.stationid, baddf.delindate)])
+    bad_stationid_date = ', '.join([x for x in baddf.stationid])
     args = {
         "dataframe": 'giscatchments',
         "tablename": 'giscatchments',
         "badrows": badrows,
-        "badcolumn": "stationid,delindate",
+        "badcolumn": "stationid",
         "error_type": "Duplicated Submission",
         "is_core_error": False,
         "error_message": 
-            f"These station-date pairs already exist in the database: {bad_stationid_date}"
+            f"You have already submitted shapefiles for these stations: {bad_stationid_date}"
     }
     errs = [*errs, checkData(**args)]
-    print("check ran -  Check if the masterid, date already exists in the database") 
+    print("check ran -  Check if the masterid already exists in the database") 
 
     ## 2. Check if the points are in the polygon
     merged = sites[['stationid','tmp_row','shape']].rename(columns={'shape':'POINT_shape'}).merge(
