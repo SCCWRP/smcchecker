@@ -148,17 +148,17 @@ require([
 
         }
         ////////////////////////////////////////////////////////////
-        const measurement = new Measurement({
-            view: view,
-            activeTool: "distance"
-          });
-          view.ui.add(measurement, "top-right");
+        // const measurement = new Measurement({
+        //     view: view,
+        //     activeTool: "distance"
+        //   });
+        //   view.ui.add(measurement, "top-right");
           
-          // Switch between area and distance measurement
-          function switchTool() {
-           const tool = measurement.activeTool === "distance" ? "area" : "distance";
-           measurement.activeTool = tool;
-        }
+        //   // Switch between area and distance measurement
+        //   function switchTool() {
+        //    const tool = measurement.activeTool === "distance" ? "area" : "distance";
+        //    measurement.activeTool = tool;
+        // }
     }
     )
 });
