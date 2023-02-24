@@ -1,8 +1,9 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
 from .functions import checkData
+import re
 
 def trash(all_dfs):
     
@@ -52,9 +53,21 @@ def trash(all_dfs):
     # return {'errors': errs, 'warnings': warnings}
 
     trashsiteinfo = all_dfs['tbl_trashsiteinfo']
+    trashsiteinfo['tmp_row'] = trashsiteinfo.index
     trashtally = all_dfs['tbl_trashtally']
+    trashtally['tmp_row'] = trashtally.index
     trashvisualassessment = all_dfs['tbl_trashvisualassessment']
+    trashvisualassessment['tmp_row'] = trashvisualassessment.index
     trashphotodoc = all_dfs['tbl_trashphotodoc']
+    trashphotodoc['tmp_row'] = trashphotodoc.index
+
+    # removed this due the following error: length of values (1) does not match length of index (55) -- when dropping a data file 
+    # not sure why this happened but the tmp_row returned an issue after this length mismatch was no longer an issue
+    # likely has to do with assignin tmp_row column -- the following lines did not run/populate new column
+    # trashsiteinfo = all_dfs['tbl_trashsiteinfo'].assign(tmp_row = all_dfs['tbl_trashsiteinfo'].index)
+    # trashtally = all_dfs['tbl_trashtally'].assign(tmp_row = all_dfs['tbl_trashsiteinfo'].index)
+    # trashvisualassessment = all_dfs['tbl_trashvisualassessment'].assign(tmp_row = all_dfs['tbl_trashvisualassessment'])
+    # trashphotodoc = all_dfs['tbl_trashphotodoc'].assign(tmp_row = all_dfs['tbl_trashphotodoc'])
 
 
     trashsiteinfo_args = {
@@ -96,7 +109,19 @@ def trash(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
-
-
+    
+    print(" after args")
+    ## SITE INFORMATION CHECKS
+    # Check 1: If datum is 'Other (comment required)', then comment is required for trashsiteinfo.
+    errs.append(
+        checkData(
+            'tbl_trashsiteinfo',
+            trashsiteinfo[(trashsiteinfo.datum == 'Other (comment required)') & (trashsiteinfo.comments.isna())].tmp_row.tolist(),
+            'comments',
+            'Undefined Error',
+            'Datum field is Other (comment required). Comments field is required.'
+            )
+    )
+    print("check 1 ran - datum other comment required")
 
     return {'errors': errs, 'warnings': warnings}
