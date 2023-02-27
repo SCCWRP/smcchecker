@@ -77,4 +77,16 @@ def channelengineering(all_dfs):
         )
     )
 
+    #Check 2: Check 2: If Other for the determination field then corresponding determinationcomments field is required
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+            channelengineering[(channelengineering.determinationcomments.isna())
+            & (channelengineering.determination == 'Other')].index.tolist(),
+            'determinationcomments',
+            'Undefined Warning',
+            'You have entered Other for determination field, comment is required'
+        )
+    )   
+
     return {'errors': errs, 'warnings': warnings}
