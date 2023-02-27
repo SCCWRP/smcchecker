@@ -51,8 +51,10 @@ def channelengineering(all_dfs):
 
     # return {'errors': errs, 'warnings': warnings}
 
+    # populate df called channelengineering
     channelengineering = all_dfs['tbl_channelengineering']
-
+    # create tmp_row using index from df
+    channelengineering['tmp_row'] = channelengineering.index
 
     channelengineering_args = {
         "dataframe": channelengineering,
@@ -64,6 +66,15 @@ def channelengineering(all_dfs):
         "error_message": ""
     }
 
-
+    # Check 1: If Other for the bottom field then corresponding bottomcomments field is required.
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+            channelengineering[(channelengineering.bottom == 'Other')&(channelengineering.bottomcomments.isnull())].tmp_row.tolist(),
+            'bottomcomments',
+            'Undefined Warning',
+            'You have entered Other for bottom field, comment is required.'
+        )
+    )
 
     return {'errors': errs, 'warnings': warnings}
