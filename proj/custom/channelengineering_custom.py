@@ -99,4 +99,34 @@ def channelengineering(all_dfs):
             'You have entered Other for leftsideofstructure field, comment is required.')
     )
 
+# Check 4: If Other for the rightsideofstructure field then corresponding rightsidecomments field is required
+    warnings.append(
+        checkData(
+            'tbl_channelengineering', 
+            channelengineering[(channelengineering.rightsideofstructure == 'Other')
+                                    & (channelengineering.rightsidecomments.isna())].index.tolist(),
+            'rightsidecomments',
+            'Undefined Warning',
+            'You have entered Other for rightsidestructure field, comment is required.')
+    )
+
+# Check 5: If Other for the structureshape field then corresponding structureshapecomments field is required
+
+    warnings.append(
+        checkData(
+            'tbl_channelengineering', 
+            channelengineering[(channelengineering.structureshape == 'Other')
+                                    & (channelengineering.structureshapecomments.isna())].index.tolist(),
+            'structureshapecomments',
+            'Undefined Warning',
+            'You have entered Other for structureshape field, comment is required.'
+            )
+        )
+
+
+
+
+
+
+
     return {'errors': errs, 'warnings': warnings}
