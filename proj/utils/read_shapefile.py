@@ -37,6 +37,8 @@ def build_all_dfs_from_sf(path_to_shapefiles):
 
     for zipfile in list(path_to_shapefiles.glob('*.*')):
         print(f"Reading {zipfile}")
+        if ".json" in str(zipfile):
+            continue
         df = read_shapefile(zipfile)
         print(df)
         df.columns = list(map(str.lower, df.columns))

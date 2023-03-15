@@ -849,15 +849,6 @@
         ],
         "login_fields": [
             {
-                "fieldname": "agency",
-                "label": "Your Agency/Lab",
-                "fieldtype": "select",
-                "independent": "True",
-                "options_from_table": "lu_agency",
-                "options_display_field": "agencyname",
-                "options_values_field": "agencycode"
-            },
-            {
                 "fieldname": "email",
                 "fieldtype": "input",
                 "label": "Your Email Address"

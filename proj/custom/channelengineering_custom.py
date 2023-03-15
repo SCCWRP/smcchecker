@@ -1,8 +1,9 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
 from .functions import checkData
+import pandas as pd
 
 def channelengineering(all_dfs):
     
@@ -51,8 +52,10 @@ def channelengineering(all_dfs):
 
     # return {'errors': errs, 'warnings': warnings}
 
+    # populate df called channelengineering
     channelengineering = all_dfs['tbl_channelengineering']
-
+    # create tmp_row using index from df
+    channelengineering['tmp_row'] = channelengineering.index
 
     channelengineering_args = {
         "dataframe": channelengineering,
@@ -63,7 +66,383 @@ def channelengineering(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
+    
+    # Check 1: If Other for the bottom field then corresponding bottomcomments field is required.
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+            channelengineering[(channelengineering.bottom == 'Other')&(channelengineering.bottomcomments.isnull())].tmp_row.tolist(),
+            'bottomcomments',
+            'Undefined Warning',
+            'You have entered Other for bottom field, comment is required.'
+        )
+    )
+  
 
+    #Check 2: Check 2: If Other for the determination field then corresponding determinationcomments field is required
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+            channelengineering[(channelengineering.determinationcomments.isna())
+            & (channelengineering.determination == 'Other')].index.tolist(),
+            'determinationcomments',
+            'Undefined Warning',
+            'You have entered Other for determination field, comment is required'
+        )
+    )  
+ 
+    #Check 3: If Other for the leftsideofstructure field then corresponding leftsidecomments field is required
+    warnings.append(
+        checkData(
+            'tbl_channelengineering', 
+            channelengineering[(channelengineering.leftsideofstructure == 'Other')
+                                    & (channelengineering.leftsidecomments.isna())].index.tolist(),
+            'leftsidecomments',
+            'Undefined Warning',
+            'You have entered Other for leftsideofstructure field, comment is required.')
+    )
+    
+
+     #Check 4: If Other for the rightsideofstructure field then corresponding rightsidecomments field is required
+    warnings.append(
+        checkData(
+            'tbl_channelengineering', 
+            channelengineering[(channelengineering.rightsideofstructure == 'Other')
+                                    & (channelengineering.rightsidecomments.isna())].index.tolist(),
+            'rightsidecomments',
+            'Undefined Warning',
+            'You have entered Other for rightsidestructure field, comment is required.'
+        )
+    )
+
+    #Check 5: If Other for the structureshape field then corresponding structureshapecomments field is required
+
+    warnings.append(
+        checkData(
+            'tbl_channelengineering', 
+            channelengineering[(channelengineering.structureshape == 'Other')
+                                    & (channelengineering.structureshapecomments.isna())].index.tolist(),
+            'structureshapecomments',
+            'Undefined Warning',
+            'You have entered Other for structureshape field, comment is required.'
+            )
+        )
+
+    # Check 6: (Engineered Channels) if channeltype == "Engineered" then the following fields are required:
+#            bottom --> Cannot be NR
+#            structurewidth --> Apparently it is allowed to be anything. Even NR. NOTE Ask Rafi about this one - IDK why I wrote this (Robert) -- WARNING
+#            UPDATE - We think structurewidth should also not be allowed to be NR for engineered channels 8/1/2019 (Robert)
+#            structureshape --> Cannot be NR
+#            leftsideofstructure --> Cannot be NR or Other
+#            leftvegetation --> Cannot be NR
+#            rightsideofstructure --> Cannot be NR or Other
+#            rightvegetation -- Cannot be NR
+#            vegetation --> Cannot be NR
+#            lowflowpresence --> Cannot be NR
+#            lowflowwidth --> Cannot be NR
+#
+#    def EngineeredChannelChecks(fieldname):
+#        errorLog('Check - if channeltype == Engineered then the %s field is required' % fieldname)
+#        errorLog('Submitted Data where channeltype == Engineered but the %s is missing:' % fieldname)
+#        exceptions = ['leftsideofstructure', 'rightsideofstructure']
+#       if fieldname not in exceptions:
+#            errorLog(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng[fieldname] == 'NR') ])
+#            checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng[fieldname] == 'NR') ].tmp_row.tolist(), fieldname, 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the %s field is missing' % fieldname, chaneng)
+#        else:
+#            errorLog(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng[fieldname].isin(['NR', 'Other'])) ])
+#            checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng[fieldname].isin(['NR', 'Other'])) ].tmp_row.tolist(), fieldname, 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the %s field is missing' % fieldname, chaneng)
+#    EngineeredChannelChecks('bottom')
+#    EngineeredChannelChecks('structureshape')
+#    #EngineeredChannelChecks('structurewidth') #I will make this a warning. NR is technically on the submission template where they enter data. Robert 8/1/2019
+#    EngineeredChannelChecks('leftsideofstructure')
+#    EngineeredChannelChecks('rightsideofstructure')
+#    #EngineeredChannelChecks('leftvegetation')
+#    #EngineeredChannelChecks('rightvegetation')
+#    #EngineeredChannelChecks('vegetation')     # Jeff requested these to be a warning 8/1/2019
+#    EngineeredChannelChecks('lowflowpresence')
+#    EngineeredChannelChecks('lowflowwidth')
+#    
+#    # Warning if structurewidth is NR for Engineered Channels
+#    errorLog(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['structurewidth'] == 'NR')])
+#    checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['structurewidth'] == 'NR') ].tmp_row.tolist(), 'structurewidth', 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the structurewidth field is NR', chaneng)
+#    
+#    # Warning if leftvegetation is NR for Engineered Channels
+#    errorLog(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['leftvegetation'] == 'NR')])
+#    checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['leftvegetation'] == 'NR') ].tmp_row.tolist(), 'leftvegetation', 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the leftvegetation field is NR', chaneng)
+#    
+#    # Warning if rightvegetation is NR for Engineered Channels
+#    errorLog(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['rightvegetation'] == 'NR')])
+#    checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['rightvegetation'] == 'NR') ].tmp_row.tolist(), 'rightvegetation', 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the rightvegetation field is NR', chaneng)
+#    
+#    # Warning if vegetation is NR for Engineered Channels
+#    errorLog(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['vegetation'] == 'NR')])
+#    checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['vegetation'] == 'NR') ].tmp_row.tolist(), 'vegetation', 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the vegetation field is NR', chaneng)
+
+    def EngineeredChannelChecks(df, fieldname):
+        exceptions = ['leftsideofstructure','rightsideofstructure']
+        # update not in part of conditional
+        if fieldname not in exceptions:
+            badrows = df[(df.channeltype == 'Engineered') & (df[fieldname] == 'NR')].index.tolist()
+           
+        else:
+            badrows = df[(df.channeltype == 'Engineered') & (df[fieldname].isin(['NR', 'Other']))].index.tolist()
+        return(badrows)
+    
+    #EngineeredChannelChecks(channelengineering, 'leftsideofstructure')
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+                EngineeredChannelChecks(channelengineering, 'leftsideofstructure'),
+                'leftsideofstructure',
+                'Undefined Warning',
+                'The channeltype is Engineered, but the leftsideofstructure field is missing'
+            )
+    )
+
+    #EngineeredChannelChecks(channelengineering, 'rightsideofstructure') 
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+                EngineeredChannelChecks(channelengineering, 'rightsideofstructure'),
+                'rightsideofstructure',
+                'Undefined Warning',
+                'The channeltype is Engineered, but the rightsideofstructure field is missing'
+        )
+    )
+
+    #EngineeredChannelChecks(channelengineering, 'bottom')
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+                EngineeredChannelChecks(channelengineering, 'bottom'),
+                'bottom',
+                'Undefined Warning',
+                'The channeltype is Engineered, but the bottom field is missing'
+        )
+    )
+  
+    #EngineeredChannelChecks(channelengineering, 'structureshape')
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+                EngineeredChannelChecks(channelengineering, 'structureshape'),
+                'structureshape',
+                'Undefined Warning',
+                'The channeltype is Engineered, but the structureshape field is missing'
+        )
+    )
+ 
+    #EngineeredChannelChecks(channelengineering, 'structurewidth')
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+            EngineeredChannelChecks(channelengineering, 'structurewidth'),
+            'structurewidth',
+            'Undefined Warning',
+            'The channeltype is Engineered, but the structurewidth field is missing'
+        )
+    )
+    #EngineeredChannelChecks(channelengineering, 'leftvegetation')
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+            EngineeredChannelChecks(channelengineering, 'leftvegetation'),
+            'leftvegetation',
+            'Undefined Warning',
+            'The channeltype is Engineered, but the leftvegetation field is missing'
+        )
+    )
+
+    #EngineeredChannelChecks(channelengineering, 'rightvegetation')
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+            EngineeredChannelChecks(channelengineering, 'rightvegetation'),
+            'rightvegetation',
+            'Undefined Warning',
+            'The channeltype is Engineered, but the rightvegetation field is missing'
+        )
+    )
+
+
+    #EngineeredChannelChecks(channelengineering, 'vegetation')
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+            EngineeredChannelChecks(channelengineering, 'vegetation'),
+            'vegetation',
+            'Undefined Warning',
+            'The channeltype is Engineered, but the vegetation field is missing'
+        )
+    )
+
+    #EngineeredChannelChecks(channelengineering, 'lowflowpresence')
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+            EngineeredChannelChecks(channelengineering, 'lowflowpresence'),
+            'lowflowpresence',
+            'Undefined Warning',
+            'The channeltype is Engineered, but the lowflowpresence field is missing'
+        )
+    )
+
+    #EngineeredChannelChecks(channelengineering, 'lowflowwidth')
+    warnings.append(
+        checkData(
+            'tbl_channelengineering',
+            EngineeredChannelChecks(channelengineering, 'lowflowwidth'),
+            'lowflowwidth',
+            'Undefined Warning',
+            'The channeltype is Engineered, but the lowflowwidth field is missing'
+        )
+    ) 
+    #Check 7
+    def NaturalChannelCheck(channelengineering, fieldname):
+        acceptable_values = ['NR']
+        print("the code enters the function")
+        if fieldname == 'structureshape':
+            acceptable_values.append('Natural')
+        else: 
+            fieldname == 'bottom'
+            acceptable_values.append('Soft/Natural')
+        badrows = channelengineering[(channelengineering.channeltype == 'Natural') & (~(channelengineering[fieldname].isin(acceptable_values))) ].index.tolist()
+        print(f'these are the bad rows for check7 {badrows}')
+        return(badrows)
+        
+    #NaturalChannelCheck(channelengineering, 'bottom')
+    errs.append(
+            checkData(
+                'tbl_channelengineering',
+                NaturalChannelCheck(channelengineering, 'bottom'),
+                'bottom',
+                'Undefined Error',
+                'The channeltype is Natural, but the bottom field is not filled with NR or Soft/Natural'
+        )
+    )
+
+    errs.append(
+            checkData(
+                'tbl_channelengineering',
+                NaturalChannelCheck(channelengineering, 'structurewidth'),
+                'structurewidth',
+                'Undefined Error',
+                'The channeltype is Natural, but the structurewidth field is not filled with NR'
+
+        )
+    )
+        ####
+        
+        #NaturalChannelCheck(channelengineering, 'structureshape')
+    errs.append(
+            checkData(
+                'tbl_channelengineering',
+                NaturalChannelCheck(channelengineering, 'structureshape'),
+                'structureshape',
+                'Undefined Error',
+                'The channeltype is Natural, but the structureshape field is not filled with NR or Natural'
+        )
+    )
+        
+        #NaturalChannelCheck(channelengineering, 'leftsideofstructure')
+    errs.append(
+              checkData(
+                  'tbl_channelengineering',
+                  NaturalChannelCheck(channelengineering, 'leftsideofstructure'),
+                  'leftsideofstructure',
+                  'Undefined Error',
+                  'The channeltype is Natural, but the leftsideofstructure field is not filled with NR'
+
+        )
+    )
+        
+        #NaturalChannelCheck(channelengineering, ' leftvegetation')
+    errs.append(
+              checkData(
+                'tbl_channelengineering',
+                NaturalChannelCheck(channelengineering, 'leftvegetation'),
+                'leftvegetation',
+                'Undefined Error',
+                'The channeltype is Natural, but the  leftvegetation field is not filled with NR'
+
+        )
+    )
+        
+      #NaturalChannelCheck(channelengineering, ' rightsideofstructure')
+    errs.append(
+            checkData(
+                'tbl_channelengineering',
+                NaturalChannelCheck(channelengineering, 'rightsideofstructure'),
+                'rightsideofstructure',
+                'Undefined Error',
+                'The channeltype is Natural, but the  rightsideofstructure field is not filled with NR'
+
+        )
+    ) 
+      
+      #NaturalChannelCheck(channelengineering, ' rightvegetation')
+    errs.append(
+        checkData(
+            'tbl_channelengineering',
+            NaturalChannelCheck(channelengineering, 'rightvegetation'),
+            'rightvegetation',
+            'Undefined Error',
+            'The channeltype is Natural, but the  rightvegetation field is not filled with NR'
+
+        )
+    ) 
+      
+      #NaturalChannelCheck(channelengineering, ' vegetation')
+    errs.append(
+        checkData(
+            'tbl_channelengineering',
+            NaturalChannelCheck(channelengineering, 'vegetation'),
+            'vegetation',
+            'Undefined Error',
+            'The channeltype is Natural, but the  vegetation field is not filled with NR'
+        )
+    ) 
+      
+    #NaturalChannelCheck(channelengineering, ' lowflowpresence')
+    errs.append(
+        checkData(
+            'tbl_channelengineering',
+            NaturalChannelCheck(channelengineering, 'lowflowpresence'),
+            'lowflowpresence',
+            'Undefined Error',
+            'The channeltype is Natural, but the  lowflowpresence field is not filled with NR'
+
+        )
+    ) 
+      
+    #NaturalChannelCheck(channelengineering, ' lowflowwidth')
+    errs.append(
+            checkData(
+                'tbl_channelengineering',
+                NaturalChannelCheck(channelengineering, 'lowflowwidth'),
+                'lowflowwidth',
+                'Undefined Error',
+                'The channeltype is Natural, but the  lowflowpresence field is not filled with NR'
+
+        )
+    ) 
+      
+     
+       
+    # Warning if structurewidth is anything besides NR for a Natural Channel
+        
+    warnings.append(
+            checkData(
+                'tbl_channelengineering',
+                NaturalChannelCheck(channelengineering, 'structurewidth'),
+                'structurewidth',
+                'Undefined Warning',
+                'The channeltype is Natural, but the  structurewidth field is not filled with NR'
+        )
+    )
+
+ 
+         
 
 
     return {'errors': errs, 'warnings': warnings}

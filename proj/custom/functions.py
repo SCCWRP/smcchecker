@@ -291,5 +291,83 @@ def check_schema(db):
     print(missing_data_msgs)
     return missing_data_msgs
 
+# The convert_dtype function is added to functions.py for custom checks. This has specifically been added for the result (text) column in multiple datatypes for SMC to ensure
+# that the values for the result column is checked as a float to prevent the submission of any text to the result field. 
+# 
+def convert_dtype(t, x):
+    try:
+        if ((pd.isnull(x)) and (t == float)):
+            # modified to check that t is float instead of int
+            return True
+        t(x)
+        return True
+    except Exception as e:
+        if t == pd.Timestamp:
+            # checking for a valid postgres timestamp literal
+            # Postgres technically also accepts the format like "January 8 00:00:00 1999" but we won't be checking for that unless it becomes a problem
+            datepat = re.compile("\d{4}-\d{1,2}-\d{1,2}\s*(\d{1,2}:\d{1,2}:\d{2}(\.\d+){0,1}){0,1}$")
+            return bool(re.match(datepat, str(x)))
+        return False
 
+def multivalue_lookup_check(df, field, listname, listfield, dbconnection, displayfieldname = None, sep=','):
+    """
+    Checks a column of a dataframe against a column in a lookup list. Specifically if the column may have multiple values.
+    The default is that the user enters multiple values separated by a comma, although the function may take other characters as separators
+    
+    Parameters:
+    df               : The user's dataframe
+    field            : The field name of the user's submitted dataframe
+    listname         : The Lookup list name (for example lu_resqualcode)
+    listfield        : The field of the lookup list table that we are checking against
+    displayfieldname : What the user will see in the error report - defaults to the field argument 
+                       it should still be a column in the dataframe, but with different capitalization
 
+    Returns a dictionary of arguments to pass to the checkData function
+    """
+
+    # default the displayfieldname to the "field" argument
+    displayfieldname = displayfieldname if displayfieldname else field
+
+    # displayfieldname should still be a column of the dataframe, but just typically camelcased
+    assert displayfieldname.lower() in df.columns, f"the displayfieldname {displayfieldname} was not found in the columns of the dataframe, even when it was lowercased"
+
+    assert field in df.columns, f"In {str(currentframe().f_code.co_name)} (value against multiple values check) - {field} not in the columns of the dataframe"
+    lookupvals = set(read_sql(f'''SELECT DISTINCT "{listfield}" FROM "{listname}";''', dbconnection)[listfield].tolist())
+
+    if not 'tmp_row' in df.columns:
+        df['tmp_row'] = df.index
+
+    # hard to explain what this is doing through a code comment
+    badrows = df[df[field].apply(lambda values: not set([val.strip() for val in str(values).split(sep)]).issubset(lookupvals) )].tmp_row.tolist()
+    args = {
+        "badrows": badrows,
+        "badcolumn": displayfieldname,
+        "error_type": "Lookup Error",
+        "error_message": f"""One of the values here is not in the lookup list <a target = "_blank" href=/{current_app.script_root}/scraper?action=help&layer={listname}>{listname}</a>"""
+    }
+
+    return args
+
+def nameUpdate(df, field, conditions, oldname, newname):
+    """
+    DESCRIPTION:
+    This function returns an error if the field in df under conditions contains an oldname.
+    
+    PARAMETERS:
+    
+    df - pandas dataframe of interest
+    field - string of the field of interest
+    conditions - a dictionary of conditions placed on the dataframe (i.e. {'field':['condition1',...]})
+    oldname - string of the name returned to user if found in field
+    newname - string of the suggested fix for oldname.
+    """
+    print("function - nameUpdate")
+    print("creating mask dataframe")
+    mask = pd.DataFrame([df[k].isin(v) for k,v in conditions.items()]).T.all(axis = 1)
+    print("extract the appropriate subset of the original dataframe (df)")
+    sub = df[mask]
+    print("Find where the column has the outdated name")
+    errs = sub[sub[field].str.contains(oldname)]
+    print(errs)
+    print("Call the checkData function")
+    checkData(errs.tmp_row.tolist(),field,'Undefined Error','error','%s must now be written as %s.' %(oldname, newname),df)

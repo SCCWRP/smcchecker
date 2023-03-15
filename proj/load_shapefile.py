@@ -6,7 +6,7 @@ from .utils.exceptions import default_exception_handler
 from .utils.read_shapefile import build_all_dfs_from_sf
 from .utils.uploadAWSS3 import s3Client, upload_and_retrieve
 from .utils.mail import data_receipt
-from .utils.convert_coordinates import *
+from .utils.convert_projection import convert_projection
 from psycopg2.errors import ForeignKeyViolation
 from pathlib import Path
 import pandas as pd
@@ -22,28 +22,39 @@ def load_sf():
     print("REQUEST MADE TO /loadsf")
 
     # Creates a GIS connection
-    gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html",os.environ.get('ARCGIS_USER'),os.environ.get('ARCGIS_PASSWORD'))
-    
-    path_to_shapefiles = Path(session['excel_path']).parent
+    gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html", os.environ.get('ARCGIS_USER'), os.environ.get('ARCGIS_PASSWORD'))
 
+    path_to_shapefiles = Path(session['shapefile_path']).parent
+    print(path_to_shapefiles)
     url_list_dict = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")
-    # Now load the data to our db
+    
+    # Now start the process to load data
+    # At this point, the data being submitted should be clean, we go and grab it
     all_dfs = build_all_dfs_from_sf(path_to_shapefiles)
-
     
     for tbl in all_dfs:
-        df = all_dfs[tbl].get('data')
         
+        df = all_dfs[tbl].get('data')
+
+        # Convert whatever projection user submitted to 4326
+        print("Convert whatever projection user submitted to 4326")
+        df = convert_projection(df)
+
+        # Append masterid column
+        print("Append masterid column")
+        lu_stations = pd.read_sql("SELECT DISTINCT stationid, masterid FROM lu_stations", con=g.eng)
+        df['masterid'] = df.apply(
+            lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
+            axis=1
+        )
+
+        # Convert the shape column to sql command so the database knows to insert the points/polygons
+        print("Convert the shape column to sql command so the database knows to insert the points/polygons")
         if tbl == 'gissites': 
-            df = df.assign(
-                shape = df.apply(
-                lambda row: 
-                    f"SRID={row['shape'].spatialReference.get('wkid')};POINT({row.new_long} {row.new_lat})",
-                    axis=1
-            ))
+            df['shape'] = df['shape'].apply(
+                lambda cell: f"SRID=4326;POINT({cell.x} {cell.y})"
+            )
         else:
-            df['shape'] = pd.Series(project(geometries=df['shape'].tolist(), in_sr=3857, out_sr=4326))
-            print(df['shape'])
             df['shape'] = df["shape"].apply(
                 lambda cell: ",".join(
                     [
@@ -54,6 +65,9 @@ def load_sf():
             df['shape'] = df["shape"].apply(
                 lambda cell: f"SRID=4326; POLYGON(({cell}))"
             )
+
+        # system fields
+        print("appending system fields")
         df = df.assign(
             objectid = f"sde.next_rowid('sde','{tbl}')",
             globalid = "sde.next_globalid()",
