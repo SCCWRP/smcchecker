@@ -212,7 +212,7 @@
     "phab": {
         "label": "PHAB",
         "tables": [
-            "tbl_phab_newformat"
+            "tbl_phab"
         ],
         "login_fields": [
             {
