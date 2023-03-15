@@ -289,6 +289,8 @@ def main():
         try:
             custom_output = eval(match_dataset)(all_dfs)
         except NameError as err:
+            print("err")
+            print(err)
             raise Exception(f"""Error calling custom checks function "{match_dataset}" - may not be defined, or was not imported correctly.""")
         
         print("custom_output: ")

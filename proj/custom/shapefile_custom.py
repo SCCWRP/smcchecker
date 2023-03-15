@@ -9,7 +9,7 @@ from arcgis.gis import GIS
 import os
 
 def shapefile(all_dfs):
-    
+    print("begin shapefile custom")
     current_function_name = str(currentframe().f_code.co_name)
     
     # function should be named after the dataset in app.datasets in __init__.py
@@ -30,24 +30,13 @@ def shapefile(all_dfs):
     sites['tmp_row'] = sites.index
     catchments['tmp_row'] = catchments.index
 
-    lu_stations = pd.read_sql("SELECT distinct stationid, masterid, longitude,latitude FROM lu_stations", con=g.eng)
-
-    # At this point, the stationids should be in lu_stations. Then we look up the associated masterid and 
-    # append it the dataframe.
-    sites['masterid'] = sites.apply(
-         lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
-         axis=1
-    )
-    catchments['masterid'] = catchments.apply(
-         lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
-         axis=1
-    )
-
     # define errors and warnings list
     errs = []
     warnings = []
 
     gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html", os.environ.get('ARCGIS_USER'), os.environ.get('ARCGIS_PASSWORD'))
+    
+    lu_stations = pd.read_sql("SELECT distinct stationid, masterid, longitude,latitude FROM lu_stations", con=g.eng)
 
     # 0. Check if stationids in the lu_stations
     stationid_list = lu_stations.stationid.to_list()
@@ -84,6 +73,16 @@ def shapefile(all_dfs):
     errs = [*errs, checkData(**args)]
     print("check ran -  Check if stationids in the lu_stations") 
 
+    # At this point, the stationids should be in lu_stations. Then we look up the associated masterid and 
+    # append it the dataframe.
+    sites['masterid'] = sites.apply(
+         lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
+         axis=1
+    )
+    catchments['masterid'] = catchments.apply(
+         lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
+         axis=1
+    )
 
     # 1. Check if the masterid, date already exists in the database
     # 1a. Check sites

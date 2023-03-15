@@ -79,14 +79,20 @@
         }
         // Get the type of each files in dropped files
         var dropped_files_type = []
-        Array.from(dropped_files).forEach(file => {dropped_files_type.push(file.type)});
+        Array.from(dropped_files).forEach(file => {
+            console.log("file type");
+            console.log(file.type);
+            dropped_files_type.push(file.type)
+        });
         
         // Response variable defined in the if-block is only available within the block, not outside of it
         // Hence need to initiate response var outside of if-block.
         var response = '';
 
         // condition returns True if all the filetypes are x-zip-compressed
-        if (dropped_files_type.every(function (item){return item.includes("application/x-zip-compressed")})) {
+        if (dropped_files_type.every(function (item){
+            return item.includes("application/x-zip-compressed") || item.includes("application/zip")
+        })) {
             console.log("Shapefile submitted, redirecting to shapefile processing route")
             response = await fetch(`/${script_root}/sfprocessing`, {
                 method: 'post',
