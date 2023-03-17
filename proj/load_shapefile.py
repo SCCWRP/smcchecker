@@ -14,7 +14,7 @@ import json, os
 from arcgis.geometry import Point, Polyline, Polygon, Geometry
 from arcgis.geometry import lengths, areas_and_lengths, project
 from arcgis.gis import GIS
-
+import itertools
 
 sfloading = Blueprint('sfloading', __name__)
 @sfloading.route('/sfloading', methods = ['GET','POST'])
@@ -23,9 +23,9 @@ def load_sf():
 
     # Creates a GIS connection
     gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html", os.environ.get('ARCGIS_USER'), os.environ.get('ARCGIS_PASSWORD'))
-
+    lu_stations = pd.read_sql("SELECT DISTINCT stationid, masterid FROM lu_stations", con=g.eng)
     path_to_shapefiles = Path(session['shapefile_path']).parent
-    print(path_to_shapefiles)
+
     url_list_dict = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")
     
     # Now start the process to load data
@@ -42,7 +42,7 @@ def load_sf():
 
         # Append masterid column
         print("Append masterid column")
-        lu_stations = pd.read_sql("SELECT DISTINCT stationid, masterid FROM lu_stations", con=g.eng)
+
         df['masterid'] = df.apply(
             lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
             axis=1
@@ -78,7 +78,7 @@ def load_sf():
             last_edited_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
             last_edited_user = 'checker',
             submissionid = session['submissionid'],
-            approve = 'not_reviewed',
+            approve = 'pre_approved',
             filename = all_dfs[tbl].get('filename'),
             download_url = url_list_dict.get(all_dfs[tbl].get('filename'))
         )
@@ -107,7 +107,7 @@ def load_sf():
 def sfloading_error_handler(error):
     response = default_exception_handler(
         mail_from = current_app.mail_from,
-        errmsg = str(error),
+        errmsg = str(error)[:500],
         maintainers = current_app.maintainers,
         project_name = current_app.project_name,
         attachment = None,

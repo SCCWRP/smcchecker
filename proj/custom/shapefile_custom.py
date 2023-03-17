@@ -38,41 +38,6 @@ def shapefile(all_dfs):
     
     lu_stations = pd.read_sql("SELECT distinct stationid, masterid, longitude,latitude FROM lu_stations", con=g.eng)
 
-    # 0. Check if stationids in the lu_stations
-    stationid_list = lu_stations.stationid.to_list()
-    
-    # 0a. Check sites
-    baddf = sites[~sites['stationid'].isin(stationid_list)]
-    badrows = baddf.tmp_row.tolist()
-    args = {
-        "dataframe": 'gissites',
-        "tablename": 'gissites',
-        "badrows": badrows,
-        "badcolumn": "stationid",
-        "error_type": "Lookup Error",
-        "is_core_error": False,
-        "error_message": 
-            f"These stations are not in the lookup list: {','.join(baddf['stationid'])}"
-    }
-    errs = [*errs, checkData(**args)]
-    
-
-    # 0b. Check catchments
-    baddf = catchments[~catchments['stationid'].isin(stationid_list)]
-    badrows = baddf.tmp_row.tolist()
-    args = {
-        "dataframe": 'giscatchments',
-        "tablename": 'giscatchments',
-        "badrows": badrows,
-        "badcolumn": "stationid",
-        "error_type": "Lookup Error",
-        "is_core_error": False,
-        "error_message": 
-            f"These stations are not in the lookup list: {','.join(baddf['stationid'])}"
-    }
-    errs = [*errs, checkData(**args)]
-    print("check ran -  Check if stationids in the lu_stations") 
-
     # At this point, the stationids should be in lu_stations. Then we look up the associated masterid and 
     # append it the dataframe.
     sites['masterid'] = sites.apply(
@@ -84,7 +49,8 @@ def shapefile(all_dfs):
          axis=1
     )
 
-    # 1. Check if the masterid, date already exists in the database
+    # 1. Check if the masterid already exists in the database
+    print("Check if the masterid already exists in the database") 
     # 1a. Check sites
     records_db = pd.read_sql("SELECT DISTINCT masterid FROM gissites", g.eng)
     merged = pd.merge(sites, records_db, on=['masterid'], how='left', indicator='exists')
@@ -124,6 +90,7 @@ def shapefile(all_dfs):
     print("check ran -  Check if the masterid already exists in the database") 
 
     ## 2. Check if the points are in the polygon
+    print("Check if the points are in the polygon")
     merged = sites[['stationid','tmp_row','shape']].rename(columns={'shape':'POINT_shape'}).merge(
         catchments[['stationid','shape']].rename(columns={'shape':'POLYGON_shape'}), 
         on='stationid', 
@@ -148,6 +115,7 @@ def shapefile(all_dfs):
     print("check ran -  Check if the points are in the polygon") 
 
     ## 3. Check stationid should match between site and catchment shapefile
+    print("Check stationid should match between site and catchment shapefile")
     badrows = pd.merge(
         sites,
         catchments, 

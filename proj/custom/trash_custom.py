@@ -126,7 +126,7 @@ def trash(all_dfs):
     print("check 1 ran - datum other comment required")
 #Updated and working by Aria
    #badrows = trashsiteinfo[(trashsiteinfo.datum == 'Other') & (trashsiteinfo.comments.isna())]
-  
+  #aria changed lol
 #    trashsiteinfo_args.update({
 #        "dataframe": trashsiteinfo,
 #        "tablename": 'tbl_trashsiteinfo',
