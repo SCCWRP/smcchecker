@@ -14,17 +14,11 @@ def convert_projection(sdf):
     sdf.rename(columns={'shape':'SHAPE'}, inplace=True)
     src_projection = sdf.spatial.sr.get('wkid')
     
-    ##### Remove this block of code later
-    if sdf['stationid'].isin(['532WER222','SGUT501']).all():
-        print(sdf.columns)
-        sdf['SHAPE'] = pd.Series(project(geometries=sdf['SHAPE'].tolist(), in_sr=6340, out_sr=4326))
-    #####
+    if int(src_projection) != 4326:
+        print(f"Converting projection from {src_projection} to 4326")
+        sdf['SHAPE'] = pd.Series(project(geometries=sdf['SHAPE'].tolist(), in_sr=src_projection, out_sr=4326))
     else:
-        if int(src_projection) != 4326:
-            print(f"Converting projection from {src_projection} to 4326")
-            sdf['SHAPE'] = pd.Series(project(geometries=sdf['SHAPE'].tolist(), in_sr=src_projection, out_sr=4326))
-        else:
-            print("Projection is already 4326")
-    print(sdf['SHAPE'].values)         
+        print("Projection is already 4326")        
     sdf.columns  = [c.lower() for c in sdf.columns]
+    
     return sdf
