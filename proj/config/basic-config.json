@@ -1,7 +1,7 @@
 {
     "EXCEL_OFFSET" : 0,
     "SYSTEM_FIELDS" : [
-        "masterid","objectid", "globalid", "created_date", "created_user", "last_edited_date","last_edited_user", "submissionid", "warnings", "login_email", "lastchangedate"
+        "masterid","objectid", "globalid", "created_date", "created_user", "last_edited_date","last_edited_user", "submissionid", "warnings", "login_email", "lastchangedate","level_0"
     ],
     "EXCEL_TABS_TO_IGNORE": ["Instructions","glossary","Lookup Lists", "Results_Example"],
     "MAINTAINERS": ["pauls@sccwrp.org", "robertb@sccwrp.org", "duyn@sccwrp.org", "zaibq@sccwrp.org","ayahh@sccwrp.org","ariaa@sccwrp.org"]
