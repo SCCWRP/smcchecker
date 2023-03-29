@@ -78,7 +78,7 @@ def load_sf():
             last_edited_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
             last_edited_user = 'checker',
             submissionid = session['submissionid'],
-            approve = 'pre_approved',
+            approve = 'not_reviewed',
             filename = all_dfs[tbl].get('filename'),
             download_url = url_list_dict.get(all_dfs[tbl].get('filename'))
         )
