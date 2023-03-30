@@ -73,6 +73,8 @@ RUN R CMD INSTALL --no-multiarch --with-keep.source PHAB
 RUN mkdir -p /var/www/checker/
 WORKDIR /var/www/checker/
 
+RUN pip3 install boto3
+
 # this Dockerfile is for the SMC checker, since there are certain libraries that are unique to this checking system
 # sudo docker image build -t sccwrp/flask:smcchecker .
 
