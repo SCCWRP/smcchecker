@@ -161,7 +161,7 @@ def channelengineering(all_dfs):
 #    #EngineeredChannelChecks('vegetation')     # Jeff requested these to be a warning 8/1/2019
 #    EngineeredChannelChecks('lowflowpresence')
 #    EngineeredChannelChecks('lowflowwidth')
-#    
+#    ###### IN new check, all the columns are already warnings, line 165-179 do not need to be in the new checker - Ayah 03/17/2023 #####
 #    # Warning if structurewidth is NR for Engineered Channels
 #    errorLog(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['structurewidth'] == 'NR')])
 #    checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['structurewidth'] == 'NR') ].tmp_row.tolist(), 'structurewidth', 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the structurewidth field is NR', chaneng)
@@ -319,21 +319,9 @@ def channelengineering(all_dfs):
                 'Undefined Error',
                 'The channeltype is Natural, but the bottom field is not filled with NR or Soft/Natural'
         )
-    )
+    )  
 
-    errs.append(
-            checkData(
-                'tbl_channelengineering',
-                NaturalChannelCheck(channelengineering, 'structurewidth'),
-                'structurewidth',
-                'Undefined Error',
-                'The channeltype is Natural, but the structurewidth field is not filled with NR'
-
-        )
-    )
-        ####
-        
-        #NaturalChannelCheck(channelengineering, 'structureshape')
+    #NaturalChannelCheck(channelengineering, 'structureshape')
     errs.append(
             checkData(
                 'tbl_channelengineering',
@@ -441,8 +429,33 @@ def channelengineering(all_dfs):
         )
     )
 
- 
+ # Check 8: if lowflowpresence == "Present" then lowflowwidth is required
+#    checkData(chaneng[ (chaneng.lowflowpresence == 'Present') & (chaneng.lowflowwidth == 'NR') ].tmp_row.tolist(), 'lowflowwidth', 'Undefined Error', 'error', 'The lowflowpresence field is recorded as Present, but the lowflowwidth field says NR (Not Recorded)', chaneng)
+
+    errs.append(
+            checkData(
+                'tbl_channelengineering', 
+                channelengineering[(channelengineering.lowflowpresence == 'Present')
+                                        & (channelengineering.lowflowwidth == 'NR')].index.tolist(),
+                'lowflowwidth',
+                'Undefined Error',
+                'The lowflowpresence field is recorded as Present, but the lowflowwidth field says NR (Not Recorded)'
+        )
+    )
          
+# Check 9: if gradecontrolpresence  == "Present" then gradecontrollocation is required
+#checkData(chaneng[ (chaneng.gradecontrolpresence == 'Present') & (chaneng.gradecontrollocation == 'NR') ].tmp_row.tolist(), 'gradecontrollocation', 'Undefined Error', 'error', 'The gradecontrolpresence field is recorded as Present, but the gradecontrollocation field says NR (Not Recorded)', chaneng)
+
+    errs.append(
+            checkData(
+                'tbl_channelengineering', 
+                channelengineering[(channelengineering.gradecontrolpresence == 'Present')
+                                        & (channelengineering.gradecontrollocation == 'NR')].index.tolist(),
+                'gradecontrollocation',
+                'Undefined Error',
+                'The gradecontrolpresence field is recorded as Present, but the gradecontrollocation field says NR (Not Recorded)'
+                )
+     )
 
 
     return {'errors': errs, 'warnings': warnings}
