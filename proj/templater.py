@@ -369,7 +369,7 @@ def template():
     print(" ====== saved =====")
     # probably better to generalize with the below code, but for testing right now let's just call the exact file path and modify
     #return send_file(f'{os.getcwd()}/export/{datatype.upper()}-TEMPLATE.xlsx', as_attachment=True, attachment_filename=f'{datatype.upper()}-TEMPLATE.xlsx')
-    return send_file(f'{os.getcwd()}/export/routine/{datatype.upper()}-TEMPLATE.xlsx', as_attachment=True, attachment_filename=f'{datatype.upper()}-TEMPLATE.xlsx')
+    return send_file(f'{os.getcwd()}/export/routine/{datatype.upper()}-TEMPLATE.xlsx', as_attachment=True, download_name=f'{datatype.upper()}-TEMPLATE.xlsx')
 
 
 
