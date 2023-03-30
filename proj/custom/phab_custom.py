@@ -129,4 +129,41 @@ def phab(all_dfs):
             "The QA Flag is not None here, but there appears to be a value reported in the Result column.",            
         )
     )
+# Check 5: If the Result value for the Analyte SpecificConductivity is less than 50, issue a warning (Check to see if SpecificConductivity is less than 50 or not)
+
+    warnings.append(
+        checkData(
+            'tbl_phab',
+            phab[(phab.analytename == 'SpecificConductivity') & ((phab.result < 50) & (phab.result != -88))].tmp_row.tolist(),
+            'result',
+            'Undefined Warning',
+            "SpecificConductivity must be reported in units of uS/cm. Your data submission contains very low values, which should indicate that data were recorded as mS/cm instead. Please verify that data is reported in the required units",                       
+        )
+    )
+
+ # Check 6: If the Result value for the Analyte Temperature is higher than 31, then issue a warning
+ # Tell them they need to make sure they measured in Celsius, not Fahrenheit
+
+    warnings.append(
+        checkData(
+            'tbl_phab',
+            phab[(phab.analytename == 'Temperature') & (phab.result > 31)].tmp_row.tolist(),
+            'result',
+            'Undefined Warning',
+            "The temperature value here seems a little bit high. Just make sure that you measured the temperature in Celsius, not Fahrenheit",            
+        )
+    )
+
+# Check 7: if the Result Value for the Analyte "Oxygen, Dissolved" is above 14.6
+
+    warnings.append(
+        checkData(
+            'tbl_phab',
+            phab[(phab.analytename == 'Oxygen, Dissolved') & (phab.result > 14.6)].tmp_row.tolist(),
+            'result',
+            'Undefined Warning',
+            "The Result reported for analyte Oxygen Dissolved seems a bit high. Be sure to report the result in units of mg/L, not Percentage.",            
+        )
+    
+    )
     return {'errors': errs, 'warnings': warnings}
