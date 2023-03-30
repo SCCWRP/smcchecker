@@ -20,7 +20,6 @@ def siteevaluation(all_dfs):
     errs = []
     warnings = []
 
-
     # since often times checks are done by merging tables (Paul calls those logic checks)
     # we assign dataframes of all_dfs to variables and go from there
     # This is the convention that was followed in the old checker
@@ -50,9 +49,8 @@ def siteevaluation(all_dfs):
     # errs = [*errs, checkData(**args)]
 
     # return {'errors': errs, 'warnings': warnings}
-
     siteeval = all_dfs['tbl_siteeval']
-
+    siteeval['tmp_row'] = siteeval.index
 
     siteeval_args = {
         "dataframe": siteeval,
@@ -65,5 +63,93 @@ def siteevaluation(all_dfs):
     }
 
 
+    # Check 1: if evalstatuscode == 'NE' then: the following must be equal to "U":
+    # waterbodystatuscode
+    # flowstatuscode
+    # wadeablestatuscode
+    # physicalaccessstatuscode
+    # landpermissionstatuscode
+    #     AND
+    #     fieldreconcode code must be equal to "N"
+    #     AND 
+    #     samplestatuscode must be equal to "NS"
+    #    siteevalcheck('evalstatuscode', 'NE', 'waterbodystatuscode', 'U')
+    #    siteevalcheck('evalstatuscode', 'NE', 'flowstatuscode', 'U')
+    #    siteevalcheck('evalstatuscode', 'NE', 'wadeablestatuscode', 'U')
+    #    siteevalcheck('evalstatuscode', 'NE', 'physicalaccessstatuscode', 'U')
+    #    siteevalcheck('evalstatuscode', 'NE', 'landpermissionstatuscode', 'U')
+    #    siteevalcheck('evalstatuscode', 'NE', 'fieldreconcode', 'N')
+    #    siteevalcheck('evalstatuscode', 'NE', 'samplestatuscode', 'NS')
+    # -- End of 'Check - evalstatuscode == "NE" ...' -- #
+
+    # #Updated by Aria Askaryar on 3/20/2023 
+
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.waterbodystatuscode != 'U')].tmp_row.tolist(),
+            "waterbodystatuscode",
+            "Incorrect Input",
+            "waterbodystatuscode must have a Vale of U if evalstatuscode is NE "
+        )
+    )
+
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.flowstatuscode != 'U')].tmp_row.tolist(),
+            "flowstatuscode",
+            "Undefined Error",
+            "flowstatuscode must have a Vale of U if evalstatuscode is NE"
+        )
+    )
+
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.wadeablestatuscode != 'U')].tmp_row.tolist(),
+            "wadeablestatuscode",
+            "Undefined Error",
+            "wadeablestatuscode must have a Vale of U"
+        )
+    )
+
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.physicalaccessstatuscode != 'U')].tmp_row.tolist(),
+            "physicalaccessstatuscode",
+            "Undefined Error",
+            "physicalaccessstatuscode must have a Vale of U"
+        )
+    )
+
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.landpermissionstatuscode != 'U')].tmp_row.tolist(),
+            "landpermissionstatuscode",
+            "Undefined Error",
+            "landpermissionstatuscode must have a Vale of U"
+        )
+    )
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.fieldreconcode != 'N')].tmp_row.tolist(),
+            "fieldreconcode",
+            "Undefined Error",
+            "fieldreconcode must have a Vale of N if evalstatuscode is NE"
+        )
+    )
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.samplestatuscode != 'NS')].tmp_row.tolist(),
+            "samplestatuscode",
+            "Undefined Error",
+            "samplestatuscode must have a Vale of NS if evalstatuscode is NE"
+        )
+    )
 
     return {'errors': errs, 'warnings': warnings}
