@@ -42,7 +42,7 @@ def build_all_dfs_from_sf(path_to_shapefiles):
         df = read_shapefile(zipfile)
         print(df)
         df.columns = list(map(str.lower, df.columns))
-        df.drop(columns=['index','objectid'],inplace=True)
+        df.drop(columns=['index','objectid','level_0'],inplace=True,errors='ignore')
         if all(df['shape'].geom.geometry_type == 'point'):
             
             df['snapdist_m'] = -88

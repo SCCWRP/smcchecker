@@ -39,6 +39,13 @@ def template_file():
     else:
         return jsonify(message = "neither a filename nor a database tablename were provided")
 
+@download.route('/downloadfieldform', methods = ['GET','POST'])
+def download_field_form():
+    return send_file(
+        os.path.join(os.getcwd(), "export", "field_forms", 'DraftStreamTrashDataSheets_32823.pdf'), 
+        as_attachment = True, 
+        download_name = 'DraftStreamTrashDataSheets_32823.pdf' 
+    )
 
 @download.route('/downloadsf', methods = ['GET'])
 def download_shapefile():
@@ -59,7 +66,6 @@ def get_masterid():
 
 @download.route('/getdownloadlink', methods = ['POST','GET'])
 def get_download_link():
-    print("download shapefile route")
     
     agency = request.form.get('selected_agency')
     masterid = request.form.get('masterid')

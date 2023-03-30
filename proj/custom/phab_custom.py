@@ -3,6 +3,7 @@
 from inspect import currentframe
 from flask import current_app
 from .functions import checkData
+from datetime import datetime 
 
 def phab(all_dfs):
     
@@ -52,7 +53,7 @@ def phab(all_dfs):
     # return {'errors': errs, 'warnings': warnings}
 
     phab = all_dfs['tbl_phab']
-
+    phab['tmp_row'] = phab.index
 
     phab_args = {
         "dataframe": phab,
@@ -72,6 +73,97 @@ def phab(all_dfs):
     #         'SampleTypeCode is Epiphyte. BAResult is a required field.'
     #     )
     # ) 
+    
+    #Check 2: SampleDate cannot be from the future
+    # This was given to us by Rafi and posted to Teams website
+    #    checkData(phabphab[phab.sampledate > datetime.today()].tmp_row.tolist(), 'SampleDate', 'Undefined Error', 'error', 'It appears that this sample came from the future', phab)
 
+    errs.append(
+        checkData(
+            'tbl_phab',
+            phab[phab.sampledate > datetime.today()].tmp_row.tolist(),
+            'sampledate',
+            'Undefined Error',
+            'It appears that this sample came from the future'                  
+        )
+    )
+    #Check 3: if ResQualCode is NR, ND or NA, then Result and VariableResult should be Null
+    warnings.append(
+        checkData(
+            'tbl_phab',
+            phab[(phab.resqualcode == 'NR') & ((phab.result != -88) & (~phab.result.isnull()))].tmp_row.tolist(),
+            'result',
+            'Undefined Warning',
+            'If the resqualcode is NR, then the result should be -88, or left blank.'               
+        )
+    )
+    
+    warnings.append(
+        checkData(
+            'tbl_phab',
+            phab[(phab.resqualcode == 'NR') & ((phab.variableresult != 'Not Recorded') & (~phab.variableresult.isnull()) & (phab.variableresult != '') ) ].tmp_row.tolist(),
+            'variableresult',
+            'Undefined Warning',
+            'If the resqualcode is NR, then the variableresult should say Not Recorded, or be left blank.'              
+        )
+    )
+    
+# Check 4: if QACode is NOT "None" then give a warning (warn them if the QACode is not None and a value is reported.)
+  
+    warnings.append(
+        checkData(
+            'tbl_phab',
+            phab[(phab.qacode != 'None') & ((phab.variableresult != 'NR') & (~phab.variableresult.isnull()) & (phab.variableresult != '') ) ].tmp_row.tolist(),
+            'variableresult',
+            'Undefined Warning',
+            "The QA Flag is not None here, but there appears to be a value reported in the VaraibleResult column."            
+        )
+    )
 
+    warnings.append(
+        checkData(
+            'tbl_phab',
+            phab[(phab.qacode != 'None') & ((phab.result != 'NR') & (~phab.variableresult.isnull()) & (phab.variableresult != '') ) ].tmp_row.tolist(),
+            'result',
+            'Undefined Warning',
+            "The QA Flag is not None here, but there appears to be a value reported in the Result column.",            
+        )
+    )
+# Check 5: If the Result value for the Analyte SpecificConductivity is less than 50, issue a warning (Check to see if SpecificConductivity is less than 50 or not)
+
+    warnings.append(
+        checkData(
+            'tbl_phab',
+            phab[(phab.analytename == 'SpecificConductivity') & ((phab.result < 50) & (phab.result != -88))].tmp_row.tolist(),
+            'result',
+            'Undefined Warning',
+            "SpecificConductivity must be reported in units of uS/cm. Your data submission contains very low values, which should indicate that data were recorded as mS/cm instead. Please verify that data is reported in the required units",                       
+        )
+    )
+
+ # Check 6: If the Result value for the Analyte Temperature is higher than 31, then issue a warning
+ # Tell them they need to make sure they measured in Celsius, not Fahrenheit
+
+    warnings.append(
+        checkData(
+            'tbl_phab',
+            phab[(phab.analytename == 'Temperature') & (phab.result > 31)].tmp_row.tolist(),
+            'result',
+            'Undefined Warning',
+            "The temperature value here seems a little bit high. Just make sure that you measured the temperature in Celsius, not Fahrenheit",            
+        )
+    )
+
+# Check 7: if the Result Value for the Analyte "Oxygen, Dissolved" is above 14.6
+
+    warnings.append(
+        checkData(
+            'tbl_phab',
+            phab[(phab.analytename == 'Oxygen, Dissolved') & (phab.result > 14.6)].tmp_row.tolist(),
+            'result',
+            'Undefined Warning',
+            "The Result reported for analyte Oxygen Dissolved seems a bit high. Be sure to report the result in units of mg/L, not Percentage.",            
+        )
+    
+    )
     return {'errors': errs, 'warnings': warnings}
