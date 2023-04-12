@@ -3,6 +3,7 @@
 from inspect import currentframe
 from flask import current_app
 from .functions import checkData
+import pandas as pd
 
 def siteevaluation(all_dfs):
     
@@ -152,4 +153,213 @@ def siteevaluation(all_dfs):
         )
     )
 
+    #CHECK 2
+
+    # -- Check - if samplestatuscode == "S" then ...
+    # evalstatuscode == "E"
+    # fieldreconcode == "Y"
+    # waterbodystatuscode == "S"
+    # flowstatuscode (SMC or PSA) == "P" or "Sp" or "NPF"
+    # wadeablestatuscode (SMC or PSA) == "W"
+    # physicalaccessstatuscode == "A"
+    # landpermissionstatuscode == "G"
+
+    # #Updated by Aria Askaryar on 4/05/2023 
+    #Check 2 is completed by Aria Askaryar 4/06/2023
+
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.evalstatuscode != 'E')].tmp_row.tolist(),
+            "evalstatuscode",
+            "Incorrect Input",
+            "If samplestatuscode is S then evalstatuscode must be E "
+        )
+    )
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.fieldreconcode != "Y")].tmp_row.tolist(),
+            "fieldreconcode",
+            "Incorrect Input",
+            "If samplestatuscode is S then fieldreconcode must be Y "
+        )
+    )
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.waterbodystatuscode != "S")].tmp_row.tolist(),
+            "waterbodystatuscode",
+            "Incorrect Input",
+            "If samplestatuscode is S then waterbodystatuscode must be S "
+        )
+    )
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'S') & (~siteeval.flowstatuscode.isin(['P', 'SP','NPF']))].tmp_row.tolist(),
+            "flowstatuscode",
+            "Incorrect Input",
+            "If samplestatuscode is S then flowstatuscode must either be 'P' or 'SP' or 'NPF' "
+        )
+    )
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.wadeablestatuscode  != 'W')].tmp_row.tolist(),
+            "wadeablestatuscode",
+            "Incorrect Input",
+            "If samplestatuscode is S then wadeablestatuscode must be W "
+        )
+    )
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.physicalaccessstatuscode != 'A')].tmp_row.tolist(),
+            "physicalaccessstatuscode",
+            "Incorrect Input",
+            "If samplestatuscode is S then physicalaccessstatuscode must be A "
+        )
+    )
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.landpermissionstatuscode != 'G')].tmp_row.tolist(),
+            "landpermissionstatuscode ",
+            "Incorrect Input",
+            "If samplestatuscode is S then landpermissionstatuscode must be G "
+        )
+    )
+
+    #Check 3   
+    # -- Check - if samplestatuscode == "NS" then ...
+    # evalstatuscode == "E"
+    # fieldreconcode == "Y"
+    # waterbodystatuscode == "S" or "U "
+    # flowstatuscode (SMC or PSA) == "P" or "SP"
+    # wadeablestatuscode (SMC or PSA) == "W"
+    # physicalaccessstatuscode == "A"
+    # landpermissionstatuscode == "G"
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'NS') & (siteeval.evalstatuscode != 'E')].tmp_row.tolist(),
+            "evalstatuscode ",
+            "Incorrect Input",
+            "If samplestatuscode is NS then evalstatuscode must be E "
+        )
+    )  
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'NS') & (siteeval.fieldreconcode != 'Y')].tmp_row.tolist(),
+            "fieldreconcode ",
+            "Incorrect Input",
+            "If samplestatuscode is NS then fieldreconcode must be Y "
+        )
+    )   
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'NS') & (~siteeval.waterbodystatuscode.isin(['S', 'U']))].tmp_row.tolist(),
+            "waterbodystatuscode ",
+            "Incorrect Input",
+            "If samplestatuscode is NS then waterbodystatuscode must be S or U "
+        )
+    ) 
+
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'NS') & (~siteeval.flowstatuscode.str.upper().isin(['P','SP']))].tmp_row.tolist(),
+            "flowstatuscode ",
+            "Incorrect Input",
+            "If samplestatuscode is NS then flowstatuscode must be P or SP "
+        )
+    ) 
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'NS') & (~siteeval.wadeablestatuscode.isin(['W']))].tmp_row.tolist(),
+            "wadeablestatuscode ",
+            "Incorrect Input",
+            "If samplestatuscode is NS then wadeablestatuscode must be W "
+        )
+    ) 
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'NS') & (~siteeval.physicalaccessstatuscode.isin(['A']))].tmp_row.tolist(),
+            "physicalaccessstatuscode  ",
+            "Incorrect Input",
+            "If samplestatuscode is NS then physicalaccessstatuscode must be A "
+        )
+    ) 
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(siteeval.samplestatuscode == 'NS') & (~siteeval.landpermissionstatuscode.isin(['G']))].tmp_row.tolist(),
+            "landpermissionstatuscode   ",
+            "Incorrect Input",
+            "If samplestatuscode is NS then landpermissionstatuscode must be A "
+        )
+    )     
+    #Check 4   
+    # -- Check - if waterbodystatuscode != "S" or "U" then ...
+    # flowstatuscode must be 'Not a stream'
+    # wadeablestatuscode  must be 'Not a stream'
+    # landpermissioncode  must be 'Not a stream'
+    # physicalaccessstatuscode must be 'Not a stream'
+    # samplesatuscode must be 'Not a stream'
+    
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(~siteeval.waterbodystatuscode.isin(["S","U"])) & (siteeval.flowstatuscode != 'Not a stream')].tmp_row.tolist(),
+            "flowstatuscode ",
+            "Incorrect Input",
+            "If waterbodystatuscode is not 'S' or 'U' then flowstatuscode must be 'Not a stream' "
+        )
+    ) 
+    
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(~siteeval.waterbodystatuscode.isin(["S","U"])) & (siteeval.wadeablestatuscode != 'Not a stream')].tmp_row.tolist(),
+            "wadeablestatuscode",
+            "Incorrect Input",
+            "If waterbodystatuscode is not 'S' or 'U' then wadeablestatuscode must be 'Not a stream' "
+        )
+    ) 
+    
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(~siteeval.waterbodystatuscode.isin(["S","U"])) & (siteeval.landpermissionstatuscode != 'Not a stream')].tmp_row.tolist(),
+            "landpermissionstatuscode",
+            "Incorrect Input",
+            "If waterbodystatuscode is not 'S' or 'U' then landpermissionstatuscode must be 'Not a stream' "
+        )
+    ) 
+    
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(~siteeval.waterbodystatuscode.isin(["S","U"])) & (siteeval.physicalaccessstatuscode != 'Not a stream')].tmp_row.tolist(),
+            "physicalaccessstatuscode",
+            "Incorrect Input",
+            "If waterbodystatuscode is not 'S' or 'U' then physicalaccessstatuscode  must be 'Not a stream' "
+        )
+    ) 
+    
+    errs.append(
+        checkData(
+            'tbl_siteeval',
+            siteeval[(~siteeval.waterbodystatuscode.isin(["S","U"])) & (siteeval.samplestatuscode != 'Not a stream')].tmp_row.tolist(),
+            "samplestatuscode",
+            "Incorrect Input",
+            "If waterbodystatuscode is not 'S' or 'U' then samplestatuscode must be 'Not a stream' "
+        )
+    ) 
+    
     return {'errors': errs, 'warnings': warnings}
