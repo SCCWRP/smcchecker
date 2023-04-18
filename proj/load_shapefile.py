@@ -38,7 +38,7 @@ def load_sf():
 
         # Convert whatever projection user submitted to 4326
         print("Convert whatever projection user submitted to 4326")
-        df = convert_projection(df)
+        df = convert_projection(df, all_dfs[tbl].get('projection'))
 
         # Append masterid column
         print("Append masterid column")

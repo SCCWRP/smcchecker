@@ -80,13 +80,13 @@ def get_masterid():
 
         sites_content = gis.content.search(query="title: SMCGISSites", item_type="Feature Layer Collection")[0]
         sites_fl = gis.content.get(sites_content.id)
-        sites_sdf = sites_fl.layers[0].query(where=f"stationid in {stationids}").sdf
+        sites_sdf = sites_fl.layers[0].query(where=f"stationid in {stationids}").sdf.filter(items=['stationid','SHAPE'])
         sites_sdf.spatial.to_featureclass(location=os.path.join(os.getcwd(),"export","shapefiles_for_download","sites.shp"), overwrite=True)
         export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","sites.json"), sites_sdf, ['stationid'])
 
         catchments_content = gis.content.search(query="title: SMCGISCatchments", item_type="Feature Layer Collection")[0]
         catchments_fl = gis.content.get(catchments_content.id)
-        catchments_sdf = catchments_fl.layers[0].query(where=f"stationid in {stationids}").sdf
+        catchments_sdf = catchments_fl.layers[0].query(where=f"stationid in {stationids}").sdf.filter(items=['stationid','SHAPE'])
         catchments_sdf.spatial.to_featureclass(location=os.path.join(os.getcwd(),"export","shapefiles_for_download","catchments.shp"), overwrite=True)
         export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","catchments.json"), catchments_sdf, ['stationid'])
     

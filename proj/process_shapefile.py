@@ -59,6 +59,7 @@ def process_sf():
 
     all_dfs = build_all_dfs_from_sf(parent_zipfile_path)
     
+    print(all_dfs)
 
 
 
@@ -66,12 +67,12 @@ def process_sf():
     Example all_dfs: {
         'gissites':
             {
-                'filename': filename, 'geom_type':'point', 'data': df}
-            }, 
-        'giscatchments':
-            {
-                'filename': filename, 'geom_type':'polygon', 'data': df}
+                'shp_path': /var/www/checker/files/1681848155/station/station/station.shp
+                'geom_type':'point',
+                'data': df,
+                'projection': 4326
             }
+        'giscatchments': similar to gissites
     }
     '''
 
@@ -136,7 +137,7 @@ def process_sf():
 
             # Convert all projections to 4326
             print("Convert all projections to 4326")
-            all_dfs[key]['data'] = convert_projection(all_dfs[key]['data'])
+            all_dfs[key]['data'] = convert_projection(all_dfs[key]['data'], all_dfs[key]['projection'])
 
             # Save shapefile data as json so we can map them
             if key == 'gissites':
