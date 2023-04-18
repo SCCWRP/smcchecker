@@ -32,14 +32,14 @@ i
           <div class="card-body">
             
             <div class="dtype-select-form-container">
-              <div>
+              <!-- <div>
               <a href="https://smcchecker.sccwrp.org/smc/">Note: If you try to submit other datatypes than Shapefile, please go to this checker</a><br>
+              </div> 
+              -->
+              <!-- <br> -->
+              <div class='link-download-shapefile-page-container hidden' id="link-download-shapefile-page">
+                <a href="https://nexus.sccwrp.org/smcchecker/downloadsf"><b>Attention: Before submitting shapefiles, please check if a station has already been delineated by clicking on this link</b></a>
               </div>
-
-              <div class='link-download-shapefile-page-container' id="link-download-shapefile-page">
-                <a href="https://nexus.sccwrp.org/smcchecker/downloadsf">Click this link to go to the download tool for shapefile submission</a>
-              </div>
-              <br>
               <form id="dtype-form">
                 <label for="html">Select Submission Type:</label><br>
                 <select id="datatype-select" class = "form-control" name="dtype_select">
@@ -373,11 +373,11 @@ i
 
 
               <!--Only for certain projects that will require a map or map checks-->
-              <div id="map-report-body" class="map-report-body-outer-container container submission-info-tab-body hidden">
+              <!-- <div id="map-report-body" class="map-report-body-outer-container container submission-info-tab-body hidden">
                 
                 <iframe id="visual-map" width="1100" height="900" src="" ></iframe>
 
-              </div>
+              </div> -->
 
 
             </div>

@@ -13,8 +13,8 @@ require([
     "esri/geometry/Polyline",
     "esri/geometry/Point",
     "esri/geometry/Polygon",
-    "esri/widgets/Measurement"
-
+    "esri/widgets/Measurement",
+    "esri/rest/support/Query"
 ], function(
     esriConfig, 
     Map, 
@@ -30,8 +30,8 @@ require([
     Polyline, 
     Point,
     Polygon,
-    Measurement
-    
+    Measurement,
+    Query
     ) {
 
     fetch(`/smcchecker/getmapinfo`, {
@@ -44,6 +44,7 @@ require([
         const catchmentsData = data['catchments']
         
         const arcGISAPIKey = data['arcgis_api_key']
+        console.log(sessionStorage.getItem('stationIds'))
         esriConfig.apiKey = arcGISAPIKey
         
         const map = new Map({
@@ -61,7 +62,7 @@ require([
         const graphicsLayer = new GraphicsLayer();
         map.add(graphicsLayer);
         
-        ////////////////// Ploting the sites //////////////////
+        // ////////////////// Ploting the sites //////////////////
         let simpleMarkerSymbol = {
             type: "simple-marker",
             color: [255, 0, 0],  // Red
@@ -104,9 +105,9 @@ require([
             graphicsLayer.add(pointGraphic);
         }
 
-        ////////////////////////////////////////////////////////////
+        // ////////////////////////////////////////////////////////////
 
-        ////////////////// Ploting the catchments //////////////////
+        // ////////////////// Ploting the catchments //////////////////
         let simpleFillSymbol = {
             type: "simple-fill",
             color: [227, 139, 79, 0.2],  // Orange, opacity 80%
@@ -159,6 +160,5 @@ require([
         //    const tool = measurement.activeTool === "distance" ? "area" : "distance";
         //    measurement.activeTool = tool;
         // }
-    }
-    )
+    })
 });

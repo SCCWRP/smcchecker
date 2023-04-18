@@ -140,27 +140,29 @@ def trash(all_dfs):
 
 
 
-# # Check 2: StartTime/EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range(0-24:0-59) - (Finished - Duy 02/14).
+# # Check 2: starttime/EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range(0-24:0-59) - (Finished - Duy 02/14).
     trashsiteinfo['starttime'] = trashsiteinfo['starttime'].apply(lambda x: str(x).lower())
     trashsiteinfo['endtime'] = trashsiteinfo['endtime'].apply(lambda x: str(x).lower())
-    time_regex = re.compile("(1[0-2]|0?[1-9]):([0-5][0-9]):([0-5][0-9]) ?([AaPp][Mm])")
+    # time_regex = re.compile("(1[0-2]|0?[1-9]):([0-5][0-9]):([0-5][0-9]) ?([AaPp][Mm])")
+    time_regex = re.compile("(1[0-2]|0?[1-9]):([0-5][0-9]) ?([AaPp][Mm])")
+
 
     #Start time 
     errs.append(
         checkData(
             'tbl_trashsiteinfo',
-            trashsiteinfo[trashsiteinfo["starttime"].apply(lambda x: not bool(re.match(time_regex, x)))]['starttime'].tmp_row.tolist(),
-            'StartTime',
+            trashsiteinfo[trashsiteinfo["starttime"].apply(lambda x: not bool(re.match(time_regex, x)))].tmp_row.tolist(),
+            'starttime',
             'Formatting Error ',
-            'StartTime needs to be in the format HH:MM, and they need to be in the 24-hour range'
+            'starttime needs to be in the format HH:MM, and they need to be in the 24-hour range'
         )
     )
     #end time checker
     errs.append(
         checkData(
             'tbl_trashsiteinfo',
-            trashsiteinfo[(trashsiteinfo["endtime"].apply(lambda x: not bool(re.match(time_regex, x))))]['endtime'].tmp_row.tolist(),
-            'comments',
+            trashsiteinfo[(trashsiteinfo["endtime"].apply(lambda x: not bool(re.match(time_regex, x))))].tmp_row.tolist(),
+            'endtime',
             'Undefined Error',
             'EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range'
         )

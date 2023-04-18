@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html>
-
+    <head>
+        <script type="module" src="https://js.arcgis.com/calcite-components/1.2.0/calcite.esm.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.2.0/calcite.css" />
+    </head>
 <body>
     <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
-
     <div class="container" id="main-outer-container">
         <div class="card inner-container">
             <div class="card-body">
                 
                 <div class="card-header">
-                    Shapefile Download Tool
+                    Shapefile Database Checking
                   </div>
 
-                <div>
+                <!-- <div>
                     <label for="agency-sf">Choose an agency: </label>
                     <select name="agency-sf" id="agency-sf">
                         <option value="" disabled selected></option>
@@ -21,29 +23,41 @@
                         <option value="{{login_agency}}">{{login_agency}}</option>
                         {% endfor %}
                     </select>
-
-                </div>
+                </div> -->
                 
                 <br>
 
                 <div>
-                    <label for="masterid-sf">Choose a StationID: </label>
-
-                    <select id="masterid-sf">
-                    </select>
+                    <calcite-label>
+                        To check to see if a delineation has already been submitted, enter it below (separate them by commas if there are multiple stations):
+                        <calcite-input placeholder="Example input: SGUT502,SGUT503,SGUT504" id="input-station-sf"></calcite-input>
+                    </calcite-label>
+                    <calcite-button id="check-station-sf">Check</calcite-button>
+                    <calcite-notice open icon="layers-reference" class="notice-station-sf hidden" id="notice-station-sf">
+                        <div slot="title">Result</div>
+                        <div slot="message" name="message">test</div>
+                    </calcite-notice>
                 </div>
                 
                 <br>
                 
                 <div class="download-button-container hidden">
-                    <button id="download-button-sf-sites">
-                        Download shapefile for sites
-                    </button>
-
-                    <button id="download-button-sf-catchments">
-                        Download shapefile for catchments
-                    </button>
-
+                    <calcite-button id="download-button-sf">
+                        Download shapefiles
+                    </calcite-button>
+                    <calcite-button id="show-map-sf">
+                        Generate Map
+                    </calcite-button>
+                </div>
+                
+                <div>
+                    <calcite-loader id="loading-spinner" class="loading-spinner hidden"></calcite-loader>
+                </div>
+                
+                <br>
+                
+                <div label="Visual Map" class="visual-map-container hidden" id="visual-map-container">
+                    <iframe id="visual-map" width="700" height="350" src="" ></iframe>
                 </div>
             
             </div>

@@ -3,7 +3,7 @@ from flask import Flask,current_app, g
 from sqlalchemy import create_engine
 import psycopg2
 from psycopg2 import sql
-
+from flask_cors import CORS
 # import blueprints to register them
 from .main import upload
 from .login import homepage
@@ -29,6 +29,9 @@ assert all([item in BASIC_CONFIG.keys() for item in ["EXCEL_OFFSET", "SYSTEM_FIE
 
 
 app = Flask(__name__, static_url_path='/static')
+
+CORS(app, resources={r"/arcgis/*": {"origins": "https://nexus.sccwrp.org"}})
+
 app.debug = True # remove for production
 
 

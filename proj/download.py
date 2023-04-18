@@ -2,6 +2,10 @@ import os
 from flask import send_file, Blueprint, jsonify, request, g, current_app, render_template
 from pandas import read_sql
 import pandas as pd
+from arcgis.gis import GIS
+from zipfile import ZipFile
+from .utils.sdf_to_json import export_sdf_to_json
+
 
 download = Blueprint('download', __name__)
 @download.route('/download/<submissionid>/<filename>', methods = ['GET','POST'])
@@ -56,21 +60,68 @@ def download_shapefile():
 
     return render_template("downloadsf.html", login_agencies=login_agencies)
 
-@download.route('/getmasterid', methods = ['POST','GET'])
+@download.route('/checkstationsf', methods = ['POST','GET'])
 def get_masterid():
     
-    agency = request.form.get('selected_agency')
-    stationids = pd.read_sql(f"SELECT DISTINCT stationid from gissites where login_agency = '{agency}'", g.eng).stationid.tolist()
-    stationids.sort()
-    return jsonify(stationids=stationids)
+    gis = GIS(url="https://gis.sccwrp.org/arcgis/", username=os.environ.get('GIS_USER'), password=os.environ.get('GIS_PASSWORD'))
+
+    stationids_tocheck = request.form.get('input_stations').split(",")
+    stationids_db = pd.read_sql(f"SELECT DISTINCT stationid FROM gissites", g.eng).stationid.tolist()
+    
+    stationids_delineated_yes = [x for x in stationids_tocheck if x in stationids_db]
+    stationids_delineated_no = [x for x in stationids_tocheck if x not in stationids_db]
+    
+    if len(stationids_delineated_yes) > 0:
+        
+        if len(stationids_delineated_yes) == 1:
+            stationids = f"('{stationids_delineated_yes[0]}')"
+        elif len(stationids_delineated_yes) > 1:
+            stationids = tuple(stationids_delineated_yes)
+
+        sites_content = gis.content.search(query="title: SMCGISSites", item_type="Feature Layer Collection")[0]
+        sites_fl = gis.content.get(sites_content.id)
+        sites_sdf = sites_fl.layers[0].query(where=f"stationid in {stationids}").sdf
+        sites_sdf.spatial.to_featureclass(location=os.path.join(os.getcwd(),"export","shapefiles_for_download","sites.shp"), overwrite=True)
+        export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","sites.json"), sites_sdf, ['stationid'])
+
+        catchments_content = gis.content.search(query="title: SMCGISCatchments", item_type="Feature Layer Collection")[0]
+        catchments_fl = gis.content.get(catchments_content.id)
+        catchments_sdf = catchments_fl.layers[0].query(where=f"stationid in {stationids}").sdf
+        catchments_sdf.spatial.to_featureclass(location=os.path.join(os.getcwd(),"export","shapefiles_for_download","catchments.shp"), overwrite=True)
+        export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","catchments.json"), catchments_sdf, ['stationid'])
+    
+    return jsonify(delineated_yes=stationids_delineated_yes, delineated_no=stationids_delineated_no)
 
 @download.route('/getdownloadlink', methods = ['POST','GET'])
 def get_download_link():
     
-    agency = request.form.get('selected_agency')
-    masterid = request.form.get('masterid')
+    # stationids = request.form.get('stationids')
+    # print(stationids)
+    
+    # gis = GIS(url="https://gis.sccwrp.org/arcgis/", username=os.environ.get('GIS_USER'), password=os.environ.get('GIS_PASSWORD'))
 
-    dl_link_sites = pd.read_sql(f"SELECT download_url FROM gissites where masterid = '{masterid}' and login_agency = '{agency}'", g.eng).download_url.iloc[0]
-    dl_link_catchments = pd.read_sql(f"SELECT download_url FROM giscatchments where masterid = '{masterid}' and login_agency = '{agency}'", g.eng).download_url.iloc[0]
+    # sites_content = gis.content.search(query="title: SMCGISSites", item_type="Feature Layer Collection")[0]
+    # sites_fl = gis.content.get(sites_content.id)
+    # sites_sdf = sites_fl.layers[0].query(where=f"stationid in ({stationids})").sdf
+    # sites_sdf.spatial.to_featureclass(location=os.path.join(os.getcwd(),"export","shapefiles_for_download","sites.shp"), overwrite=True)
 
-    return jsonify(dl_link_sites=dl_link_sites, dl_link_catchments=dl_link_catchments)
+    # catchments_content = gis.content.search(query="title: SMCGISCatchments", item_type="Feature Layer Collection")[0]
+    # catchments_fl = gis.content.get(catchments_content.id)
+    # catchments_sdf = catchments_fl.layers[0].query(where=f"stationid in ({stationids})").sdf
+    # catchments_sdf.spatial.to_featureclass(location=os.path.join(os.getcwd(),"export","shapefiles_for_download","catchments.shp"), overwrite=True)
+    
+    main_dir = os.getcwd()
+    
+    # start zipping
+    shapefile_folder = os.path.join(os.getcwd(), "export", "shapefiles_for_download")
+    zip_path = os.path.join(os.getcwd(), "export", "shapefiles_for_download.zip")
+    
+    with ZipFile(zip_path, 'w') as myzip:
+        # iterate over all the files in the folder and add them to the ZipFile
+        os.chdir(shapefile_folder)
+        for file_name in os.listdir(shapefile_folder):
+            file_path = os.path.join(shapefile_folder, file_name)
+            myzip.write(file_path.split("/")[-1])
+    
+    os.chdir(main_dir)
+    return send_file(zip_path, as_attachment=True)

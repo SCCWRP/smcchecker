@@ -244,7 +244,7 @@ const buildReport = (res) => {
     // display the map if applicable
 
     document.getElementById("map-report-header").classList.remove("hidden")
-    document.getElementById('visual-map').setAttribute('src',`/${script_root}/map`)
+    //document.getElementById('visual-map').setAttribute('src',`/${script_root}/map`)
     
 
 
