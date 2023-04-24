@@ -44,7 +44,6 @@ require([
         const catchmentsData = data['catchments']
         
         const arcGISAPIKey = data['arcgis_api_key']
-        console.log(sessionStorage.getItem('stationIds'))
         esriConfig.apiKey = arcGISAPIKey
         
         const map = new Map({

@@ -65,7 +65,8 @@ app.script_root = os.environ.get('FLASK_APP_SCRIPT_ROOT')
 
 
 # Maintainers
-app.maintainers = BASIC_CONFIG.get('MAINTAINERS')
+#app.maintainers = BASIC_CONFIG.get('MAINTAINERS')
+app.maintainers = ['duyn@sccwrp.org']
 
 # system fields for all applications
 app.system_fields = BASIC_CONFIG.get('SYSTEM_FIELDS')

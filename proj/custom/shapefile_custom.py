@@ -7,6 +7,8 @@ from arcgis.geometry.filters import within, contains
 from arcgis.geometry import Point, Polyline, Polygon
 from arcgis.gis import GIS
 import os
+from geopy import distance as geopy_distance
+from geopy import Nominatim
 
 def shapefile(all_dfs):
     print("begin shapefile custom")
@@ -48,7 +50,7 @@ def shapefile(all_dfs):
     print("check ran - Check 0: Check if geometry of polygon is valid")
 
     if len(badrows) > 0:
-        # If the geometry is incorrect, we don't want to continue to check because it will break a lot of checks.
+        # If the geometry is incorrect, we don't want to continue to check because it will break a lot of checks, and also fail to load to the database.
         return {'errors': errs, 'warnings': warnings}
     else:
         gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html", os.environ.get('ARCGIS_USER'), os.environ.get('ARCGIS_PASSWORD'))
@@ -65,6 +67,7 @@ def shapefile(all_dfs):
             lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
             axis=1
         )
+
 
         # 1. Check if the masterid already exists in the database
         print("Check if the masterid already exists in the database") 
@@ -86,6 +89,7 @@ def shapefile(all_dfs):
         }
         errs = [*errs, checkData(**args)]
 
+
         # 1b. Check catchments
         records_db = pd.read_sql("SELECT DISTINCT masterid FROM giscatchments", g.eng)
         catchments['delindate'] = catchments['delindate'].apply(lambda x: pd.Timestamp(x))
@@ -100,11 +104,11 @@ def shapefile(all_dfs):
             "badcolumn": "stationid",
             "error_type": "Duplicated Submission",
             "is_core_error": False,
-            "error_message": 
-                f"You have already submitted shapefiles for these stations: {bad_stationid_date}"
+            "error_message": f"You have already submitted shapefiles for these stations: {bad_stationid_date}"
         }
         errs = [*errs, checkData(**args)]
         print("check ran -  Check if the masterid already exists in the database") 
+
 
         ## 2. Check if the points are in the polygon
         print("Check if the points are in the polygon")
@@ -127,9 +131,10 @@ def shapefile(all_dfs):
                         "error_type": "Geometry Error",
                         "is_core_error": False,
                         "error_message": f"These points are not in their associated polygon based on stationid"
-                    }
+                }
                 errs = [*errs, checkData(**args)]
         print("check ran -  Check if the points are in the polygon") 
+
 
         ## 3. Check stationid should match between site and catchment shapefile
         print("Check stationid should match between site and catchment shapefile")
@@ -176,32 +181,37 @@ def shapefile(all_dfs):
             errs = [*errs, checkData(**args)]
         print("check ran -  Check stationid should match between site and catchment shapefile")   
 
-        ## 4. Warning if the points are outside of California   
-        # badrows = sites[(sites['new_long'] < -114.0430560959) | (sites['new_long'] > -124.5020404709)].tmp_row.tolist()
-        # args.update({
-        #     "dataframe": sites,
-        #     "tablename": "gissites",
-        #     "badrows": badrows, 
-        #     "badcolumn": "new_long",
-        #     "error_type": "Geometry Error",
-        #     "error_message": "Your longitude coordinate is outside of California"
-        # })
-        # warnings = [*warnings, checkData(**args)]
 
-        # badrows = sites[(sites['new_lat'] < 32.5008497379) | (sites['new_lat'] > 41.9924715343)].tmp_row.tolist()
-        # args.update({
-        #     "dataframe": sites,
-        #     "tablename": "gissites",
-        #     "badrows": badrows, 
-        #     "badcolumn": "new_lat",
-        #     "error_type": "Geometry Error",
-        #     "error_message": "Your latitude coordinate is outside of California"
-        # })
-        # warnings = [*warnings, checkData(**args)]
-        # print("check ran -  Warning if the points are outside of California ")
+        ## 4. Warning if the points are outside of California
+        print("check - Warning if the points are outside of California")
+        geolocator = Nominatim(user_agent='my-geo')
+        
+        sites['in_state'] = sites.apply(
+            lambda row: geolocator.reverse((row['new_lat'],row['new_long'])).address,
+            axis=1
+        ) # this should give the full address of the lat, lon as a string
+        sites['in_state'] = sites.apply(
+            lambda row: row['in_state'].split(",")[[i+1 for i,v in enumerate(row['in_state'].split(",")) if "County" in v][0]].strip(),
+            axis=1
+        ) # this should extract only the state name out of that address
+        
+        print(sites['in_state'])
+        
+        badrows = sites[sites['in_state'] != 'California'].tmp_row.tolist()
+        args.update({
+            "dataframe": sites,
+            "tablename": "gissites",
+            "badrows": badrows, 
+            "badcolumn": "stationid",
+            "error_type": "Geometry Warning",
+            "error_message": "This station is outside of California"
+        })
+        warnings = [*warnings, checkData(**args)]
+        print("check ran - Warning if the points are outside of California")
 
 
-        ## 5. Warning stationcode points should be no more than 300m from lu_station reference site
+        ## 5. Error stationcode points should be no more than 300m from lu_station reference site
+        print("check - Error stationcode points should be no more than 300m from lu_station reference site")
         merged = pd.merge(
             sites, 
             lu_stations[['stationid','longitude','latitude']], 
@@ -214,17 +224,11 @@ def shapefile(all_dfs):
             }
         )
 
-        merged['lu_shape'] = merged.apply(
-            lambda x: Point({'x':x['lu_longitude'],'y':x['lu_latitude'],'spatialReference':{'wkid':4326}}), 
-            axis=1
-        )
-
-        merged['distance_from_lu_reference_meters'] = merged.apply(
-            lambda x: x['shape'].distance_to(x['lu_shape']), 
-            axis=1
-        )
-        
         if len(merged) > 0:
+            merged['distance_from_lu_reference_meters'] = merged.apply(
+                lambda row: geopy_distance.distance((row['new_lat'], row['new_long']), (row['lu_latitude'], row['lu_longitude'])).meters, 
+                axis=1
+            )
             badrows = merged[merged['distance_from_lu_reference_meters'] > 300]['tmp_row'].tolist()
             args.update({
                 "dataframe": sites,
@@ -232,10 +236,11 @@ def shapefile(all_dfs):
                 "badrows": badrows, 
                 "badcolumn": "stationid",
                 "error_type": "Geometry Error",
-                "error_message": "These stations are more than 300 meters away from their lookup station references."
+                "error_message": 
+                    f"These stations ({','.join(merged[merged['distance_from_lu_reference_meters'] > 300]['stationid'].tolist())}) are more than 300 meters away from their lookup station references."
             })
-            warnings = [*warnings, checkData(**args)]
-        print("check ran -  Warning stationcode points should be no more than 300m from lu_station reference site")
+            errs = [*errs, checkData(**args)]
+        print("check ran - Error stationcode points should be no more than 300m from lu_station reference site")
 
 
 

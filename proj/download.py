@@ -51,6 +51,15 @@ def download_field_form():
         download_name = 'DraftStreamTrashDataSheets_32823.pdf' 
     )
 
+@download.route('/downloadsfsubmissionguide', methods = ['GET','POST'])
+def download_sf_submission_guide():
+    return send_file(
+        os.path.join(os.getcwd(), "export", "field_forms", 'SMC Shapefile Submission Guidance Doc_v2.docx'), 
+        as_attachment = True, 
+        download_name = 'SMC Shapefile Submission Guidance Doc_v2.docx' 
+    )
+
+
 @download.route('/downloadsf', methods = ['GET'])
 def download_shapefile():
     print("download shapefile route")
@@ -94,22 +103,6 @@ def get_masterid():
 
 @download.route('/getdownloadlink', methods = ['POST','GET'])
 def get_download_link():
-    
-    # stationids = request.form.get('stationids')
-    # print(stationids)
-    
-    # gis = GIS(url="https://gis.sccwrp.org/arcgis/", username=os.environ.get('GIS_USER'), password=os.environ.get('GIS_PASSWORD'))
-
-    # sites_content = gis.content.search(query="title: SMCGISSites", item_type="Feature Layer Collection")[0]
-    # sites_fl = gis.content.get(sites_content.id)
-    # sites_sdf = sites_fl.layers[0].query(where=f"stationid in ({stationids})").sdf
-    # sites_sdf.spatial.to_featureclass(location=os.path.join(os.getcwd(),"export","shapefiles_for_download","sites.shp"), overwrite=True)
-
-    # catchments_content = gis.content.search(query="title: SMCGISCatchments", item_type="Feature Layer Collection")[0]
-    # catchments_fl = gis.content.get(catchments_content.id)
-    # catchments_sdf = catchments_fl.layers[0].query(where=f"stationid in ({stationids})").sdf
-    # catchments_sdf.spatial.to_featureclass(location=os.path.join(os.getcwd(),"export","shapefiles_for_download","catchments.shp"), overwrite=True)
-    
     main_dir = os.getcwd()
     
     # start zipping
