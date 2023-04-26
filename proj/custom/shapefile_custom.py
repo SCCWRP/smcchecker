@@ -60,11 +60,11 @@ def shapefile(all_dfs):
         # At this point, the stationids should be in lu_stations. Then we look up the associated masterid and 
         # append it the dataframe.
         sites['masterid'] = sites.apply(
-            lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
+            lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationcode']],
             axis=1
         )
         catchments['masterid'] = catchments.apply(
-            lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
+            lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationcode']],
             axis=1
         )
 
@@ -76,12 +76,12 @@ def shapefile(all_dfs):
         merged = pd.merge(sites, records_db, on=['masterid'], how='left', indicator='exists')
         baddf = merged[merged['exists']=='both']
         badrows = baddf.tmp_row.tolist()
-        bad_stationid_date = ', '.join([x for x in baddf.stationid])
+        bad_stationid_date = ', '.join([x for x in baddf.stationcode])
         args = {
             "dataframe": 'gissites',
             "tablename": 'gissites',
             "badrows": badrows,
-            "badcolumn": "stationid",
+            "badcolumn": "stationcode",
             "error_type": "Duplicated Submission",
             "is_core_error": False,
             "error_message": 
@@ -96,12 +96,12 @@ def shapefile(all_dfs):
         merged = pd.merge(catchments, records_db, on=['masterid'], how='left', indicator='exists')
         baddf = merged[merged['exists']=='both']
         badrows = baddf.tmp_row.tolist()
-        bad_stationid_date = ', '.join([x for x in baddf.stationid])
+        bad_stationid_date = ', '.join([x for x in baddf.stationcode])
         args = {
             "dataframe": 'giscatchments',
             "tablename": 'giscatchments',
             "badrows": badrows,
-            "badcolumn": "stationid",
+            "badcolumn": "stationcode",
             "error_type": "Duplicated Submission",
             "is_core_error": False,
             "error_message": f"You have already submitted shapefiles for these stations: {bad_stationid_date}"
@@ -112,9 +112,9 @@ def shapefile(all_dfs):
 
         ## 2. Check if the points are in the polygon
         print("Check if the points are in the polygon")
-        merged = sites[['stationid','tmp_row','shape']].rename(columns={'shape':'POINT_shape'}).merge(
-            catchments[['stationid','shape']].rename(columns={'shape':'POLYGON_shape'}), 
-            on='stationid', 
+        merged = sites[['stationcode','tmp_row','shape']].rename(columns={'shape':'POINT_shape'}).merge(
+            catchments[['stationcode','shape']].rename(columns={'shape':'POLYGON_shape'}), 
+            on='stationcode', 
             how='inner'
         )
         print(merged)
@@ -130,18 +130,18 @@ def shapefile(all_dfs):
                         "badcolumn": "shape",
                         "error_type": "Geometry Error",
                         "is_core_error": False,
-                        "error_message": f"These points are not in their associated polygon based on stationid"
+                        "error_message": f"These points are not in their associated polygon based on stationcode"
                 }
                 errs = [*errs, checkData(**args)]
         print("check ran -  Check if the points are in the polygon") 
 
 
         ## 3. Check stationid should match between site and catchment shapefile
-        print("Check stationid should match between site and catchment shapefile")
+        print("Check stationcode should match between site and catchment shapefile")
         badrows = pd.merge(
             sites,
             catchments, 
-            on=['stationid'],
+            on=['stationcode'],
             how='left',
             suffixes=('_site', '_catchment'),
             indicator='in_which_df'
@@ -153,7 +153,7 @@ def shapefile(all_dfs):
                 "dataframe": sites,
                 "tablename": "gissites",
                 "badrows": badrows, 
-                "badcolumn": "stationid",
+                "badcolumn": "stationcode",
                 "error_type": "Logic Error",
                 "error_message": "These stations are in sites but not in catchments"
             }
@@ -162,7 +162,7 @@ def shapefile(all_dfs):
         badrows = pd.merge(
             catchments,
             sites, 
-            on=['stationid'],
+            on=['stationcode'],
             how='left',
             suffixes=('_catchment', '_site'),
             indicator='in_which_df'
@@ -174,12 +174,12 @@ def shapefile(all_dfs):
                 "dataframe": catchments,
                 "tablename": "giscatchments",
                 "badrows": badrows, 
-                "badcolumn": "stationid",
+                "badcolumn": "stationcode",
                 "error_type": "Logic Error",
                 "error_message": "These stations are in catchments but not in sites"
             })
             errs = [*errs, checkData(**args)]
-        print("check ran -  Check stationid should match between site and catchment shapefile")   
+        print("check ran -  Check stationcode should match between site and catchment shapefile")   
 
 
         ## 4. Warning if the points are outside of California
@@ -202,7 +202,7 @@ def shapefile(all_dfs):
             "dataframe": sites,
             "tablename": "gissites",
             "badrows": badrows, 
-            "badcolumn": "stationid",
+            "badcolumn": "stationcode",
             "error_type": "Geometry Warning",
             "error_message": "This station is outside of California"
         })
@@ -213,7 +213,7 @@ def shapefile(all_dfs):
         ## 5. Error stationcode points should be no more than 300m from lu_station reference site
         print("check - Error stationcode points should be no more than 300m from lu_station reference site")
         merged = pd.merge(
-            sites, 
+            sites.rename(columns={'stationcode':'stationid'}), 
             lu_stations[['stationid','longitude','latitude']], 
             on='stationid', 
             how='left'

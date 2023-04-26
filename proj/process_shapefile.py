@@ -141,9 +141,9 @@ def process_sf():
 
             # Save shapefile data as json so we can map them
             if key == 'gissites':
-                export_sdf_to_json(os.path.join(parent_zipfile_path, "sites.json"), all_dfs[key]['data'], ["stationid"])
+                export_sdf_to_json(os.path.join(parent_zipfile_path, "sites.json"), all_dfs[key]['data'], ["stationcode"])
             else:
-                export_sdf_to_json(os.path.join(parent_zipfile_path, "catchments.json"), all_dfs[key]['data'], ["stationid"])
+                export_sdf_to_json(os.path.join(parent_zipfile_path, "catchments.json"), all_dfs[key]['data'], ["stationcode"])
 
 
         #meta data is needed for the core checks to run, to check precision, length, datatypes, etc

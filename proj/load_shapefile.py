@@ -44,7 +44,7 @@ def load_sf():
         print("Append masterid column")
 
         df['masterid'] = df.apply(
-            lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationid']],
+            lambda row: {x: y for x, y in zip(lu_stations.stationid, lu_stations.masterid)}[row['stationcode']],
             axis=1
         )
 
