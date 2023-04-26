@@ -74,7 +74,7 @@ require([
         for (let i = 0; i < sitesData['coordinates'].length; i++){
             
             let coord = sitesData['coordinates'][i]
-            let stationid = sitesData['stationid'][i]
+            let stationid = sitesData['masterid'][i]
             
             let attr = {
                 stationid: stationid
@@ -120,7 +120,7 @@ require([
         for (let i = 0; i < catchmentsData['coordinates'].length; i++){
 
             let coord = catchmentsData['coordinates'][i]
-            let stationid = catchmentsData['stationid'][i]
+            let stationid = catchmentsData['masterid'][i]
             
             let attr = {
                 stationid: stationid

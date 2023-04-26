@@ -54,9 +54,9 @@ def download_field_form():
 @download.route('/downloadsfsubmissionguide', methods = ['GET','POST'])
 def download_sf_submission_guide():
     return send_file(
-        os.path.join(os.getcwd(), "export", "field_forms", 'SMC Shapefile Submission Guidance Doc_v2.docx'), 
+        os.path.join(os.getcwd(), "export", "field_forms", 'SMC Shapefile Submission Guidance Doc Final.docx'), 
         as_attachment = True, 
-        download_name = 'SMC Shapefile Submission Guidance Doc_v2.docx' 
+        download_name = 'SMC Shapefile Submission Guidance Doc Final.docx' 
     )
 
 
@@ -74,32 +74,61 @@ def get_masterid():
     
     gis = GIS(url="https://gis.sccwrp.org/arcgis/", username=os.environ.get('GIS_USER'), password=os.environ.get('GIS_PASSWORD'))
 
-    stationids_tocheck = request.form.get('input_stations').split(",")
-    stationids_db = pd.read_sql(f"SELECT DISTINCT stationid FROM gissites", g.eng).stationid.tolist()
+    stationids_to_check = request.form.get('input_stations').split(",")
     
-    stationids_delineated_yes = [x for x in stationids_tocheck if x in stationids_db]
-    stationids_delineated_no = [x for x in stationids_tocheck if x not in stationids_db]
+    lu_stations = pd.read_sql("SELECT masterid, stationid FROM lu_stations", con=g.eng)
+    gissites_masterid = pd.read_sql(f"SELECT DISTINCT masterid FROM gissites", con=g.eng).masterid.tolist()
     
-    if len(stationids_delineated_yes) > 0:
+    in_db = {gp: subdf['stationid'].tolist() for gp, subdf in lu_stations.groupby('masterid') if gp in gissites_masterid}
+    
+    matched_masterids = []
+    matched_aliases = []
+    unmatched = []
+    alias_report = []
+    
+    for x in stationids_to_check:
+        tmp = {k: v for k, v in in_db.items() if x in v}
+        if len(tmp) > 0:
+            if x in tmp.keys():
+                matched_masterids.append(x)
+            else:
+                tmp2 = {[x for x in tmp.keys()][0]:x}
+                matched_aliases.append(tmp2)
+        else:
+            unmatched.append(x)
+
+    if len(matched_masterids) > 0:
         
-        if len(stationids_delineated_yes) == 1:
-            stationids = f"('{stationids_delineated_yes[0]}')"
-        elif len(stationids_delineated_yes) > 1:
-            stationids = tuple(stationids_delineated_yes)
+        if len(matched_masterids) == 1:
+            masterid = f"('{matched_masterids[0]}')"
+        elif len(matched_masterids) > 1:
+            masterid = tuple(matched_masterids)
 
         sites_content = gis.content.search(query="title: SMCGISSites", item_type="Feature Layer Collection")[0]
         sites_fl = gis.content.get(sites_content.id)
-        sites_sdf = sites_fl.layers[0].query(where=f"stationid in {stationids}").sdf.filter(items=['stationid','SHAPE'])
+        sites_sdf = sites_fl.layers[0].query(where=f"masterid in {masterid}").sdf.filter(items=['masterid','SHAPE'])
         sites_sdf.spatial.to_featureclass(location=os.path.join(os.getcwd(),"export","shapefiles_for_download","sites.shp"), overwrite=True)
-        export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","sites.json"), sites_sdf, ['stationid'])
+        export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","sites.json"), sites_sdf, ['masterid'])
 
         catchments_content = gis.content.search(query="title: SMCGISCatchments", item_type="Feature Layer Collection")[0]
         catchments_fl = gis.content.get(catchments_content.id)
-        catchments_sdf = catchments_fl.layers[0].query(where=f"stationid in {stationids}").sdf.filter(items=['stationid','SHAPE'])
+        catchments_sdf = catchments_fl.layers[0].query(where=f"masterid in {masterid}").sdf.filter(items=['masterid','SHAPE'])
         catchments_sdf.spatial.to_featureclass(location=os.path.join(os.getcwd(),"export","shapefiles_for_download","catchments.shp"), overwrite=True)
-        export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","catchments.json"), catchments_sdf, ['stationid'])
+        export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","catchments.json"), catchments_sdf, ['masterid'])
     
-    return jsonify(delineated_yes=stationids_delineated_yes, delineated_no=stationids_delineated_no)
+    if len(matched_aliases) > 0:
+        alias_report = ", ".join([f"StationCode: {v} is an alias of MasterID: {k}" for x in matched_aliases for k,v in x.items()])  
+    
+    
+    print(matched_masterids)
+    print(unmatched)
+    print(alias_report)
+    return_vals = {
+        "delineated_yes": matched_masterids,
+        "delineated_no": unmatched,
+        "alias_report": alias_report
+    }
+    return jsonify(**return_vals)
 
 @download.route('/getdownloadlink', methods = ['POST','GET'])
 def get_download_link():

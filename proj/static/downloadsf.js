@@ -23,7 +23,8 @@ async function(e){
 
     delineatedYes = data['delineated_yes']
     delineatedNo = data['delineated_no']
-
+    aliasReport = data['alias_report']
+    
     const messageSlot = document.querySelector('#notice-station-sf div[name="message"]');
     messageSlot.innerHTML = ""
     
@@ -31,11 +32,16 @@ async function(e){
         messageSlot.innerHTML += `Stations (${delineatedYes.join(", ")}) have been delineated and submitted to the database. 
         You can view and download the shapefiles for these stations by clicking on the Generate Map button below.
         When the map is generated, you can click on the points/polygon to view the stationid. 
-        If you believe there is an error with these shapefiles, contact Jeff Brown jeffb@sccwrp.org <br><br>`
+        If you believe there is an error with these shapefiles, contact Jeff Brown jeffb@sccwrp.org. <br><br>`
         document.getElementsByClassName("download-button-container")[0].classList.remove("hidden")
         sessionStorage.setItem('stationIds', delineatedYes.map(item => `'${item}'`).join(', '));
         
-    } 
+    }
+    
+    if (aliasReport.length > 0){
+        messageSlot.innerHTML += `${aliasReport}. You can check again using the station's MasterID.<br><br>`
+    }
+    
     if (delineatedNo.length > 0){
         messageSlot.innerHTML += `Stations (${delineatedNo.join(", ")}) have not been delineated. 
         Please go back to the <a href="https://nexus.sccwrp.org/smcchecker/"> SMC Checker</a>, select Submission Type as Shapefile and submit the data.
