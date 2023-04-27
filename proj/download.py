@@ -10,7 +10,7 @@ from .utils.sdf_to_json import export_sdf_to_json
 download = Blueprint('download', __name__)
 @download.route('/download/<submissionid>/<filename>', methods = ['GET','POST'])
 def submission_file(submissionid, filename):
-    return send_file( os.path.join(os.getcwd(), "files", submissionid, filename), as_attachment = True, attachment_filename = filename ) \
+    return send_file( os.path.join(os.getcwd(), "files", submissionid, filename), as_attachment = True, download_name = filename ) \
         if os.path.exists(os.path.join(os.getcwd(), "files", submissionid, filename)) \
         else jsonify(message = "file not found")
 
@@ -20,7 +20,7 @@ def template_file():
     tablename = request.args.get('tablename')
 
     if filename is not None:
-        return send_file( os.path.join(os.getcwd(), "export", filename), as_attachment = True, attachment_filename = filename ) \
+        return send_file( os.path.join(os.getcwd(), "export", filename), as_attachment = True, download_name = filename ) \
             if os.path.exists(os.path.join(os.getcwd(), "export", filename)) \
             else jsonify(message = "file not found")
     
@@ -38,7 +38,7 @@ def template_file():
 
         data.to_csv(datapath, index = False)
 
-        return send_file( datapath, as_attachment = True, attachment_filename = f'{tablename}.csv' )
+        return send_file( datapath, as_attachment = True, download_name = f'{tablename}.csv' )
 
     else:
         return jsonify(message = "neither a filename nor a database tablename were provided")
@@ -81,6 +81,9 @@ def get_masterid():
     
     in_db = {gp: subdf['stationid'].tolist() for gp, subdf in lu_stations.groupby('masterid') if gp in gissites_masterid}
     
+    not_in_lookup = [x for x in stationids_to_check if x not in list(set(lu_stations.stationid))]
+    stationids_to_check = [x for x in stationids_to_check if x not in not_in_lookup]
+
     matched_masterids = []
     matched_aliases = []
     unmatched = []
@@ -96,6 +99,11 @@ def get_masterid():
                 matched_aliases.append(tmp2)
         else:
             unmatched.append(x)
+
+    if len(matched_aliases) > 0:
+        matched_masterids = [*matched_masterids, *[x for item in matched_aliases for x in item.keys()]]
+
+    matched_masterids = list(set(matched_masterids))
 
     if len(matched_masterids) > 0:
         
@@ -124,6 +132,7 @@ def get_masterid():
     print(unmatched)
     print(alias_report)
     return_vals = {
+        "not_in_lookup": not_in_lookup,
         "delineated_yes": matched_masterids,
         "delineated_no": unmatched,
         "alias_report": alias_report

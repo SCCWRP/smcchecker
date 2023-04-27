@@ -21,6 +21,7 @@ async function(e){
         
     let data = await resp.json()
 
+    notInLookUp = data['not_in_lookup']
     delineatedYes = data['delineated_yes']
     delineatedNo = data['delineated_no']
     aliasReport = data['alias_report']
@@ -28,8 +29,17 @@ async function(e){
     const messageSlot = document.querySelector('#notice-station-sf div[name="message"]');
     messageSlot.innerHTML = ""
     
+    if (notInLookUp.length > 0){
+        messageSlot.innerHTML += `<b>Validity Check</b>: Stations (${notInLookUp.join(", ")}) are not in the lookup list. 
+        Please contact Jeff Brown jeffb@sccwrp.org to add the stationcodes to lookup list<br><br>`
+    }
+    
+    if (aliasReport.length > 0){
+        messageSlot.innerHTML += `<b>Alias Check</b>: ${aliasReport}.<br><br>`
+    }
+
     if (delineatedYes.length > 0){
-        messageSlot.innerHTML += `Stations (${delineatedYes.join(", ")}) have been delineated and submitted to the database. 
+        messageSlot.innerHTML += `<b>Delineation Check</b>: Stations (${delineatedYes.join(", ")}) have been delineated and submitted to the database. 
         You can view and download the shapefiles for these stations by clicking on the Generate Map button below.
         When the map is generated, you can click on the points/polygon to view the stationid. 
         If you believe there is an error with these shapefiles, contact Jeff Brown jeffb@sccwrp.org. <br><br>`
@@ -38,12 +48,8 @@ async function(e){
         
     }
     
-    if (aliasReport.length > 0){
-        messageSlot.innerHTML += `${aliasReport}. You can check again using the station's MasterID.<br><br>`
-    }
-    
     if (delineatedNo.length > 0){
-        messageSlot.innerHTML += `Stations (${delineatedNo.join(", ")}) have not been delineated. 
+        messageSlot.innerHTML += `<b>Delineation Check</b>: Stations (${delineatedNo.join(", ")}) have not been delineated. 
         Please go back to the <a href="https://nexus.sccwrp.org/smcchecker/"> SMC Checker</a>, select Submission Type as Shapefile and submit the data.
         `
     }
