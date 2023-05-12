@@ -52,7 +52,8 @@ def hydrostate(all_dfs):
     # return {'errors': errs, 'warnings': warnings}
 
     hydrologicstate = all_dfs['tbl_hydrologicstate']
-
+    #added by Aria 5/9/23
+    hydrologicstate['tmp_row'] = hydrologicstate.index
 
     hydrologicstate_args = {
         "dataframe": hydrologicstate,
@@ -64,6 +65,20 @@ def hydrostate(all_dfs):
         "error_message": ""
     }
 
+    #Updating by Aria Askaryar 05/09/2023
 
+    #Check 1:       
+    # Total for the following columns must add to 100%
+    # cascades + dry + glides + pools + rapids + riffles + runs = 100%
+
+    errs.append(
+        checkData(
+            'tbl_hydrologicstate',
+             hydrologicstate.loc[hydrologicstate.filter(['cascades', 'dry', 'glides', 'pools', 'rapids', 'riffles', 'runs']).sum(axis=1) != 100].tmp_row.tolist(),
+            'cascades, dry, glides, pools, rapids, riffles, runs',
+            'Undefined Error',
+            'The values do not add up to 100%. The following coloumns sum must equal 100. cascades + dry + glides + pools + rapids + riffles + runs = 100% '
+        )
+    )
 
     return {'errors': errs, 'warnings': warnings}

@@ -5,6 +5,8 @@ from flask import current_app, g
 from .functions import checkData
 import re
 import pandas as pd
+import datetime as dt
+import time
 
 def trash(all_dfs):
     
@@ -124,40 +126,31 @@ def trash(all_dfs):
             )
     )
     print("check 1 ran - datum other comment required")
-#Updated and working by Aria
-   #badrows = trashsiteinfo[(trashsiteinfo.datum == 'Other') & (trashsiteinfo.comments.isna())]
-  #aria changed lol
-#    trashsiteinfo_args.update({
-#        "dataframe": trashsiteinfo,
-#        "tablename": 'tbl_trashsiteinfo',
-#        "badrows": trashsiteinfo[(trashsiteinfo.datum == 'Other') & (trashsiteinfo.comments.isna())],
-#        "badcolumn": "Comments",
-#        "error_type": "Undefined Error",
-#        "is_core_error": False,
-#        "error_message": "Datum field is Other. So Comments field is required."
-#        }) 
-#    errs = [*errs, checkData(**trashsiteinfo_args)]
 
 
+# Check 2: starttime/EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range(0-24:0-59) - (Finished - Duy 02/14).
+    #trashsiteinfo['starttime'] = trashsiteinfo['starttime'].apply(lambda x: str(x).lower())
+    #trashsiteinfo['endtime'] = trashsiteinfo['endtime'].apply(lambda x: str(x).lower())  
+    #time_regex = re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$")
 
-# # Check 2: starttime/EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range(0-24:0-59) - (Finished - Duy 02/14).
+    ## using regex for starttime
     trashsiteinfo['starttime'] = trashsiteinfo['starttime'].apply(lambda x: str(x).lower())
-    trashsiteinfo['endtime'] = trashsiteinfo['endtime'].apply(lambda x: str(x).lower())
-    # time_regex = re.compile("(1[0-2]|0?[1-9]):([0-5][0-9]):([0-5][0-9]) ?([AaPp][Mm])")
-    time_regex = re.compile("(1[0-2]|0?[1-9]):([0-5][0-9]) ?([AaPp][Mm])")
-
-
-    #Start time 
+    time_regex = re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$")
+    # print(trashsiteinfo[trashsiteinfo.starttime.apply(lambda x: not bool(re.match(time_regex, x)))])
+    # print(trashsiteinfo[trashsiteinfo.starttime.apply(lambda x: not bool(re.match(time_regex, x)))].tmp_row.tolist())
+   
+   #Start Time Checker
     errs.append(
         checkData(
             'tbl_trashsiteinfo',
-            trashsiteinfo[trashsiteinfo["starttime"].apply(lambda x: not bool(re.match(time_regex, x)))].tmp_row.tolist(),
+            trashsiteinfo[trashsiteinfo.starttime.apply(lambda x: not bool(re.match(time_regex, x)))].tmp_row.tolist(),
             'starttime',
-            'Formatting Error ',
-            'starttime needs to be in the format HH:MM, and they need to be in the 24-hour range'
+            'Time Formatting Error ',
+            'starttime needs to be in the format HH:MM, and they need to be in the 24-hour range military time'
         )
     )
-    #end time checker
+    
+    #End Time Checker 
     errs.append(
         checkData(
             'tbl_trashsiteinfo',
@@ -167,4 +160,5 @@ def trash(all_dfs):
             'EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range'
         )
     )
+
     return {'errors': errs, 'warnings': warnings}

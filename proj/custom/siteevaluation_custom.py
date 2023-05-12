@@ -218,7 +218,7 @@ def siteevaluation(all_dfs):
             siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.physicalaccessstatuscode != 'A')].tmp_row.tolist(),
             "physicalaccessstatuscode",
             "Incorrect Input",
-            "If samplestatuscode is S then physicalaccessstatuscode must be A "
+            "If samplestatuscode is S then physicalaccessstatuscode must be S "
         )
     )
     errs.append(
@@ -301,7 +301,7 @@ def siteevaluation(all_dfs):
             siteeval[(siteeval.samplestatuscode == 'NS') & (~siteeval.landpermissionstatuscode.isin(['G']))].tmp_row.tolist(),
             "landpermissionstatuscode   ",
             "Incorrect Input",
-            "If samplestatuscode is NS then landpermissionstatuscode must be A "
+            "If samplestatuscode is NS then landpermissionstatuscode must be G "
         )
     )     
     #Check 4   
