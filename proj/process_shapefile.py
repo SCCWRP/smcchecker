@@ -60,8 +60,8 @@ def process_sf():
     all_dfs = build_all_dfs_from_sf(parent_zipfile_path)
     
     print(all_dfs)
-
-
+    print(all_dfs.keys())
+    
 
     '''
     Example all_dfs: {
@@ -94,8 +94,9 @@ def process_sf():
             group by table_name
             ;"""
         db_cols = [x.replace(" ","") for x in pd.read_sql(match_tbls_sql, g.eng).colnames.iloc[0].split(",")]
+       
         df = deepcopy(all_dfs[k].get('data'))
-        
+       
         if len(set(df.columns).symmetric_difference(set(db_cols))) > 0:
             matched_all_tables.append(False)
             match_report.append(

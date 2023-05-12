@@ -103,7 +103,8 @@ def main():
             sheet: pd.read_excel(
                 session.get('excel_path'), 
                 sheet_name = sheet,
-                skiprows = current_app.excel_offset
+                skiprows = current_app.excel_offset,
+                dtype = {"no_observation": str}
                 #na_values = ['']
             )
             
