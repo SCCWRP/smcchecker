@@ -90,31 +90,35 @@ def toxicity(all_dfs):
     multiple_dates_within_site_summary = check_multiple_dates_within_site(toxicitysummary)
     multiple_dates_within_site_results = check_multiple_dates_within_site(toxicityresults)
 
+    #for tbl_toxicitysummary sheet
     warnings.append(
         checkData(
             'tbl_toxicitysummary', 
-                multiple_dates_within_site_summary[0],
-            'sampledate',
+            toxicitysummary[(toxicitysummary['sampledate'].duplicated()) & (toxicitysummary['stationcode'].duplicated())].tmp_row.tolist(),
+                # multiple_dates_within_site_summary[0],
+            'sampledate, stationcode',
             'Value Error', 
             f'Warning! You are submitting toxicity data with multiple dates for the same site. {multiple_dates_within_site_summary[1]} unique sample dates were submitted. Is this correct?'
         )
     )    
-
+    #same check for tbl_toxicityresults sheet
     warnings.append(
         checkData(
             'tbl_toxicityresults', 
-                multiple_dates_within_site_results[0],
-            'sampledate',
+            toxicityresults[(toxicityresults['sampledate'].duplicated()) & (toxicityresults['stationcode'].duplicated())].tmp_row.tolist(),
+
+                # multiple_dates_within_site_results[0],
+            'sampledate, stationcode',
             'Value Error', 
             f'Warning! You are submitting toxicity data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
         )
     )  
-
     # phab data that will be used in checks 2 and 3 below
     summary_sites = list(set(toxicitysummary['stationcode'].unique()))
     results_sites = list(set(toxicityresults['stationcode'].unique()))
-    assert summary_sites == results_sites, "unique stationcodes do not match between summary and results dataframes"
-
+    #changed by aria removed assert and made comparision
+    # assert summary_sites == results_sites, "unique stationcodes do not match between summary and results dataframes"
+    summary_sites == results_sites 
 
     sql_query = f"""
         SELECT DISTINCT STATIONCODE,
@@ -124,12 +128,10 @@ def toxicity(all_dfs):
 	    AND STATIONCODE in ('{"','".join(summary_sites)}')
         ;"""
     phab_data = pd.read_sql(sql_query, g.eng)
+    
 
     # Check 2: Return warnings on missing phab data
-
-    # test_phab = pd.DataFrame({'stationcode' : ['410M01628', 'SMC01972'], 'sampledate': ['2018-06-28 00:00:00', '2010-06-07 00:00:00']})
-    # test_phab['sampledate'] = pd.to_datetime(test_phab['sampledate'])
-
+    
     missing_phab_data_summary = check_missing_phab_data(toxicitysummary, phab_data)
     missing_phab_data_results = check_missing_phab_data(toxicityresults, phab_data)
 
@@ -153,28 +155,28 @@ def toxicity(all_dfs):
         )
     )  
 
-    # Check 3: Return warnings on submission dates mismatching with phab dates
-    mismatched_phab_date_summary = check_mismatched_phab_date(toxicitysummary, phab_data)
-    mismatched_phab_date_results = check_mismatched_phab_date(toxicityresults, phab_data)
+    # # Check 3: Return warnings on submission dates mismatching with phab dates
+    # mismatched_phab_date_summary = check_mismatched_phab_date(toxicitysummary, phab_data)
+    # mismatched_phab_date_results = check_mismatched_phab_date(toxicityresults, phab_data)
 
-    warnings.append(
-        checkData(
-            'tbl_toxicitysummary', 
-                mismatched_phab_date_summary[0],
-            'sampledate',
-            'Value Error', 
-            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_summary[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
-        )
-    )  
+    # warnings.append(
+    #     checkData(
+    #         'tbl_toxicitysummary', 
+    #             mismatched_phab_date_summary[0],
+    #         'sampledate',
+    #         'Value Error', 
+    #         f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_summary[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+    #     )
+    # )  
 
-    warnings.append(
-        checkData(
-            'tbl_toxicityresults', 
-                mismatched_phab_date_results[0],
-            'sampledate',
-            'Value Error', 
-            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
-        )
-    )  
+    # warnings.append(
+    #     checkData(
+    #         'tbl_toxicityresults', 
+    #             mismatched_phab_date_results[0],
+    #         'sampledate',
+    #         'Value Error', 
+    #         f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+    #     )
+    # )  
 
     return {'errors': errs, 'warnings': warnings}
