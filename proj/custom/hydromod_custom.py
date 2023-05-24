@@ -90,46 +90,46 @@ def hydromod(all_dfs):
         hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityl == 2) & (hydromod.bankheightl2 == -88)].tmp_row.tolist(),
         'bankheightl2',
         'Undefined Error',
-        'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankHeightL1 is required'
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankHeightL2 is required'
         )
     )
 
     errs.append(
-            checkData(
-            'tbl_hydromod',
-            hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityl == 2) & (hydromod.bankheightl3 == -88)].tmp_row.tolist(),
-            'bankheightl3',
-            'Undefined Error',
-            'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankHeightL1 is required'
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityl == 2) & (hydromod.bankheightl3 == -88)].tmp_row.tolist(),
+        'bankheightl3',
+        'Undefined Error',
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankHeightL3 is required'
         )
     )
 
     errs.append(
-            checkData(
-            'tbl_hydromod',
-            hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityl == 2) & (hydromod.bankanglel1 == -88)].tmp_row.tolist(),
-            'bankanglel1',
-            'Undefined Error',
-            'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankAngleL1 is required'
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityl == 2) & (hydromod.bankanglel1 == -88)].tmp_row.tolist(),
+        'bankanglel1',
+        'Undefined Error',
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankAngleL1 is required'
         )
     )
 
     errs.append(
-            checkData(
-            'tbl_hydromod',
-            hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityl == 2) & (hydromod.bankanglel2 == -88)].tmp_row.tolist(),
-            'bankanglel2',
-            'Undefined Error',
-            'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankAngleL2 is required'
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityl == 2) & (hydromod.bankanglel2 == -88)].tmp_row.tolist(),
+        'bankanglel2',
+        'Undefined Error',
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankAngleL2 is required'
         )
     )
     errs.append(
-            checkData(
-            'tbl_hydromod',
-            hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityl == 2) & ((hydromod.bankanglel3.isna()) | (hydromod.bankanglel3 == -88))].tmp_row.tolist(),
-            'bankanglel3',
-            'Undefined Error',
-            'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankAngleL3 is required'
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityl == 2) & ((hydromod.bankanglel3.isna()) | (hydromod.bankanglel3 == -88))].tmp_row.tolist(),
+        'bankanglel3',
+        'Undefined Error',
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankAngleL3 is required'
         )
     )
     '''
@@ -140,64 +140,127 @@ def hydromod(all_dfs):
     If FullyArmored is No and LateralSusceptibilityR is 2 then BankAngleR1 is required (cannot be -88)
     If FullyArmored is No and LateralSusceptibilityR is 2 then BankAngleR2 is required (cannot be -88)
     If FullyArmored is No and LateralSusceptibilityR is 2 then BankAngleR3 is required (cannot be -88)
+
     '''
     errs.append(
-                checkData(
-                'tbl_hydromod',
-                hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankheightr1 == -88)].tmp_row.tolist(),
-                'bankheightr1',
-                'Undefined Error',
-                'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankHeightR1 is required'
-        )
-    )
-    errs.append(
-                checkData(
-                'tbl_hydromod',
-                hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankheightr2 == -88)].tmp_row.tolist(),
-                'bankheightr2',
-                'Undefined Error',
-                'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankHeightR2 is required'
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankheightr1 == -88)].tmp_row.tolist(),
+        'bankheightr1',
+        'Undefined Error',
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankHeightR1 is required'
         )
     )
 
     errs.append(
-                checkData(
-                'tbl_hydromod',
-                hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankheightr3 == -88)].tmp_row.tolist(),
-                'bankheightr3',
-                'Undefined Error',
-                'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankHeightR3 is required'
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankheightr2 == -88)].tmp_row.tolist(),
+        'bankheightr2',
+        'Undefined Error',
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankHeightR2 is required'
         )
     )
 
     errs.append(
-                checkData(
-                'tbl_hydromod',
-                hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankangler1 == -88)].tmp_row.tolist(),
-                'bankangler1',
-                'Undefined Error',
-                'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankAngleR1 is required'
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankheightr3 == -88)].tmp_row.tolist(),
+        'bankheightr3',
+        'Undefined Error',
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankHeightR3 is required'
         )
     )
 
     errs.append(
-                checkData(
-                'tbl_hydromod',
-                hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankangler2 == -88)].tmp_row.tolist(),
-                'bankangler2',
-                'Undefined Error',
-                'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankAngleR2 is required'
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankangler1 == -88)].tmp_row.tolist(),
+        'bankangler1',
+        'Undefined Error',
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankAngleR1 is required'
         )
     )
 
     errs.append(
-                checkData(
-                'tbl_hydromod',
-                hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankangler3 == -88)].tmp_row.tolist(),
-                'bankangler3',
-                'Undefined Error',
-                'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankAngleR3 is required'
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankangler2 == -88)].tmp_row.tolist(),
+        'bankangler2',
+        'Undefined Error',
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankAngleR2 is required'
         )
     )
 
+    errs.append(
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "No") & (hydromod.lateralsusceptibilityr == 2) & (hydromod.bankangler3 == -88)].tmp_row.tolist(),
+        'bankangler3',
+        'Undefined Error',
+        'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankAngleR3 is required'
+        )
+    )
+    
+    '''
+    Check 3:
+    FullyAmored is Yes	
+	If fullyarmored is Yes then StreamBedState must be C or NR
+	If fullyarmored is Yes then GradeControl must be A or NR
+	If fullyarmored is Yes then ArmoringPotential must be A or NR
+	If fullyarmored is Yes then lateralsusceptibilityl must be 1
+	If fullyarmored is Yes then lateralsusceptibilityr must be 1
+    '''  
+    errs.append(
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "Yes") & ((hydromod.streambedstate != "NR") | (hydromod.streambedstate != "C"))].tmp_row.tolist(), 
+        'streambedstate',
+        'Undefined Error',
+        'You have entered Yes for FullyArmored, StreamBedState needs to be C or NR'
+        )
+    )
+
+    errs.append(
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "Yes") & ((hydromod.gradecontrol != "NR") | (hydromod.gradecontrol != "A"))].tmp_row.tolist(), 
+        'gradecontrol',
+        'Undefined Error',
+        'You have entered Yes for FullyArmored, Gradecontrol needs to be A or NR'
+        )
+    )
+
+    errs.append(
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "Yes") & ((hydromod.armoringpotential != "NR") | (hydromod.armoringpotential != "A"))].tmp_row.tolist(), 
+        'armoringpotential',
+        'Undefined Error',
+        'You have entered Yes for FullyArmored, ArmoringPotential needs to be either A or NR'
+        )
+    )
+
+    errs.append(
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "Yes") & ((hydromod.lateralsusceptibilityl == 1))].tmp_row.tolist(), 
+        'lateralsusceptibilityl',
+        'Undefined Error',
+        'You have entered Yes for FullyArmored, so LateralSusceptibilityL cannot be  1.'
+        )
+    )
+
+    errs.append(
+        checkData(
+        'tbl_hydromod',
+        hydromod[(hydromod.fullyarmored == "Yes") & ((hydromod.lateralsusceptibilityr == 1))].tmp_row.tolist(), 
+        'lateralsusceptibilityr',
+        'Undefined Error',
+        'You have entered Yes for FullyArmored, so LateralSusceptibilityr cannot be 1.'
+        )
+    )
+
+
+    
     return {'errors': errs, 'warnings': warnings}

@@ -135,9 +135,9 @@ def chemistry(all_dfs):
     #     )
     # )  
 
-    
+    # LOGIC CHECK -- using logic check routine instead of zipping dataframes
     # # Check 4: Return error for logic check where (a) result not in batch and (b) batch not in result.
-    # # Check 4a: result not in batch
+    # # Check 4a: batch not in result
     # result_lab_batches = set(zip(chemistryresults.labbatch, chemistryresults.labagencycode))
     # batch_lab_batches = set(zip(chemistrybatch.labbatch, chemistrybatch.labagencycode))
 
@@ -145,10 +145,39 @@ def chemistry(all_dfs):
     # print("result_notin_batch:")
     # print(result_notin_batch)
 
-    # # Check 4b: batch not in result
+    # # Check 4b: result not in batch
     # batch_notin_result = batch_lab_batches - result_lab_batches
     # print("batch_notin_result:")
     # print(batch_notin_result)
+    
+    # # Check 4a: batch not in result
+    # chemistry batch
+    ## chemistrybatch & chemistryresults
+    match_cols = ['labbatch','labagencycode']
+    badrows = chemistrybatch[~chemistrybatch[match_cols].isin(chemistryresults[match_cols].to_dict(orient='list')).all(axis=1)].tmp_row.tolist()
+    chemistrybatch_args.update({
+        "badrows": badrows,
+        "badcolumn": ",".join(match_cols),
+        "error_type": "Logic Error",
+        "error_message": f"Each record in batch must have a corresponding record in results. Records are matched based on {', '.join(match_cols)}."
+    })
+    errs = [*errs, checkData(**chemistrybatch_args)]
+    
+    # # Check 4b: result not in batch
+    # chemistryresults
+    ## chemistryresults & chemistrybatch
+    match_cols = ['labbatch','labagencycode']
+    badrows = chemistryresults[~chemistryresults[match_cols].isin(chemistrybatch[match_cols].to_dict(orient='list')).all(axis=1)].tmp_row.tolist()
+    chemistryresults_args.update({
+        "badrows": badrows,
+        "badcolumn": ",".join(match_cols),
+        "error_type": "Logic Error",
+        "error_message": f"Each record in results must have a corresponding record in batch. Records are matched based on {', '.join(match_cols)}."
+    })
+    errs = [*errs, checkData(**chemistryresults_args)]
+
+    # END CHECK 4
+    # END LOGIC CHECK
 
     # # Check 5: Regex check to ensure that whitespaces will not pass for no null fields (a) LabSampleID and (b) LabBatch. -- taken care of by core checks
 
@@ -278,10 +307,42 @@ def chemistry(all_dfs):
 
     ##### STOPPED HERE - zaib 9feb2023
 
+    ####  Aria Started working here -5/23/2023 started on check18    #########################
+
     # For Check 18, see line 449.
     # Check 18: If multiple records have equal LabBatch, AnalyteName, DilFactor then RL values for those records must also be equivalent. - WARNING
+     
+    warnings.append(
+        checkData(
+            'tbl_chemistryresults',
+            chemistryresults[(chemistryresults.stationcode != '000NONPJ') & (chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (chemistryresults['dilfactor'].duplicated()) & (~chemistryresults['rl'].duplicated())].tmp_row.tolist(),
+            'rl',
+            'Undefined Warning',
+            'If multiple records have equal LabBatch, AnalyteName, DilFactor then RL values for those records must also be equivalent. This shows that RL has different values with the matched record'
+        )
+    )
+
     ## For Check 19, see line 472 in ChemistryChecks.py.
     # Check 19: If multiple records have equal LabBatch, AnalyteName then MethodNames should also be equivalent.  - WARNING
+    
+    warnings.append(
+        checkData(
+            'tbl_chemistryresults',
+            chemistryresults[(chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (~chemistryresults[['labbatch', 'analytename', 'methodname']].duplicated())].tmp_row.tolist(),
+            'methodname',
+            'Undefined Warning',
+            ' If multiple records have equal LabBatch, AnalyteName then MethodNames should also be equivalent. Check methodname.'
+        )
+    )
+
+
+
+
+
+
+    ###### Aria Stopped working here     ####################################################################################
+
+
     ## For Check 20, see line 487 in ChemistryChecks.py.
     # Check 20: If multiple records have equal LabBatch, AnalyteName then Unit should also be equivalent. - WARNING
     # Check 21: If LabSubmissionCode is A, MD, or QI then LabBatchComments are required. - WARNING 
