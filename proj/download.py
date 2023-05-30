@@ -8,6 +8,7 @@ from .utils.sdf_to_json import export_sdf_to_json
 import json
 import time
 import re
+from sqlalchemy import text
 
 download = Blueprint('download', __name__)
 @download.route('/download/<submissionid>/<filename>', methods = ['GET','POST'])
@@ -64,8 +65,8 @@ def template_file():
         # Prevent SQL injection
         unacceptable_chars = '''!-[]{};:'"\,<>./?@#$^&*~'''
         sql = re.sub(re.escape(unacceptable_chars), '', sql)
-        
-        df = pd.read_sql(sql, g.eng)
+        print(sql)
+        df = pd.read_sql(text(sql), g.eng)
         
         with pd.ExcelWriter(os.path.join(export_dir, f"{table}.xlsx")) as writer:
             df.to_excel(writer, index=False)
