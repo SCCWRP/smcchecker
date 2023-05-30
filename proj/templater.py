@@ -337,6 +337,7 @@ def template():
     excel_writer.save()
 
 
+
     grouped_df = glossary.groupby(['sheet'])
     gb_df = grouped_df.groups
     key_df = gb_df.keys()

@@ -78,6 +78,8 @@ def phab(all_dfs):
     # This was given to us by Rafi and posted to Teams website
     #    checkData(phabphab[phab.sampledate > datetime.today()].tmp_row.tolist(), 'SampleDate', 'Undefined Error', 'error', 'It appears that this sample came from the future', phab)
 
+    ##Check 3: SampleDate cannot be from the future
+
     errs.append(
         checkData(
             'tbl_phab',
@@ -87,7 +89,12 @@ def phab(all_dfs):
             'It appears that this sample came from the future'                  
         )
     )
+<<<<<<< HEAD
     #Check 4: if ResQualCode is NR, ND or NA, then Result and result should be Null
+=======
+    ## Check 4: If ResQualCode is NR, ND, or NA, then Result should be NULL
+
+>>>>>>> 8e5d623eceee3087c213155f501bae6d25ee0b85
     warnings.append(
         checkData(
             'tbl_phab',
