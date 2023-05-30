@@ -78,6 +78,8 @@ def phab(all_dfs):
     # This was given to us by Rafi and posted to Teams website
     #    checkData(phabphab[phab.sampledate > datetime.today()].tmp_row.tolist(), 'SampleDate', 'Undefined Error', 'error', 'It appears that this sample came from the future', phab)
 
+    ##Check 3: SampleDate cannot be from the future
+
     errs.append(
         checkData(
             'tbl_phab',
@@ -87,7 +89,8 @@ def phab(all_dfs):
             'It appears that this sample came from the future'                  
         )
     )
-    #Check 3: if ResQualCode is NR, ND or NA, then Result and VariableResult should be Null
+    ## Check 4: If ResQualCode is NR, ND, or NA, then Result should be NULL
+
     warnings.append(
         checkData(
             'tbl_phab',
@@ -97,7 +100,8 @@ def phab(all_dfs):
             'If the resqualcode is NR, then the result should be -88, or left blank.'               
         )
     )
-    
+    ## Check 5: If ResQualCode is NR, ND, or NA, then VariableResult should be NULL
+
     warnings.append(
         checkData(
             'tbl_phab',
@@ -108,7 +112,7 @@ def phab(all_dfs):
         )
     )
     
-# Check 4: if QACode is NOT "None" then give a warning (warn them if the QACode is not None and a value is reported.)
+    ## Check 6: For QACode flagged as None, VariableResult should not be reported (meaning VariableResult must be -88 or NULL)
   
     warnings.append(
         checkData(
@@ -117,8 +121,10 @@ def phab(all_dfs):
             'variableresult',
             'Undefined Warning',
             "The QA Flag is not None here, but there appears to be a value reported in the VaraibleResult column."            
-        )
+        )       
     )
+
+    ## Check 7: For QACode flagged as None, Result should not be reported (meaning Result must be NR, NULL, or empty)
 
     warnings.append(
         checkData(
@@ -129,7 +135,7 @@ def phab(all_dfs):
             "The QA Flag is not None here, but there appears to be a value reported in the Result column.",            
         )
     )
-# Check 5: If the Result value for the Analyte SpecificConductivity is less than 50, issue a warning (Check to see if SpecificConductivity is less than 50 or not)
+    ## Check 8: If the Result value for the Analyte SpecificConductivity is less than 50, issue a warning (Check to see if SpecificConductivity is less than 50 or not)
 
     warnings.append(
         checkData(
@@ -141,8 +147,7 @@ def phab(all_dfs):
         )
     )
 
- # Check 6: If the Result value for the Analyte Temperature is higher than 31, then issue a warning
- # Tell them they need to make sure they measured in Celsius, not Fahrenheit
+    ## Check 9: If the Result value for the Analyte Temperature is higher than 31, then issue a warning   
 
     warnings.append(
         checkData(
@@ -154,7 +159,7 @@ def phab(all_dfs):
         )
     )
 
-# Check 7: if the Result Value for the Analyte "Oxygen, Dissolved" is above 14.6
+    ##Check 10: if the Result Value for the Analyte "Oxygen, Dissolved" is above 14.6
 
     warnings.append(
         checkData(

@@ -165,4 +165,17 @@ def trash(all_dfs):
             'EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range'
         )
     )
+
+    #check 3: Start Time needs to be before end time
+    errs.append(
+        checkData(
+            'tbl_trashsiteinfo',
+            trashsiteinfo[(trashsiteinfo["startime"] < trashsiteinfo["endtime"])].tmp_row.tolist(),
+            'starttime',
+            'Undefined Error',
+            'StartTime must be before EndTime'
+        )
+    )
+
+
     return {'errors': errs, 'warnings': warnings}
