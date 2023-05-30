@@ -30,7 +30,9 @@ assert all([item in BASIC_CONFIG.keys() for item in ["EXCEL_OFFSET", "SYSTEM_FIE
 
 app = Flask(__name__, static_url_path='/static')
 
-CORS(app, resources={r"/arcgis/*": {"origins": "https://nexus.sccwrp.org"}})
+# CORS(app, resources={r"/arcgis/*": {"origins": "https://nexus.sccwrp.org"}})
+
+CORS(app)
 
 app.debug = True # remove for production
 
@@ -40,7 +42,8 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 app.config['MAIL_SERVER'] = os.environ.get('FLASK_APP_MAIL_SERVER')
 
-app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 200MB limit
+
 app.secret_key = os.environ.get("FLASK_APP_SECRET_KEY")
 
 # set the database connection string, database, and type of database we are going to point our application at

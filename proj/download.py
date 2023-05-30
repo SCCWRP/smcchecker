@@ -5,7 +5,9 @@ import pandas as pd
 from arcgis.gis import GIS
 from zipfile import ZipFile
 from .utils.sdf_to_json import export_sdf_to_json
-
+import json
+import time
+import re
 
 download = Blueprint('download', __name__)
 @download.route('/download/<submissionid>/<filename>', methods = ['GET','POST'])
@@ -14,34 +16,89 @@ def submission_file(submissionid, filename):
         if os.path.exists(os.path.join(os.getcwd(), "files", submissionid, filename)) \
         else jsonify(message = "file not found")
 
+@download.route('/export/<exportid>', methods = ['GET','POST'])
+def export_file(exportid):
+    '''
+        This function is served for the data query tool since the /export route gives the URL back to the browser
+    '''
+
+    main_dir = os.getcwd()
+    
+    # start zipping
+    files_path = os.path.join(os.getcwd(), "export", "data_query", exportid)
+    zip_path = os.path.join(os.getcwd(), "export", "data_query", f"{exportid}.zip")
+    
+    with ZipFile(zip_path, 'w') as myzip:
+        # iterate over all the files in the folder and add them to the ZipFile
+        os.chdir(files_path)
+        for file_name in os.listdir(files_path):
+            file_path = os.path.join(files_path, file_name)
+            myzip.write(file_path.split("/")[-1])
+    
+    os.chdir(main_dir)
+
+    return send_file( zip_path, as_attachment=True ) \
+        if os.path.exists(zip_path) \
+        else jsonify(message = "file not found")
+
 @download.route('/export', methods = ['GET','POST'])
 def template_file():
-    filename = request.args.get('filename')
-    tablename = request.args.get('tablename')
-
-    if filename is not None:
-        return send_file( os.path.join(os.getcwd(), "export", filename), as_attachment = True, download_name = filename ) \
-            if os.path.exists(os.path.join(os.getcwd(), "export", filename)) \
-            else jsonify(message = "file not found")
     
-    elif tablename is not None:
-        eng = g.eng
-        valid_tables = read_sql("SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'tbl%%';", g.eng).values
+    exportid = int(time.time())
+    
+    # export directory for data query tool
+    export_dir = os.path.join(os.getcwd(), "export", "data_query", str(exportid))
+    
+    # make it if not exists
+    if not os.path.exists(export_dir):
+        os.mkdir(export_dir)
+
+    request_body_dct = request.args.to_dict()
+
+    query_dct = json.loads(request_body_dct.get('query'))
+
+    for k in query_dct:
+        table = query_dct[k].get('table')
+        sql = query_dct[k].get('sql')
+
+        # Prevent SQL injection
+        unacceptable_chars = '''!-[]{};:'"\,<>./?@#$^&*~'''
+        sql = re.sub(re.escape(unacceptable_chars), '', sql)
         
-        if tablename not in valid_tables:
-            return "invalid table name provided in query string argument"
+        df = pd.read_sql(sql, g.eng)
         
-        data = read_sql(f"SELECT * FROM {tablename};", eng)
-        data.drop( set(data.columns).intersection(set(current_app.system_fields)), axis = 1, inplace = True )
+        with pd.ExcelWriter(os.path.join(export_dir, f"{table}.xlsx")) as writer:
+            df.to_excel(writer, index=False)
+    
+    return jsonify({'code': 200, 'link': f"https://nexus.sccwrp.org/smcchecker/export/{exportid}"})
 
-        datapath = os.path.join(os.getcwd(), "export", "data", f'{tablename}.csv')
 
-        data.to_csv(datapath, index = False)
+    # filename = request.args.get('filename')   
+    # tablename = request.args.get('tablename') 
 
-        return send_file( datapath, as_attachment = True, download_name = f'{tablename}.csv' )
+    # if filename is not None:
+    #     return send_file( os.path.join(os.getcwd(), "export", filename), as_attachment = True, download_name = filename ) \
+    #         if os.path.exists(os.path.join(os.getcwd(), "export", filename)) \
+    #         else jsonify(message = "file not found")
+    
+    # elif tablename is not None:
+    #     eng = g.eng
+    #     valid_tables = read_sql("SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'tbl%%';", g.eng).values
+        
+    #     if tablename not in valid_tables:
+    #         return "invalid table name provided in query string argument"
+        
+    #     data = read_sql(f"SELECT * FROM {tablename};", eng)
+    #     data.drop( set(data.columns).intersection(set(current_app.system_fields)), axis = 1, inplace = True )
 
-    else:
-        return jsonify(message = "neither a filename nor a database tablename were provided")
+    #     datapath = os.path.join(os.getcwd(), "export", "data", f'{tablename}.csv')
+
+    #     data.to_csv(datapath, index = False)
+
+    #     return send_file( datapath, as_attachment = True, download_name = f'{tablename}.csv' )
+
+    # else:
+    #     return jsonify(message = "neither a filename nor a database tablename were provided")
 
 @download.route('/downloadfieldform', methods = ['GET','POST'])
 def download_field_form():
