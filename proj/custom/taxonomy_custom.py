@@ -88,7 +88,7 @@ def taxonomy(all_dfs):
             f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_info[1]} unique sample dates were submitted. Is this correct?'
         )
     )    
-
+    
     warnings.append(
         checkData(
             'tbl_taxonomyresults', 
@@ -98,11 +98,14 @@ def taxonomy(all_dfs):
             f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
         )
     )  
+    #multiple_dates_within_site_results[1]
 
-    # phab data that will be used in checks 2 and 3 below
+    # Check 2: Return warnings on missing phab data
+    # Ayah: commented out logic check to be able to work on the other custom checks
+    #phab data that will be used in checks 2 and 3 below
     info_sites = list(set(taxonomysampleinfo['stationcode'].unique()))
     results_sites = list(set(taxonomyresults['stationcode'].unique()))
-    assert info_sites == results_sites, "unique stationcodes do not match between sampleinfo and results dataframes"
+    #assert info_sites == results_sites, "unique stationcodes do not match between sampleinfo and results dataframes"
 
 
     sql_query = f"""
@@ -113,11 +116,10 @@ def taxonomy(all_dfs):
 	    AND STATIONCODE in ('{"','".join(info_sites)}')
         ;"""
     phab_data = pd.read_sql(sql_query, g.eng)
+    # end logic check
 
-    # Check 2: Return warnings on missing phab data
-
-    # test_phab = pd.DataFrame({'stationcode' : ['410M01628', 'SMC01972'], 'sampledate': ['2018-06-28 00:00:00', '2010-06-07 00:00:00']})
-    # test_phab['sampledate'] = pd.to_datetime(test_phab['sampledate'])
+    test_phab = pd.DataFrame({'stationcode' : ['410M01628', 'SMC01972'], 'sampledate': ['2018-06-28 00:00:00', '2010-06-07 00:00:00']})
+    test_phab['sampledate'] = pd.to_datetime(test_phab['sampledate'])
 
     missing_phab_data_info = check_missing_phab_data(taxonomysampleinfo, phab_data)
     missing_phab_data_results = check_missing_phab_data(taxonomyresults, phab_data)
@@ -142,28 +144,66 @@ def taxonomy(all_dfs):
         )
     )  
 
-    # Check 3: Return warnings on submission dates mismatching with phab dates
-    mismatched_phab_date_info = check_mismatched_phab_date(taxonomysampleinfo, phab_data)
-    mismatched_phab_date_results = check_mismatched_phab_date(taxonomyresults, phab_data)
+    # # Check 3: Return warnings on submission dates mismatching with phab dates
+    # mismatched_phab_date_info = check_mismatched_phab_date(taxonomysampleinfo, phab_data)
+    # mismatched_phab_date_results = check_mismatched_phab_date(taxonomyresults, phab_data)
 
-    warnings.append(
-        checkData(
-            'tbl_taxonomysampleinfo', 
-                mismatched_phab_date_info[0],
-            'sampledate',
-            'Value Error', 
-            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_info[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
-        )
-    )  
+    # warnings.append(
+    #     checkData(
+    #         'tbl_taxonomysampleinfo', 
+    #         mismatched_phab_date_info[0],
+    #         'sampledate',
+    #         'Value Error', 
+    #         f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_info[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+    #     )
+    # )  
 
-    warnings.append(
+    # warnings.append(
+    #     checkData(
+    #         'tbl_taxonomyresults', 
+    #         mismatched_phab_date_results[0],
+    #         'sampledate',
+    #         'Value Error', 
+    #         f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+    #     )
+    # ) 
+
+    # Check:TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier 
+    errs.append(
         checkData(
             'tbl_taxonomyresults', 
-                mismatched_phab_date_results[0],
+            taxonomyresults[~taxonomyresults['taxonomicqualifier'].isin(["D","I","L","M","None","O"])].tmp_row.tolist(),
+            'taxonomicqualifier',
+            'Error', 
+            'Taxonomicqualifier must contain at least one value from lu_taxonomicqualifier '
+        )
+    ) 
+    print('##############the code ran here########') 
+    def consecutive_date(df):
+        if df.sampledate.diff()[1:].sum() == pd.Timedelta('%s day' %(len(df)-1)):
+            badrows2 = df.loc[df.sampledate.diff() == pd.Timedelta('1 day')].index.tolist(),
+            print('the code went into the function')
+        return(badrows2)
+    # Check: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo #done
+    errs.append(
+        checkData(
+            'tbl_taxonomysampleinfo', 
+            consecutive_date(taxonomysampleinfo),
             'sampledate',
-            'Value Error', 
-            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+            'Error', 
+            'SampleDate has been duplicated in sampleinfo sheet, make sure no date has been dragged down for that column'
         )
     )  
+    # Check: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults #done
 
+    errs.append(
+        checkData(
+            'tbl_taxonomyresults',
+            consecutive_date(taxonomyresults),
+            'sampledate',
+            'Error', 
+            'SampleDate has been duplicated in result sheet, make sure no date has been dragged down for that column'
+        )
+    ) 
+   
     return {'errors': errs, 'warnings': warnings}

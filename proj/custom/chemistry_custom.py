@@ -328,12 +328,27 @@ def chemistry(all_dfs):
     warnings.append(
         checkData(
             'tbl_chemistryresults',
-            chemistryresults[(chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (~chemistryresults[['labbatch', 'analytename', 'methodname']].duplicated())].tmp_row.tolist(),
+            chemistryresults[(chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (~chemistryresults[['methodname']].duplicated())].tmp_row.tolist(),
             'methodname',
             'Undefined Warning',
             ' If multiple records have equal LabBatch, AnalyteName then MethodNames should also be equivalent. Check methodname.'
         )
     )
+    print(" 1 the code ran here chem")
+    #Check 20:If multiple records have equal LabBatch, AnalyeName then Unit should also be equivalent
+    '''
+    warnings.append(
+        checkData(
+            'tbl_chemistryresults',
+            chemistryresults[(chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (~chemistryresults[['unit']].duplicated())].tmp_row.tolist(),
+            'unit',
+            'Undefined Warning',
+            'If multiple records have equal LabBatch, AnalyteName then Unit should also be equivalent. Check methodname.'
+        )
+    )
+    '''
+    print("the code ran here chem")
+
 
 
 
