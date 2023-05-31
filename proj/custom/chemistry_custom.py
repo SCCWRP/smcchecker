@@ -289,25 +289,25 @@ def chemistry(all_dfs):
         )
     )
 
-    ## For Check 17, see line 421 in ChemistryChecks.py.
+    # For Check 17, see line 421 in ChemistryChecks.py.
     # Check 17: If multiple records have equal LabBatch, AnalyteName, DilFactor then MDL values for those records must also be equivalent. -- WARNING
-    # groups = chemistryresults.groupby(['labbatch','analytename','dilfactor'])['mdl'].apply(
-    #     lambda x: True if len(set(x)) > 1 else False
-    #     ).reset_index(name = 'multiple mdl values')
+    groups = chemistryresults.groupby(['labbatch','analytename','dilfactor'])['mdl'].apply(
+        lambda x: True if len(set(x)) > 1 else False
+        ).reset_index(name = 'multiple mdl values')
     
-    # bad_groups = groups.where(
-    #     groups['multiple mdl values']
-    # ).dropna()
+    bad_groups = groups.where(
+        groups['multiple mdl values']
+    ).dropna()
 
-    # for i in bad_groups.index:
-    #     lb = bad_groups.labbatch[i]
-    #     an = bad_groups.analytename[i]
-    #     df = bad_groups.dilfactor[i]
-    #     # this is where the checkData function runs...
+    for i in bad_groups.index:
+        lb = bad_groups.labbatch[i]
+        an = bad_groups.analytename[i]
+        df = bad_groups.dilfactor[i]
+        # this is where the checkData function runs...
 
-    ##### STOPPED HERE - zaib 9feb2023
+    #### STOPPED HERE - zaib 9feb2023
 
-    ####  Aria Started working here -5/23/2023 started on check18    #########################
+    ###  Aria Started working here -5/23/2023 started on check18    #########################
 
     # For Check 18, see line 449.
     # Check 18: If multiple records have equal LabBatch, AnalyteName, DilFactor then RL values for those records must also be equivalent. - WARNING
@@ -334,9 +334,8 @@ def chemistry(all_dfs):
             ' If multiple records have equal LabBatch, AnalyteName then MethodNames should also be equivalent. Check methodname.'
         )
     )
-    print(" 1 the code ran here chem")
+
     #Check 20:If multiple records have equal LabBatch, AnalyeName then Unit should also be equivalent
-    '''
     warnings.append(
         checkData(
             'tbl_chemistryresults',
@@ -346,29 +345,67 @@ def chemistry(all_dfs):
             'If multiple records have equal LabBatch, AnalyteName then Unit should also be equivalent. Check methodname.'
         )
     )
-    '''
+    
     print("the code ran here chem")
 
-
-
-
-
-
-
-    ###### Aria Stopped working here     ####################################################################################
-
-
-    ## For Check 20, see line 487 in ChemistryChecks.py.
-    # Check 20: If multiple records have equal LabBatch, AnalyteName then Unit should also be equivalent. - WARNING
     # Check 21: If LabSubmissionCode is A, MD, or QI then LabBatchComments are required. - WARNING 
+    required_codes = ["A", "MD", "QI"]
+
+    warnings.append(
+        checkData(
+            'tbl_chemistrybatch',
+            chemistrybatch[(chemistrybatch['labsubmissioncode'].isin(required_codes) ) & (chemistrybatch["labbatchcomments"].isna())].tmp_row.tolist(),
+            'labsubmissioncode, labbatchcomments',
+            'Undefined Warning',
+            'If labsubmissioncode is A, MD, or QI then labbatchcomments are required. Check comment.'
+        )
+    )
+    
     # Check 22: If SampleTypeCode is in the set Grab, LabBlank, Integrated then ExpectedValue must be -88 (unless the unit is % recovery). - ERROR
+    required_sampletypecodes = ["Grab", "LabBlank", "Integrated"]
+    
+    errs.append(
+        checkData(
+            'tbl_chemistryresults',
+            chemistryresults[(chemistryresults['sampletypecode'].isin(required_sampletypecodes)) & ((chemistryresults['expectedvalue'] != -88) & (chemistryresults['unit'] != '%') )].tmp_row.tolist(),
+            'expectedvalue',
+            'Undefined Warning',
+            'If SampleTypeCode is in the set Grab, LabBlank, Integrated then ExpectedValue must be -88 (unless the unit is recovery)'
+        )
+    )
+
     # Check 23: If SampleTypeCode is in the set MS1, LCS, BlankSp, CRM then ExpectedValue cannot be -88. - ERROR 
-    # Check  24: If Unit is % recovery then ExpectedValue cannot have -88. - ERROR
-    # checks up until here end at LINE 544 in ChemistryChecks.py
+    required_sampletypecodes23 = ["MS1", "LCS", "BlankSp", "CRM"]
+        
+    errs.append(
+        checkData(
+            'tbl_chemistryresults',
+            chemistryresults[(chemistryresults['sampletypecode'].isin(required_sampletypecodes23)) & ((chemistryresults['expectedvalue'] == -88))].tmp_row.tolist(),
+            'expectedvalue',
+            'Undefined Warning',
+            ' If SampleTypeCode is in the set MS1, LCS, BlankSp, CRM then ExpectedValue cannot be -88.'
+        )
+    )
+    
+    # Check  24: If Unit is % recovery then ExpectedValue cannot have -88. - ERROR ---checks up until here end at LINE 544 in ChemistryChecks.py
+            
+    errs.append(
+        checkData(
+            'tbl_chemistryresults',
+            chemistryresults[(chemistryresults['unit'] == '%') & ((chemistryresults['expectedvalue'] == -88))].tmp_row.tolist(),
+            'expectedvalue',
+            'Undefined Warning',
+            "If Unit is '%' recovery then ExpectedValue cannot have -88."
+        )
+    )
+    
+    ###### Aria Stopped working here     ####################################################################################
 
     # EXTRA CHECKS FROM SUBMISSION GUIDE -- PAUSE -- CONTINUE THIS LATER --> ADD THE ABOVE CHECKS TO THE QA REVIEW AND CUSTOM CHECKS FILE
     # NOTE: Import all of the comments for tracking purposes from SMC ChemistryChecks.py. 
     # Import comments from line 548-607
     # Check 25: Lab Replicates are defined as replicate samples taken from the same sample bottle. The result for each replicate will be numbered starting from one. (Lines 609-637).
+   
+   
 
     return {'errors': errs, 'warnings': warnings}
