@@ -148,13 +148,12 @@ def check_mismatched_phab_date(submission, phab_data):
 def consecutive_date(df):
     badrows2 = []
     if df.sampledate.diff()[1:].sum() == pd.Timedelta('%s day' %(len(df)-1)):
-        badrows2 = df.loc[df.sampledate.diff() == pd.Timedelta('1 day')].index.tolist(),
+        badrows2 =df.loc[df.sampledate.diff() == pd.Timedelta('1 day')].index.tolist()
         print('the code went into the function')
         print("badrows2")
         print(badrows2)
     return(badrows2)
-
-
+print('code ran after function')
 # ---- Below is just for PHAB ---- #
 
 # This file contains the python dictionary that represents what the schema SHOULD look like for all submitted PHAB Access Databases
