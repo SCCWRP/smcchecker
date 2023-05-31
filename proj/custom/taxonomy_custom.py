@@ -127,7 +127,7 @@ def taxonomy(all_dfs):
     warnings.append(
         checkData(
             'tbl_taxonomysampleinfo', 
-                missing_phab_data_info[0],
+            missing_phab_data_info[0],
             'sampledate',
             'Value Error', 
             f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_info[1])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
@@ -137,7 +137,7 @@ def taxonomy(all_dfs):
     warnings.append(
         checkData(
             'tbl_taxonomyresults', 
-                missing_phab_data_results[0],
+            missing_phab_data_results[0],
             'sampledate',
             'Value Error', 
             f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
@@ -186,7 +186,7 @@ def taxonomy(all_dfs):
             consecutive_date(taxonomysampleinfo),
             'sampledate',
             'Error', 
-            'SampleDate has been duplicated in sampleinfo sheet, make sure no date has been dragged down for that column'
+            'Consecutive Dates. Make sure you did not accidentally drag down the date'
         )
     )  
     #Check: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults #done
@@ -197,7 +197,7 @@ def taxonomy(all_dfs):
             consecutive_date(taxonomyresults),
             'sampledate',
             'Error', 
-            'SampleDate has been duplicated in result sheet, make sure no date has been dragged down for that column'
+            'Consecutive Dates. Make sure you did not accidentally drag down the date'
         )
     ) 
    
