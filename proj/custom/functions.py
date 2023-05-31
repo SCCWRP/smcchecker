@@ -145,6 +145,15 @@ def check_mismatched_phab_date(submission, phab_data):
     phabdates = list(set(matched_years['sampledate_phab'].dt.strftime('%m-%d-%Y')))
     return (badrows, phabdates)
 
+def consecutive_date(df):
+    badrows2 = []
+    if df.sampledate.diff()[1:].sum() == pd.Timedelta('%s day' %(len(df)-1)):
+        badrows2 = df.loc[df.sampledate.diff() == pd.Timedelta('1 day')].index.tolist(),
+        print('the code went into the function')
+        print("badrows2")
+        print(badrows2)
+    return(badrows2)
+
 
 # ---- Below is just for PHAB ---- #
 
