@@ -2,7 +2,7 @@
 
 from inspect import currentframe
 from flask import current_app, g
-from .functions import checkData, check_multiple_dates_within_site, check_missing_phab_data, check_mismatched_phab_date
+from .functions import checkData, check_multiple_dates_within_site, check_missing_phab_data, check_mismatched_phab_date, consecutive_date
 import pandas as pd
 
 def taxonomy(all_dfs):
@@ -179,11 +179,6 @@ def taxonomy(all_dfs):
         )
     ) 
     print('##############the code ran here########') 
-    def consecutive_date(df):
-        if df.sampledate.diff()[1:].sum() == pd.Timedelta('%s day' %(len(df)-1)):
-            badrows2 = df.loc[df.sampledate.diff() == pd.Timedelta('1 day')].index.tolist(),
-            print('the code went into the function')
-        return(badrows2)
     # Check: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo #done
     errs.append(
         checkData(
@@ -194,7 +189,7 @@ def taxonomy(all_dfs):
             'SampleDate has been duplicated in sampleinfo sheet, make sure no date has been dragged down for that column'
         )
     )  
-    # Check: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults #done
+    #Check: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults #done
 
     errs.append(
         checkData(
