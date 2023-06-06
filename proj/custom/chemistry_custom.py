@@ -107,33 +107,33 @@ def chemistry(all_dfs):
 
     # Check 2: Return warnings on missing phab data # commented out for now
     # this check is not working as expected - zaib 6feb2023
-    # missing_phab_data_results = check_missing_phab_data(chemistryresults, phab_data)
-    # print("missing_phab_data_results:")
-    # print(missing_phab_data_results)
+    missing_phab_data_results = check_missing_phab_data(chemistryresults, phab_data)
+    print("missing_phab_data_results:")
+    print(missing_phab_data_results)
 
-    # warnings.append(
-    #     checkData(
-    #         'tbl_chemistryresults', 
-    #             missing_phab_data_results[0],
-    #         'sampledate',
-    #         'Value Error', 
-    #         f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting chemistry data.'
-    #     )
-    # )  
+    warnings.append(
+        checkData(
+            'tbl_chemistryresults', 
+                missing_phab_data_results[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting chemistry data.'
+        )
+    )  
 
 
-    # # Check 3: Return warnings on submission dates mismatching with phab dates
-    # mismatched_phab_date_results = check_mismatched_phab_date(chemistryresults, phab_data)
+    # Check 3: Return warnings on submission dates mismatching with phab dates
+    mismatched_phab_date_results = check_mismatched_phab_date(chemistryresults, phab_data)
 
-    # warnings.append(
-    #     checkData(
-    #         'tbl_chemistryresults', 
-    #             mismatched_phab_date_results[0],
-    #         'sampledate',
-    #         'Value Error', 
-    #         f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
-    #     )
-    # )  
+    warnings.append(
+        checkData(
+            'tbl_chemistryresults', 
+                mismatched_phab_date_results[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+        )
+    )  
 
     # LOGIC CHECK -- using logic check routine instead of zipping dataframes
     # # Check 4: Return error for logic check where (a) result not in batch and (b) batch not in result.
@@ -228,9 +228,29 @@ def chemistry(all_dfs):
     )
 
     # # Check 10: Result column in results table must be numeric. (Check 11 nested)
+
     # # Check 11: If ResQualCode is NR or ND then (a) result must be negative and (b) comment is required.
     # # Check 11a: Warning if ResQualCode is NR or ND then (a) result must be negative.
-    # # Check 11b: Warning iff ResQualCode is NR or ND then (b) comment is required. # Jeff requested to remove this one. 5/21/2019
+    warnings.append(
+        checkData(
+            'tbl_chemistryresults',
+            chemistryresults[((chemistryresults.resqualcode == 'ND') | (chemistryresults.resqualcode == 'NR')) & (chemistryresults.result > 0)].tmp_row.tolist(),
+            'result',
+            'Undefined Error',
+            'If ResQualCode is NR or ND then result must be negative value'
+        )
+    )
+
+    # # Check 11b: Warning if ResQualCode is NR or ND then (b) comment is required. # Jeff requested to remove this one. 5/21/2019
+    warnings.append(
+        checkData(
+            'tbl_chemistryresults',
+            chemistryresults[((chemistryresults.resqualcode == 'ND') | (chemistryresults.resqualcode == 'NR')) & ((chemistryresults.labresultcomments == '') | (chemistryresults.labresultcomments.isna()))].tmp_row.tolist(),
+            'labresultcomments',
+            'Undefined Error',
+            'If ResQualCode is NR or ND then comment is required'
+        )
+    )
 
     # #### REVIST CODE BLOCK IN ChemistryChecks.py 345 - 359 
 
@@ -551,8 +571,7 @@ def chemistry(all_dfs):
 
         #         # Submission Guide page 8 - Recovery Corrected Data
         #         '''
-        #         Recovery corrected data are NOT reported because they can be calculated using
-        #         the ExpectedValue of the reference material processed within the same batch.
+        #         Recovery corrected data are NOT reported because they can be calculated using the ExpectedValue of the reference material processed within the same batch.
         #         '''
         #         # NOTE Confirm with Jeff if this is even something we can check or not.
         #         #       I am not even sure what this means.
