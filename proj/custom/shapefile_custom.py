@@ -124,20 +124,21 @@ def shapefile(all_dfs):
             if len(badrows) > 0:
                 badrows = badrows['tmp_row'].tolist()
                 args = {
-                        "dataframe": 'gissites',
-                        "tablename": 'gissites',
-                        "badrows": badrows,
-                        "badcolumn": "shape",
-                        "error_type": "Geometry Error",
-                        "is_core_error": False,
-                        "error_message": f"These points are not in their associated polygon based on stationcode"
+                    "dataframe": 'gissites',
+                    "tablename": 'gissites',
+                    "badrows": badrows,
+                    "badcolumn": "shape",
+                    "error_type": "Geometry Error",
+                    "is_core_error": False,
+                    "error_message": f"These points are not in their associated polygon based on stationcode"
                 }
                 errs = [*errs, checkData(**args)]
         print("check ran -  Check if the points are in the polygon") 
 
 
-        ## 3. Check stationid should match between site and catchment shapefile
+        ## 3. Check stationcode should match between site and catchment shapefile
         print("Check stationcode should match between site and catchment shapefile")
+        
         badrows = pd.merge(
             sites,
             catchments, 
@@ -146,6 +147,9 @@ def shapefile(all_dfs):
             suffixes=('_site', '_catchment'),
             indicator='in_which_df'
         ).query("in_which_df == 'left_only'")
+        
+        print("not in catchments")
+        print(badrows['stationcode'])
 
         if len(badrows) > 0:
             badrows = badrows['tmp_row_site'].tolist()
@@ -168,6 +172,9 @@ def shapefile(all_dfs):
             indicator='in_which_df'
         ).query("in_which_df == 'left_only'")
         
+        print("not in sites")
+        print(badrows['stationcode'])
+        
         if len(badrows) > 0:
             badrows = badrows["tmp_row_catchment"].tolist()
             args.update({
@@ -183,31 +190,31 @@ def shapefile(all_dfs):
 
 
         ## 4. Warning if the points are outside of California
-        print("check - Warning if the points are outside of California")
-        geolocator = Nominatim(user_agent='my-geo')
+        # print("check - Warning if the points are outside of California")
+        # geolocator = Nominatim(user_agent='my-geo')
         
-        sites['in_state'] = sites.apply(
-            lambda row: geolocator.reverse((row['new_lat'],row['new_long'])).address,
-            axis=1
-        ) # this should give the full address of the lat, lon as a string
-        sites['in_state'] = sites.apply(
-            lambda row: row['in_state'].split(",")[[i+1 for i,v in enumerate(row['in_state'].split(",")) if "County" in v][0]].strip(),
-            axis=1
-        ) # this should extract only the state name out of that address
+        # sites['in_state'] = sites.apply(
+        #     lambda row: geolocator.reverse((row['new_lat'],row['new_long'])).address,
+        #     axis=1
+        # ) # this should give the full address of the lat, lon as a string
+        # sites['in_state'] = sites.apply(
+        #     lambda row: row['in_state'].split(",")[[i+1 for i,v in enumerate(row['in_state'].split(",")) if "County" in v][0]].strip(),
+        #     axis=1
+        # ) # this should extract only the state name out of that address
         
-        print(sites['in_state'])
+        # print(sites['in_state'])
         
-        badrows = sites[sites['in_state'] != 'California'].tmp_row.tolist()
-        args.update({
-            "dataframe": sites,
-            "tablename": "gissites",
-            "badrows": badrows, 
-            "badcolumn": "stationcode",
-            "error_type": "Geometry Warning",
-            "error_message": "This station is outside of California"
-        })
-        warnings = [*warnings, checkData(**args)]
-        print("check ran - Warning if the points are outside of California")
+        # badrows = sites[sites['in_state'] != 'California'].tmp_row.tolist()
+        # args.update({
+        #     "dataframe": sites,
+        #     "tablename": "gissites",
+        #     "badrows": badrows, 
+        #     "badcolumn": "stationcode",
+        #     "error_type": "Geometry Warning",
+        #     "error_message": "This station is outside of California"
+        # })
+        # warnings = [*warnings, checkData(**args)]
+        # print("check ran - Warning if the points are outside of California")
 
 
         ## 5. Error stationcode points should be no more than 300m from lu_station reference site
