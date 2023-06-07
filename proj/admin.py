@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from bs4 import BeautifulSoup
 from flask import Blueprint, g, current_app, render_template, redirect, url_for, session, request, jsonify
 
 from .utils.db import metadata_summary
@@ -63,6 +64,19 @@ def schema():
 
             return_object[tbl] = df.to_dict('records')
         
+        with pd.ExcelWriter(os.path.join(os.getcwd(), "export", "database_schema_download.xlsx")) as writer:
+            for key in return_object.keys():
+                df_to_download = pd.DataFrame.from_dict(return_object[key])
+                df_to_download['lookuplist_table_name'] = df_to_download['lookuplist_table_name'].apply(
+                    lambda x: "https://checker.sccwrp.org/smcchecker/scraper?action=help&layer={}".format(
+                        BeautifulSoup(x, 'html.parser').text.strip()
+                    ) if BeautifulSoup(x, 'html.parser').text.strip() != '' else ''
+                )
+                df_to_download.to_excel(writer, sheet_name=key, index=False)
+
+        print("return_object")
+        print(return_object)
+
         return render_template('schema.html', metadata=return_object, datatype=datatype, authorized=authorized)
         
     # only executes if "datatypes" not given

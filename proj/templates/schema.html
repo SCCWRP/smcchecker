@@ -26,6 +26,8 @@
     <div class="container d-flex flex-column align-items-center justify-content-center">
     <h1>Schema Information for {{datatype}}</h1>
     <br><br>
+    <button id="download-schema"> Download as Excel file </button>
+    <br><br>
     {# metadata is essentially the schema information about all tables in the datatype #}
     
     {% for tablename, table in metadata.items() %}
@@ -59,5 +61,10 @@
 
     {% endif %}
 </body>
+<script>
+    const downloadButton = document.getElementById("download-schema").addEventListener("click", function(){
+        console.log("click")
+    })
+</script>
 </html>
 
