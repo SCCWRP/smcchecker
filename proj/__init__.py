@@ -14,7 +14,7 @@ from .templater import templater # for dynamic lookup lists called into template
 from .process_shapefile import sfprocessing 
 from .load_shapefile import sfloading 
 from .map_check import map_check, get_map_info
-
+from .admin import admin
 
 CUSTOM_CONFIG_PATH = os.path.join(os.getcwd(), 'proj', 'config')
 
@@ -38,6 +38,8 @@ app.debug = True # remove for production
 
 
 # does your application require uploaded filenames to be modified to timestamps or left as is
+app.config['APP_SCRIPT_ROOT'] = 'smcchecker'
+
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 app.config['MAIL_SERVER'] = os.environ.get('FLASK_APP_MAIL_SERVER')
@@ -156,5 +158,6 @@ app.register_blueprint(download)
 app.register_blueprint(scraper)
 app.register_blueprint(templater)
 app.register_blueprint(map_check)
+app.register_blueprint(admin)
 
 

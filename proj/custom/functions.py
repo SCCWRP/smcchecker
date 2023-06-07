@@ -143,6 +143,13 @@ def check_mismatched_phab_date(submission, phab_data):
     # used in the warning message later
     badrows = sorted(list(matched_years['tmp_row']))
     phabdates = list(set(matched_years['sampledate_phab'].dt.strftime('%m-%d-%Y')))
+
+    ##adding print statments to see what the function is outputting
+    print('badrows')
+    print(badrows)
+
+    print('phabdates')
+    print(phabdates)
     return (badrows, phabdates)
 
 def consecutive_date(df):
