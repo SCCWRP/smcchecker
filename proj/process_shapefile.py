@@ -138,7 +138,15 @@ def process_sf():
 
             # Convert all projections to 4326
             print("Convert all projections to 4326")
-            all_dfs[key]['data'] = convert_projection(all_dfs[key]['data'], all_dfs[key]['projection'])
+            # In case the code fails to convert, ask a user to do it
+            try:
+                all_dfs[key]['data'] = convert_projection(all_dfs[key]['data'], all_dfs[key]['projection'])
+            except Exception as e:
+                returnvals = {
+                    "critical_error": False,
+                    "user_error_msg": "Failed to auto-convert projection to EPSG Projection 4326 - WGS 84. Please use a GIS Program to convert your shapefile's projection to EPSG Projection 4326 - WGS 84",
+                }
+                return jsonify(**returnvals)
 
             # Save shapefile data as json so we can map them
             if key == 'gissites':

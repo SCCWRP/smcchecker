@@ -19,7 +19,7 @@ def read_shapefile(path):
     return GeoAccessor.from_featureclass(shp_dir), shp_dir
 
 def build_all_dfs_from_sf(path_to_shapefiles):
-    
+    print("build shapefiles all dfs")
     # store the data
     all_dfs = {
         'gissites': '', 
@@ -54,5 +54,5 @@ def build_all_dfs_from_sf(path_to_shapefiles):
                 'projection': get_sdf_projection(shp_path)
             }
             all_dfs['giscatchments'] = info
-    
+    print("done building shapefile sdf")
     return all_dfs
