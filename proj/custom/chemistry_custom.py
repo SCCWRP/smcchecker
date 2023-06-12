@@ -311,6 +311,7 @@ def chemistry(all_dfs):
 
     # For Check 18, see line 449.
     # Check 18: If multiple records have equal LabBatch, AnalyteName, DilFactor then RL values for those records must also be equivalent. - WARNING
+    
     # From Robert - I'm not sure this below code will work to get the badrows
     # chemistryresults[(chemistryresults.stationcode != '000NONPJ') & (chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (chemistryresults['dilfactor'].duplicated()) & (~chemistryresults['rl'].duplicated())].tmp_row.tolist()
     # Please thoroughly check to make sure it is doing what it should be
