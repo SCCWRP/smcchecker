@@ -200,8 +200,8 @@ def channelengineering(all_dfs):
         *[
             checkData(
                 'tbl_channelengineering',
-                EngineeredChannelChecks(channelengineering, channeltype),
-                channeltype,
+                EngineeredChannelChecks(channelengineering, field),
+                field,
                 'Undefined Warning',
                 f'The channeltype is Engineered, but the {field} field is missing'
             )
