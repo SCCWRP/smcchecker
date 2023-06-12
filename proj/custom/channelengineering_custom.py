@@ -188,7 +188,9 @@ def channelengineering(all_dfs):
             badrows = df[(df.channeltype == 'Engineered') & (df[fieldname].isin(['NR', 'Other']))].index.tolist()
         return(badrows)
     
-    # From Robert - Here is a way to condense the code, or make it more DRY
+
+    # From Robert - Here is a way to condense the code, or make it more DRY (Don't Repeat Yourself)
+    # Since code was re written in this way it should be Re QA'd
     fields_to_check = [
         'leftsideofstructure','rightsideofstructure','bottom','structureshape','structurewidth','leftvegetation','rightvegetation','vegetation','lowflowpresence','lowflowwidth'
     ]
@@ -207,7 +209,13 @@ def channelengineering(all_dfs):
         ]
     ]
 
-  
+    
+
+
+    # @Aria/Ayah here is a challenge - try to implement a below solution similar to the one above 
+    # Hint is to make a dictionary of fields and their corresponding acceptable values, and then use dictionary comprehension
+    # Feel free to use ChatGPT
+
     #Check 7
     def NaturalChannelCheck(channelengineering, fieldname):
         acceptable_values = ['NR']
