@@ -207,115 +207,7 @@ def channelengineering(all_dfs):
         ]
     ]
 
-    #EngineeredChannelChecks(channelengineering, 'leftsideofstructure')
-    warnings.append(
-        checkData(
-            'tbl_channelengineering',
-                EngineeredChannelChecks(channelengineering, 'leftsideofstructure'),
-                'leftsideofstructure',
-                'Undefined Warning',
-                'The channeltype is Engineered, but the leftsideofstructure field is missing'
-            )
-    )
-
-    #EngineeredChannelChecks(channelengineering, 'rightsideofstructure') 
-    warnings.append(
-        checkData(
-            'tbl_channelengineering',
-                EngineeredChannelChecks(channelengineering, 'rightsideofstructure'),
-                'rightsideofstructure',
-                'Undefined Warning',
-                'The channeltype is Engineered, but the rightsideofstructure field is missing'
-        )
-    )
-
-    #EngineeredChannelChecks(channelengineering, 'bottom')
-    warnings.append(
-        checkData(
-            'tbl_channelengineering',
-                EngineeredChannelChecks(channelengineering, 'bottom'),
-                'bottom',
-                'Undefined Warning',
-                'The channeltype is Engineered, but the bottom field is missing'
-        )
-    )
   
-    #EngineeredChannelChecks(channelengineering, 'structureshape')
-    warnings.append(
-        checkData(
-            'tbl_channelengineering',
-                EngineeredChannelChecks(channelengineering, 'structureshape'),
-                'structureshape',
-                'Undefined Warning',
-                'The channeltype is Engineered, but the structureshape field is missing'
-        )
-    )
- 
-    #EngineeredChannelChecks(channelengineering, 'structurewidth')
-    warnings.append(
-        checkData(
-            'tbl_channelengineering',
-            EngineeredChannelChecks(channelengineering, 'structurewidth'),
-            'structurewidth',
-            'Undefined Warning',
-            'The channeltype is Engineered, but the structurewidth field is missing'
-        )
-    )
-    #EngineeredChannelChecks(channelengineering, 'leftvegetation')
-    warnings.append(
-        checkData(
-            'tbl_channelengineering',
-            EngineeredChannelChecks(channelengineering, 'leftvegetation'),
-            'leftvegetation',
-            'Undefined Warning',
-            'The channeltype is Engineered, but the leftvegetation field is missing'
-        )
-    )
-
-    #EngineeredChannelChecks(channelengineering, 'rightvegetation')
-    warnings.append(
-        checkData(
-            'tbl_channelengineering',
-            EngineeredChannelChecks(channelengineering, 'rightvegetation'),
-            'rightvegetation',
-            'Undefined Warning',
-            'The channeltype is Engineered, but the rightvegetation field is missing'
-        )
-    )
-
-
-    #EngineeredChannelChecks(channelengineering, 'vegetation')
-    warnings.append(
-        checkData(
-            'tbl_channelengineering',
-            EngineeredChannelChecks(channelengineering, 'vegetation'),
-            'vegetation',
-            'Undefined Warning',
-            'The channeltype is Engineered, but the vegetation field is missing'
-        )
-    )
-
-    #EngineeredChannelChecks(channelengineering, 'lowflowpresence')
-    warnings.append(
-        checkData(
-            'tbl_channelengineering',
-            EngineeredChannelChecks(channelengineering, 'lowflowpresence'),
-            'lowflowpresence',
-            'Undefined Warning',
-            'The channeltype is Engineered, but the lowflowpresence field is missing'
-        )
-    )
-
-    #EngineeredChannelChecks(channelengineering, 'lowflowwidth')
-    warnings.append(
-        checkData(
-            'tbl_channelengineering',
-            EngineeredChannelChecks(channelengineering, 'lowflowwidth'),
-            'lowflowwidth',
-            'Undefined Warning',
-            'The channeltype is Engineered, but the lowflowwidth field is missing'
-        )
-    ) 
     #Check 7
     def NaturalChannelCheck(channelengineering, fieldname):
         acceptable_values = ['NR']
@@ -328,6 +220,7 @@ def channelengineering(all_dfs):
         badrows = channelengineering[(channelengineering.channeltype == 'Natural') & (~(channelengineering[fieldname].isin(acceptable_values))) ].index.tolist()
         print(f'these are the bad rows for check7 {badrows}')
         return(badrows)
+    
         
     #NaturalChannelCheck(channelengineering, 'bottom')
     errs.append(
