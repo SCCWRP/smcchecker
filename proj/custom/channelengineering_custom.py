@@ -188,6 +188,25 @@ def channelengineering(all_dfs):
             badrows = df[(df.channeltype == 'Engineered') & (df[fieldname].isin(['NR', 'Other']))].index.tolist()
         return(badrows)
     
+    # From Robert - Here is a way to condense the code, or make it more DRY
+    fields_to_check = [
+        'leftsideofstructure','rightsideofstructure','bottom','structureshape','structurewidth','leftvegetation','rightvegetation','vegetation','lowflowpresence','lowflowwidth'
+    ]
+
+    warnings = [
+        *warnings,
+        *[
+            checkData(
+                'tbl_channelengineering',
+                EngineeredChannelChecks(channelengineering, channeltype),
+                channeltype,
+                'Undefined Warning',
+                f'The channeltype is Engineered, but the {field} field is missing'
+            )
+            for field in fields_to_check
+        ]
+    ]
+
     #EngineeredChannelChecks(channelengineering, 'leftsideofstructure')
     warnings.append(
         checkData(
