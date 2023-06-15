@@ -230,6 +230,8 @@ def taxonomy(all_dfs):
             f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
         )
     ) 
+    print('Aria This is the Phab Data:------------------------------------------------------------------------------------')
+    print(phab_data)
 
 ## LOGIC CHECK????
 
