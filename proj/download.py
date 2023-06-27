@@ -109,6 +109,14 @@ def download_field_form():
         download_name = 'DraftStreamTrashDataSheets_32823.pdf' 
     )
 
+@download.route('/downloadschema', methods = ['GET','POST'])
+def download_schema():
+    return send_file(
+        os.path.join(os.getcwd(), "export", "database_schema_download.xlsx"), 
+        as_attachment = True, 
+        download_name = 'download_schema.xlsx' 
+    )
+
 @download.route('/downloadsfsubmissionguide', methods = ['GET','POST'])
 def download_sf_submission_guide():
     return send_file(

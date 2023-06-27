@@ -239,6 +239,34 @@ def taxonomy(all_dfs):
             )
     )
 
+    #end of custom checks
+
+    ##################
+	## LOGIC CHECK  ##
+    ##################
+    #check 10: Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate.
+
+    # For sampleinfo in results
+    errs.append(
+        checkData(
+            'tbl_taxonomysampleinfo',
+            taxonomysampleinfo[~taxonomysampleinfo[['stationcode','sampledate','fieldreplicate']].isin(taxonomyresults[['stationcode','sampledate','fieldreplicate']].to_dict(orient='list')).all(axis=1)].index.tolist(),
+            'stationcode, sampledate, fieldreplicate',
+            'Logic Error',
+            'Each Taxonomy SampleInfo record must have a corresponding Taxonomy Result record. Records are matched on StationCode,SampleDate, and FieldReplicate.'
+            )
+    )
+
+    # For results in sampleinfo
+    errs.append(
+        checkData(
+            'tbl_taxonomyresults',
+            taxonomyresults[~taxonomyresults[['stationcode','sampledate','fieldreplicate']].isin(taxonomysampleinfo[['stationcode','sampledate','fieldreplicate']].to_dict(orient='list')).all(axis=1)].index.tolist(),
+            'stationcode, sampledate, fieldreplicate',
+            'Logic Error',
+            'Each Taxonomy Result record must have a corresponding Taxonomy SampleInfo record. Records are matched on StationCode,SampleDate, and FieldReplicate.'
+            )
+    )
     
 
     print("-------------------------------------------------------- R SCRIPT -------------------------------------------")
@@ -255,50 +283,40 @@ def taxonomy(all_dfs):
         # Rscript /path/demo.R tmp.csv
         print("session.get('excel_path')")
         print(session.get('excel_path'))
-        print("os.path.join(os.getcwd(), 'R', 'csci.R')")
-        print(os.path.join(os.getcwd(), 'R', 'csci.R'))
+        print("os.path.join(os.getcwd(), 'proj', 'R', 'csci.R')")
+        print(os.path.join(os.getcwd(), 'proj', 'R', 'csci.R'))
         cmdlist = [
             'Rscript',
-            f"{os.path.join(os.getcwd(),'R', 'csci.R')}",
-            f"{session.get('submission_dir')}",
-            'output.csv'
+            f"{os.path.join(os.getcwd(), 'proj', 'R', 'csci.R')}", 
+            f"{session.get('submission_dir')}", 
+            f"{session.get('excel_path').rsplit('/', 1)[-1]}"
         ]
-        print(cmdlist)
-        proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
 
+        print("line 272:")
+        proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
+        print("line 275:")
+
+        msg = f"STDOUT:\n{proc.stdout}\n\nSTDERR:\n{proc.stderr}"
+        print("msg:")
+        print(msg)
+
+        print("line 282")
         if not bool(re.search(proc.stderr, '\s*')):
             print(f"Error occurred in OA analysis script:\n{proc.stderr}")
+        print("line 282")
 
-        # submission_dir = os.path.join(os.getcwd(), 'R', 'submission_dir')
-        ctdpath = os.path.join(session.get('submission_dir'),'output.csv')
-        print(ctdpath)
-        print("after printing ctdpath")
-
-        # if proc == 0:
+        ctdpath = os.path.join(session.get('submission_dir'), 'output.csv')
+        print("line 285")
+        
+        # if retcode == 0:
         #     print("R script executed successfully.")
         # else:
         #     print("Error: Failed to execute the R script")
-
-
-      # open an ExcelWriter object to append to the excel workbook
-        writer = pd.ExcelWriter(session.get('excel_path'), engine = 'openpyxl', mode = 'a')
-        
-        if os.path.exists(ctdpath):
-            ctd = pd.read_csv(ctdpath)
-            ctd.to_excel(writer, sheet_name = 'analysis_csci_placeholder', index = False)
-
-        else:
-            if not os.path.exists(ctdpath):
-                print("OA Analysis ran with no errors, but the CTD analysis csv file was not found")
-
-            warnings.append(checkData('tbl_oactd', ctd.tmp_row.tolist(), 'Season,Agency,SampleDate,SampleTime,Station,Depth,FieldRep,LabRep','Undefined Warning', 'Could not process analysis for this data set'))
-            
-        
-        writer.close()
-
     else:
         print("Errors found. Skipping the analysis routine.")
-    #-----------------------------------------------end of R analysis----------------------------------------------------
+        
+    #END OF RSCRIPT
+    ############################################################################################################################
 
-    print("Before return statement------------------------------------------------------")
+    print("Before return statement")
     return {'errors': errs, 'warnings': warnings}

@@ -16,6 +16,7 @@ def convert_projection(sdf, sdf_current_projection):
     if int(sdf_current_projection) != 4326:
         print(f"Converting projection from {sdf_current_projection} to 4326")
         sdf['SHAPE'] = pd.Series(project(geometries=sdf['SHAPE'].tolist(), in_sr=sdf_current_projection, out_sr=4326))
+        print("done converting projection")
     else:
         print("Projection is already 4326")        
     sdf.columns  = [c.lower() for c in sdf.columns]
