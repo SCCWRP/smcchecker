@@ -298,34 +298,7 @@ def taxonomy(all_dfs):
 
     else:
         print("Errors found. Skipping the analysis routine.")
-
-############################################################################################################################
-#### old code to default if Rscript breaks ##################
-    # if all(not err for err in errs):
-    #     print("No errors - running analysis routine")
-    #     # Rscript /path/demo.R tmp.csv
-    #     print("session.get('excel_path')")
-    #     print(session.get('excel_path'))
-    #     print("os.path.join(os.getcwd(), 'R', 'csci.R')")
-    #     print(os.path.join(os.getcwd(), 'R', 'csci.R'))
-    #     cmdlist = [
-    #         'Rscript',
-    #         f"{os.path.join(os.getcwd(),'R', 'csci.R')}",
-    #         f"{session.get('submission_dir')}",
-    #         'output.csv'
-    #     ]
-    #     print(cmdlist)
-        
-    #     proc = sp.run(cmdlist)
-
-    #     submission_dir = os.path.join(os.getcwd(), 'R', 'submission_dir')
-    #     ctdpath = os.path.join(session.get('submission_dir'),'output.csv')
-    #     print(ctdpath)
-    #     print("after printing ctdpath")
-
-    # else:
-    #     print("Errors found. Skipping the analysis routine.")
-#################################################################################################################
+    #-----------------------------------------------end of R analysis----------------------------------------------------
 
     print("Before return statement------------------------------------------------------")
     return {'errors': errs, 'warnings': warnings}
