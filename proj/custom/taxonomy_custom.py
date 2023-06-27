@@ -1,9 +1,11 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 from sqlalchemy import create_engine
 from inspect import currentframe
-from flask import current_app, g
+from flask import current_app, session, g
 from .functions import checkData, check_multiple_dates_within_site, check_missing_phab_data, check_mismatched_phab_date, consecutive_date
 import pandas as pd
+import re, os
+import subprocess as sp
 
 def taxonomy(all_dfs):
     
@@ -237,4 +239,84 @@ def taxonomy(all_dfs):
             )
     )
 
+    #end of custom checks
+
+    ##################
+	## LOGIC CHECK  ##
+    ##################
+    #check 10: Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate.
+
+    # For sampleinfo in results
+    errs.append(
+        checkData(
+            'tbl_taxonomysampleinfo',
+            taxonomysampleinfo[~taxonomysampleinfo[['stationcode','sampledate','fieldreplicate']].isin(taxonomyresults[['stationcode','sampledate','fieldreplicate']].to_dict(orient='list')).all(axis=1)].index.tolist(),
+            'stationcode, sampledate, fieldreplicate',
+            'Logic Error',
+            'Each Taxonomy SampleInfo record must have a corresponding Taxonomy Result record. Records are matched on StationCode,SampleDate, and FieldReplicate.'
+            )
+    )
+
+    # For results in sampleinfo
+    errs.append(
+        checkData(
+            'tbl_taxonomyresults',
+            taxonomyresults[~taxonomyresults[['stationcode','sampledate','fieldreplicate']].isin(taxonomysampleinfo[['stationcode','sampledate','fieldreplicate']].to_dict(orient='list')).all(axis=1)].index.tolist(),
+            'stationcode, sampledate, fieldreplicate',
+            'Logic Error',
+            'Each Taxonomy Result record must have a corresponding Taxonomy SampleInfo record. Records are matched on StationCode,SampleDate, and FieldReplicate.'
+            )
+    )
+    
+
+    print("-------------------------------------------------------- R SCRIPT -------------------------------------------")
+    print("Errors list")
+    print(errs)
+
+    if all(not err for err in errs):
+        print("No errors!!!!!!!!!!!!!!!!!!!!!!!!!")
+    else:
+        print("errs list is not empty")
+
+    if all(not err for err in errs):
+        print("No errors - running analysis routine")
+        # Rscript /path/demo.R tmp.csv
+        print("session.get('excel_path')")
+        print(session.get('excel_path'))
+        print("os.path.join(os.getcwd(), 'proj', 'R', 'csci.R')")
+        print(os.path.join(os.getcwd(), 'proj', 'R', 'csci.R'))
+        cmdlist = [
+            'Rscript',
+            f"{os.path.join(os.getcwd(), 'proj', 'R', 'csci.R')}", 
+            f"{session.get('submission_dir')}", 
+            f"{session.get('excel_path').rsplit('/', 1)[-1]}"
+        ]
+
+        print("line 272:")
+        proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
+        print("line 275:")
+
+        msg = f"STDOUT:\n{proc.stdout}\n\nSTDERR:\n{proc.stderr}"
+        print("msg:")
+        print(msg)
+
+        print("line 282")
+        if not bool(re.search(proc.stderr, '\s*')):
+            print(f"Error occurred in OA analysis script:\n{proc.stderr}")
+        print("line 282")
+
+        ctdpath = os.path.join(session.get('submission_dir'), 'output.csv')
+        print("line 285")
+        
+        # if retcode == 0:
+        #     print("R script executed successfully.")
+        # else:
+        #     print("Error: Failed to execute the R script")
+    else:
+        print("Errors found. Skipping the analysis routine.")
+        
+    #END OF RSCRIPT
+    ############################################################################################################################
+
+    print("Before return statement")
     return {'errors': errs, 'warnings': warnings}
