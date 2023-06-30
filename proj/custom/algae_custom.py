@@ -4,7 +4,7 @@ from inspect import currentframe
 from flask import current_app, g
 from .functions import checkData, convert_dtype
 import pandas as pd
-
+import re
 
 
 
@@ -222,7 +222,7 @@ def algae(all_dfs):
             algae[(algae.sampletypecode == 'Epiphyte') & (algae.actualorganismcount == -88)].tmp_row.tolist(),
             'actualorganismcount',
             'Undefined Error', 
-            'ActualOrganismCount is a required field.'
+            'SampleTypeCode is Epiphyte. ActualOrganismCount is a required field.'
         )
     )    
     # 8b. second check if baresult is empty
@@ -237,6 +237,21 @@ def algae(all_dfs):
         )
     )    
 
+    # check 9: Check if collectiontime is in in HH:MM format in 24hour range (0-24:0-59)
+    # This regular expression will match any string formatted as HH:MM within the 24-hour range (00:00-23:59)
+    # correct_time_format = r'^([01]\d|2[0-3]):([0-5]\d)$' 
+    correct_time_format = r'^(0?[0-9]|1\d|2[0-3]):([0-5]\d)$' 
+    # time_check = algae['collectiontime'].astype(str).str.match(correct_time_format)
+
+    errs.append(
+        checkData(
+            'tbl_algae', 
+            algae[~algae['collectiontime'].astype(str).str.match(correct_time_format)].tmp_row.tolist(),
+            'collectiontime',
+            'Undefined Error', 
+            'collectiontime is not in HH:MM format in 24hour range (0-23:0-59). Time format is required'
+        )
+    )  
 
 
     return {'errors': errs, 'warnings': warnings}
