@@ -44,7 +44,7 @@ def shapefile(all_dfs):
         "badrows": badrows, 
         "badcolumn": "shape",
         "error_type": "Invalid Geometry Type",
-        "error_message": "You submitted an invalid geometry type for polygon.\nPlease note that multipolygons per one station is not accepted at this moment."
+        "error_message": "You submitted an invalid geometry type for polygon.Please refer to <a> https://desktop.arcgis.com/en/arcmap/latest/manage-data/using-sql-with-gdbs/geometry-validation.htm </a>"
     }
     errs = [*errs, checkData(**args)]
     print("check ran - Check 0: Check if geometry of polygon is valid")
