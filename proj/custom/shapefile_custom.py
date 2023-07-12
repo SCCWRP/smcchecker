@@ -146,7 +146,7 @@ def shapefile(all_dfs):
                     "is_core_error": False,
                     "error_message": f"These points are not in their associated polygon based on stationcode"
                 }
-                errs = [*errs, checkData(**args)]
+                warnings = [*warnings, checkData(**args)]
         print("check ran -  Check if the points are in the polygon") 
 
 
