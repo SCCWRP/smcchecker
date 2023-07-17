@@ -48,6 +48,11 @@ def shapefile(all_dfs):
     }
     errs = [*errs, checkData(**args)]
     print("check ran - Check 0a: Check if geometry of polygon is valid")
+    
+    if len(badrows) > 0:
+        # If the geometry is invalid, we don't want to continue to check because 
+        # it will break a lot of checks, and also fail to load to the database.
+        return {'errors': errs, 'warnings': warnings}
 
     print("Check 0b: Check if geometries of points are valid")
     badrows = sites[sites['shape'].apply(lambda x: not x.is_valid())].tmp_row.tolist()
