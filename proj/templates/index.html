@@ -3,20 +3,29 @@
 
 <head>
 
-  <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSN1KajqxT6Orr6rQ1jb4BpLDf3wUnunW9ZvWwy_WWFrg&s">
+  <link rel="icon"
+    href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSN1KajqxT6Orr6rQ1jb4BpLDf3wUnunW9ZvWwy_WWFrg&s">
 
   <!--This helped so much: https://getbootstrap.com/docs/5.0/components/card/-->
   <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
   <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
   <script>
-    let script_root = {{request.script_root|tojson|safe}};
-    script_root = script_root.replace('/','');
+    let script_root = {{ request.script_root| tojson | safe}};
+    script_root = script_root.replace('/', '');
     console.log('script_root');
     console.log(script_root);
   </script>
   <script src="{{url_for('static', filename='globals.js')}}"></script>
+
+  <!-- Leaflet.js for the stations map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+
 </head>
-i
 <body>
   <main>
 
@@ -30,7 +39,7 @@ i
             {{projectname}} Checker
           </div>
           <div class="card-body">
-            
+
             <div class="dtype-select-form-container">
               <!-- <div>
               <a href="https://smcchecker.sccwrp.org/smc/">Note: If you try to submit other datatypes than Shapefile, please go to this checker</a><br>
@@ -40,20 +49,22 @@ i
               <div class='link-download-shapefile-page-container hidden' id="link-download-shapefile-page">
                 <a href="https://nexus.sccwrp.org/smcchecker/downloadsf">
                   <b>
-                    Attention: Before submitting shapefiles, please check if a station has already been delineated by clicking on this link
+                    Attention: Before submitting shapefiles, please check if a station has already been delineated by
+                    clicking on this link
                   </b>
                 </a>
                 <br>
                 <a href="https://nexus.sccwrp.org/smcchecker/downloadsfsubmissionguide">
-                    Download Shapefile Submission Guide
+                  Download Shapefile Submission Guide
                 </a>
               </div>
-              
+
               <form id="dtype-form">
                 <label for="html">Select Submission Type:</label><br>
-                <select id="datatype-select" class = "form-control" name="dtype_select">
+                <select id="datatype-select" class="form-control" name="dtype_select">
                   {% for dtype in dtypes.keys() %}
-                    <option value = {{dtype}}>{% if dtypes[dtype].label %}{{dtypes[dtype].label}}{% else %}{{dtype}}{% endif %}</option>
+                  <option value={{dtype}}>{% if dtypes[dtype].label %}{{dtypes[dtype].label}}{% else %}{{dtype}}{% endif
+                    %}</option>
                   {% endfor %}
                 </select>
               </form>
@@ -69,52 +80,49 @@ i
                   </div> -->
                   {% for field in dtypes[dtype]['login_fields'] %}
                   <div class="login-form-element-container login-{{field.fieldtype}}-container form-group">
-                    <label for="login_{{field.fieldname}}">{%if field.label %}{{field.label}}{% else %} {{field.fieldname}} {% endif %}:</label>
+                    <label for="login_{{field.fieldname}}">{%if field.label %}{{field.label}}{% else %}
+                      {{field.fieldname}} {% endif %}:</label>
                     {% if field.fieldtype == 'input' %}
-                    <input 
-                      id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}" 
-                      type="{% if field.fieldname == 'email' %}email{% else %}text{% endif %}" 
-                      name="login_{{field.fieldname}}" 
-                      class="form-control login-form-element" 
-                      placeholder="{% if field.fieldname == 'email' %}name@example.com{% else %}{% endif %}"
-                      {% if field.fieldname != 'email' %}{% if field.defaultvalue %}value="{{field.defaultvalue}}"{% endif %}{% endif %}
-                    >
+                    <input id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}"
+                      type="{% if field.fieldname == 'email' %}email{% else %}text{% endif %}"
+                      name="login_{{field.fieldname}}" class="form-control login-form-element"
+                      placeholder="{% if field.fieldname == 'email' %}name@example.com{% else %}{% endif %}" {% if
+                      field.fieldname !='email' %}{% if field.defaultvalue %}value="{{field.defaultvalue}}" {% endif
+                      %}{% endif %}>
                     {% else %}
-                    <!--There should only be two kinds of form elements - selects and inputs--> 
-                    <select 
-                      id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}"
-                      name="login_{{field.fieldname}}" 
+                    <!--There should only be two kinds of form elements - selects and inputs-->
+                    <select id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}" name="login_{{field.fieldname}}"
                       class="form-control {% if not field.static_options %}dynamic-select-item{% endif %} {{dtype}}-select-item {% if field.independent == 'True' %} independent-select-item {% else %} sequential-select-item {% endif %} login-form-element"
                       data-dtype="{{dtype}}"
-                      data-index="{%if field.independent == 'True' %}-1{% else %}{{field.sequencenum}}{% endif %}"
-                      {% if field.options_from_table %} data-option-table="{{field.options_from_table}}"{% endif %}
-                      {% if field.options_display_field %} data-option-display-field="{{field.options_display_field}}"{% endif %}
-                      {% if field.options_values_field %} data-option-values-field="{{field.options_values_field}}"{% endif %}
-                    >
-                    {% if field.static_options %}
-                    {% for opt in field.static_options %}
+                      data-index="{%if field.independent == 'True' %}-1{% else %}{{field.sequencenum}}{% endif %}" {% if
+                      field.options_from_table %} data-option-table="{{field.options_from_table}}" {% endif %} {% if
+                      field.options_display_field %} data-option-display-field="{{field.options_display_field}}" {%
+                      endif %} {% if field.options_values_field %}
+                      data-option-values-field="{{field.options_values_field}}" {% endif %}>
+                      {% if field.static_options %}
+                      {% for opt in field.static_options %}
                       <option value="{{opt}}">{{opt}}</option>
-                    {% endfor %}
-                    {%endif%}
-                  </select>
+                      {% endfor %}
+                      {%endif%}
+                    </select>
                     {% endif %}
 
-                  </div>  
+                  </div>
                   <br>
                   {% endfor %}
-                  
+
                   <br>
                   <div class="login-input-container form form-group" id="login-form-submit-btn-container">
                     <button class="btn btn-secondary" type="submit">Sign in</button>
                   </div>
                 </form>
-                
 
-                
+
+
               </div>
               {%endfor%}
             </div>
-            
+
           </div>
         </div>
       </div>
@@ -132,13 +140,14 @@ i
             </div>
           </div>
           <div class="card-body">
-            
+
             <div class="container login-info-title">
               Current Session Login Information:
             </div>
             {% for k, v in login_info.items() %}
             <div class="row container login-info-container">
-              <div class="col-md-4 login-info-container login-info-key">{{k}}:</div><div class="col-md-8 login-info-container login-info-value">{{v}}</div>
+              <div class="col-md-4 login-info-container login-info-key">{{k}}:</div>
+              <div class="col-md-8 login-info-container login-info-value">{{v}}</div>
             </div>
             {% endfor %}
             <br>
@@ -154,7 +163,8 @@ i
             </div>
             <br>
             <div class="row container">
-              <button class="btn btn-dark" id="clear-session-button">Clear Session Info and Start New Submission Session</button>
+              <button class="btn btn-dark" id="clear-session-button">Clear Session Info and Start New Submission
+                Session</button>
             </div>
 
           </div>
@@ -232,7 +242,8 @@ i
                   </li>
                   <li class="list-group-item" id="excel-download-container">
                     <p>
-                      <a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a>
+                      <a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report
+                        Markup</a>
                     </p>
                     <div class="row error-report-summary-table-row">
                       <div class="col-md-4 error-report-summary-table-cell">Total Errors:</div>
@@ -273,7 +284,7 @@ i
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="container hidden" id="final-warning-container">
                   <div class="card">
                     <div class="card-header">
@@ -282,7 +293,8 @@ i
                       </h5>
                     </div>
                     <div class="card-body">
-                      You may still submit your data, but it is recommended you double check the warnings tab at the top right
+                      You may still submit your data, but it is recommended you double check the warnings tab at the top
+                      right
                     </div>
                   </div>
                 </div>
@@ -382,9 +394,10 @@ i
 
 
               <!--Only for certain projects that will require a map or map checks-->
-              <div id="map-report-body" class="map-report-body-outer-container container submission-info-tab-body hidden">
-                
-                <!--For the map that arcgis api for javascript will use-->
+              <div id="map-report-body"
+                class="map-report-body-outer-container container submission-info-tab-body hidden">
+
+                <!--For the map-->
                 <div id="viewDiv"></div>
 
               </div>

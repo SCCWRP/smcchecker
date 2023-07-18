@@ -247,15 +247,22 @@ const buildReport = (res) => {
     if (res.visual_map) {
         document.getElementById("map-report-header").classList.remove("hidden");
 
+        // L will be accessible since leaflet is sourced at the top of the html file
+        const map = L.map('map').setView([37.2719, -119.2702], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
         // the data to plot on a map comes from "res.visual_map_stations" which was returned at the end of main.py
         // The div where the map should go has an id of "viewDiv" and you can see it in index.html
 
-        // Here is where the code goes to plot the dots
+        // shouldnt need the .array part, but maybe we do
+        res.visual_map_stations.array.forEach(station => {
+            L.marker([station.latitude, station.longitude])
+                .addTo(map)
+                .bindPopup(`<b>Station:</b> ${station.stationcode}`);
+        });
 
-        // importing stuff with the arcgis javacsript api may get complicated, so if that ends up being too much, you can try leaflet
-        
-        // chat GPT can probably provide examples of that too. Leaflet is more simple to import because i think you just add the link to the top
-        // of the html file
 
     }
     
