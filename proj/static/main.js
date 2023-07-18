@@ -168,7 +168,9 @@
         }
         // console.log(result)
         buildReport(result);
-        
+
+
+
         // Remove the excel download link if they submit shapefui
         if (document.querySelector("#submission-type").innerText === 'Shapefile Submission') {
             document.getElementById("excel-markup-download").classList.add('hidden')
