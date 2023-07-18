@@ -36,7 +36,7 @@ def shapefile(all_dfs):
     errs = []
     warnings = []
 
-    print("Check 0: Check if geometry of polygon is valid")
+    print("Check 0a: Check if geometries of polygons are valid")
     badrows = catchments[catchments['shape'].apply(lambda x: not x.is_valid())].tmp_row.tolist()
     args = {
         "dataframe": catchments,
@@ -44,13 +44,32 @@ def shapefile(all_dfs):
         "badrows": badrows, 
         "badcolumn": "shape",
         "error_type": "Invalid Geometry Type",
-        "error_message": "You submitted an invalid geometry type for polygon.\nPlease note that multipolygons per one station is not accepted at this moment."
+        "error_message": "You submitted an invalid geometry for a polygon"
     }
     errs = [*errs, checkData(**args)]
-    print("check ran - Check 0: Check if geometry of polygon is valid")
+    print("check ran - Check 0a: Check if geometry of polygon is valid")
+    
+    if len(badrows) > 0:
+        # If the geometry is invalid, we don't want to continue to check because 
+        # it will break a lot of checks, and also fail to load to the database.
+        return {'errors': errs, 'warnings': warnings}
+
+    print("Check 0b: Check if geometries of points are valid")
+    badrows = sites[sites['shape'].apply(lambda x: not x.is_valid())].tmp_row.tolist()
+    args = {
+        "dataframe": sites,
+        "tablename": "gissites",
+        "badrows": badrows, 
+        "badcolumn": "shape",
+        "error_type": "Invalid Geometry Type",
+        "error_message": "You submitted an invalid geometry for a point"
+    }
+    errs = [*errs, checkData(**args)]
+    print("check ran - Check 0b: Check if geometries of points are valid")
 
     if len(badrows) > 0:
-        # If the geometry is incorrect, we don't want to continue to check because it will break a lot of checks, and also fail to load to the database.
+        # If the geometry is invalid, we don't want to continue to check because 
+        # it will break a lot of checks, and also fail to load to the database.
         return {'errors': errs, 'warnings': warnings}
     else:
         gis = GIS("https://sccwrp.maps.arcgis.com/home/index.html", os.environ.get('ARCGIS_USER'), os.environ.get('ARCGIS_PASSWORD'))
@@ -111,7 +130,7 @@ def shapefile(all_dfs):
 
 
         ## 2. Check if the points are in the polygon
-        print("Check if the points are in the polygon")
+        print("Check if the points are in the polygons")
         merged = sites[['stationcode','tmp_row','shape']].rename(columns={'shape':'POINT_shape'}).merge(
             catchments[['stationcode','shape']].rename(columns={'shape':'POLYGON_shape'}), 
             on='stationcode', 
@@ -132,7 +151,7 @@ def shapefile(all_dfs):
                     "is_core_error": False,
                     "error_message": f"These points are not in their associated polygon based on stationcode"
                 }
-                errs = [*errs, checkData(**args)]
+                warnings = [*warnings, checkData(**args)]
         print("check ran -  Check if the points are in the polygon") 
 
 
@@ -246,7 +265,7 @@ def shapefile(all_dfs):
                 "error_message": 
                     f"These stations ({','.join(merged[merged['distance_from_lu_reference_meters'] > 300]['stationid'].tolist())}) are more than 300 meters away from their lookup station references."
             })
-            errs = [*errs, checkData(**args)]
+            warnings = [*warnings, checkData(**args)]
         print("check ran - Error stationcode points should be no more than 300m from lu_station reference site")
 
 

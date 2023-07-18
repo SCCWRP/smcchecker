@@ -113,9 +113,11 @@ def metadata_summary(table, eng):
             CASE WHEN isc.is_nullable = 'NO' THEN 'YES' ELSE' NO' END AS required,
             isc.character_maximum_length ,
             pkey.primary_key,
-            fkeys.foreign_table_name AS lookuplist_table_name
+            fkeys.foreign_table_name AS lookuplist_table_name,
+						metadata.description
         FROM
             information_schema.COLUMNS isc LEFT JOIN pkey ON isc.column_name = pkey.column_name LEFT JOIN fkeys ON fkeys.column_name = isc.column_name
+						left join metadata on isc.table_name = metadata.tablename and isc.column_name = metadata.fieldname
         WHERE
             TABLE_NAME = '{table}';
     """

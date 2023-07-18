@@ -242,13 +242,22 @@ const buildReport = (res) => {
 
 
     // display the map if applicable
+    // visual_map is an attribute of "res" which came from the "return jsonify" at the end of main.py
+    // you can access your stationids and latlongs here too
+    if (res.visual_map) {
+        document.getElementById("map-report-header").classList.remove("hidden");
 
-    document.getElementById("map-report-header").classList.remove("hidden")
-    //document.getElementById('visual-map').setAttribute('src',`/${script_root}/map`)
-    
+        // the data to plot on a map comes from "res.visual_map_stations" which was returned at the end of main.py
+        // The div where the map should go has an id of "viewDiv" and you can see it in index.html
 
+        // Here is where the code goes to plot the dots
 
-    
+        // importing stuff with the arcgis javacsript api may get complicated, so if that ends up being too much, you can try leaflet
+        
+        // chat GPT can probably provide examples of that too. Leaflet is more simple to import because i think you just add the link to the top
+        // of the html file
+
+    }
     
 
 }

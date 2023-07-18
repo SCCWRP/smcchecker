@@ -137,7 +137,7 @@ def taxonomy(all_dfs):
         checkData(
             'tbl_taxonomysampleinfo', 
             badrows_sampleinfo,
-            'sampledate',
+            'stationcode',
             'Value Error', 
             f'Warning! PHAB data has not been submitted for site(s): {list(taxonomysampleinfo.stationcode[badrows_sampleinfo])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
         )
@@ -245,12 +245,15 @@ def taxonomy(all_dfs):
 	## LOGIC CHECK  ##
     ##################
     #check 10: Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate.
+    taxonomysampleinfo['temp_key'] = taxonomysampleinfo['stationcode'].astype(str) + taxonomysampleinfo['sampledate'].astype(str) + taxonomysampleinfo['fieldreplicate'].astype(str)
+    taxonomyresults['temp_key'] = taxonomyresults['stationcode'].astype(str) + taxonomyresults['sampledate'].astype(str) + taxonomyresults['fieldreplicate'].astype(str)
 
     # For sampleinfo in results
     errs.append(
         checkData(
             'tbl_taxonomysampleinfo',
-            taxonomysampleinfo[~taxonomysampleinfo[['stationcode','sampledate','fieldreplicate']].isin(taxonomyresults[['stationcode','sampledate','fieldreplicate']].to_dict(orient='list')).all(axis=1)].index.tolist(),
+            # taxonomysampleinfo[~taxonomysampleinfo[['stationcode','sampledate','fieldreplicate']].isin(taxonomyresults[['stationcode','sampledate','fieldreplicate']].to_dict(orient='list')).all(axis=1)].index.tolist(),
+            taxonomysampleinfo[~taxonomysampleinfo['temp_key'].isin(taxonomyresults['temp_key'])].index.tolist(),
             'stationcode, sampledate, fieldreplicate',
             'Logic Error',
             'Each Taxonomy SampleInfo record must have a corresponding Taxonomy Result record. Records are matched on StationCode,SampleDate, and FieldReplicate.'
@@ -261,7 +264,8 @@ def taxonomy(all_dfs):
     errs.append(
         checkData(
             'tbl_taxonomyresults',
-            taxonomyresults[~taxonomyresults[['stationcode','sampledate','fieldreplicate']].isin(taxonomysampleinfo[['stationcode','sampledate','fieldreplicate']].to_dict(orient='list')).all(axis=1)].index.tolist(),
+            # taxonomyresults[~taxonomyresults[['stationcode','sampledate','fieldreplicate']].isin(taxonomysampleinfo[['stationcode','sampledate','fieldreplicate']].to_dict(orient='list')).all(axis=1)].index.tolist(),
+            taxonomyresults[~taxonomyresults['temp_key'].isin(taxonomysampleinfo['temp_key'])].index.tolist(),
             'stationcode, sampledate, fieldreplicate',
             'Logic Error',
             'Each Taxonomy Result record must have a corresponding Taxonomy SampleInfo record. Records are matched on StationCode,SampleDate, and FieldReplicate.'

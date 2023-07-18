@@ -127,52 +127,76 @@ def trash(all_dfs):
     )
     print("check 1 ran - datum other comment required")
 
-#excel or core check already corrects this issue so not needed
-# Check 2: starttime/EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range(0-24:0-59) - (Finished - Duy 02/14).
-    #trashsiteinfo['starttime'] = trashsiteinfo['starttime'].apply(lambda x: str(x).lower())
-    #trashsiteinfo['endtime'] = trashsiteinfo['endtime'].apply(lambda x: str(x).lower())  
-    #time_regex = re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$")
+    # Check 2: starttime/EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range(0-24:0-59) - (Finished - Duy 02/14). 
+    # time_regex = re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$")
+    correct_time_format = r'^(0?[0-9]|1\d|2[0-3]):([0-5]\d)$' 
+    #Start Time Checker
 
-    ##  regex for starttime
-    
-#     trashsiteinfo['starttime'] = trashsiteinfo['starttime'].apply(lambda x: str(x).lower())
-
-#     time_regex = re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$")
-#     # print(trashsiteinfo[trashsiteinfo.starttime.apply(lambda x: not bool(re.match(time_regex, x)))])
-#     # print(trashsiteinfo[trashsiteinfo.starttime.apply(lambda x: not bool(re.match(time_regex, x)))].tmp_row.tolist())
-   
-#    #Start Time Checker
-#     errs.append(
-#         checkData(
-#             'tbl_trashsiteinfo',
-#             trashsiteinfo[trashsiteinfo.starttime.apply(lambda x: not bool(re.match(time_regex, x)))].tmp_row.tolist(),
-#             'starttime',
-#             'Time Formatting Error ',
-#             'starttime needs to be in the format HH:MM, and they need to be in the 24-hour range military time'
-#         )
-#     )
-    
-#     #End Time Checker 
-#     errs.append(
-#         checkData(
-#             'tbl_trashsiteinfo',
-#             trashsiteinfo[(trashsiteinfo["endtime"].apply(lambda x: not bool(re.match(time_regex, x))))].tmp_row.tolist(),
-#             'endtime',
-#             'Undefined Error',
-#             'EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range'
-#         )
-#     )
-    
-    #check 3: Start Time needs to be before end time
     errs.append(
         checkData(
             'tbl_trashsiteinfo',
-            trashsiteinfo[(trashsiteinfo["starttime"] > trashsiteinfo["endtime"])].tmp_row.tolist(),
+            trashsiteinfo[trashsiteinfo['starttime'].apply(lambda x: not bool(re.match(correct_time_format, x)))].tmp_row.tolist(),
             'starttime',
-            'Undefined Error',
-            'StartTime must be before EndTime'
+            'Time Formatting Error ',
+            'starttime needs to be in the format HH:MM, and they need to be in the 24-hour range military time'
         )
     )
+    
+    #End Time Checker 
+    errs.append(
+        checkData(
+            'tbl_trashsiteinfo',
+            trashsiteinfo[trashsiteinfo['endtime'].apply(lambda x: not bool(re.match(correct_time_format, x)))].tmp_row.tolist(),
+            'endtime',
+            'Undefined Error',
+            'EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range'
+        )
+    )  
+    print("check 2 ran - datum other comment required")
+    # #Start Time Checker
+    # errs.append(
+    #     checkData(
+    #         'tbl_trashsiteinfo',
+    #         trashsiteinfo[trashsiteinfo.starttime.apply(lambda x: not bool(re.match(time_regex, x)))].tmp_row.tolist(),
+    #         'starttime',
+    #         'Time Formatting Error ',
+    #         'starttime needs to be in the format HH:MM, and they need to be in the 24-hour range military time'
+    #     )
+    # )
+    
+    # #End Time Checker 
+    # errs.append(
+    #     checkData(
+    #         'tbl_trashsiteinfo',
+    #         trashsiteinfo[(trashsiteinfo["endtime"].apply(lambda x: not bool(re.match(time_regex, x))))].tmp_row.tolist(),
+    #         'endtime',
+    #         'Undefined Error',
+    #         'EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range'
+    #     )
+    # )
+    
+    #check 3: Start Time needs to be before end time 
+    if (
+        all(
+            [
+                trashsiteinfo['starttime'].apply(lambda x: bool(re.match(correct_time_format, x))).all(), 
+                trashsiteinfo['endtime'].apply(lambda x: bool(re.match(correct_time_format, x))).all()
+            ]
+        )
+    ):
+        
+        trashsiteinfo['starttime'] = pd.to_datetime(trashsiteinfo['starttime'], format='%H:%M').dt.time
+        trashsiteinfo['endtime'] = pd.to_datetime(trashsiteinfo['endtime'], format='%H:%M').dt.time
+
+        errs.append(
+            checkData(
+                'tbl_trashsiteinfo',
+                trashsiteinfo[(trashsiteinfo["starttime"] > trashsiteinfo["endtime"])].tmp_row.tolist(),
+                'starttime',
+                'Undefined Error',
+                'StartTime must be before EndTime'
+            )
+        )
 
     #check 4: If debriscategory contains Other then comment is required
     errs.append(

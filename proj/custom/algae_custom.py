@@ -221,7 +221,7 @@ def algae(all_dfs):
             algae[(algae.sampletypecode == 'Epiphyte') & (algae.actualorganismcount == -88)].tmp_row.tolist(),
             'actualorganismcount',
             'Undefined Error', 
-            'ActualOrganismCount is a required field.'
+            'SampleTypeCode is Epiphyte. ActualOrganismCount is a required field.'
         )
     )    
     # 8b. second check if baresult is empty
@@ -265,31 +265,42 @@ def algae(all_dfs):
             print(f"Error occurred in OA analysis script:\n{proc.stderr}")
 
         # submission_dir = os.path.join(os.getcwd(), 'R', 'submission_dir')
-        ctdpath = os.path.join(session.get('submission_dir'),'output.csv')
-        print(ctdpath)
-        print("after printing ctdpath")
-
-        # if proc == 0:
-        #     print("R script executed successfully.")
-        # else:
-        #     print("Error: Failed to execute the R script")
+        csvpath = os.path.join(session.get('submission_dir'),'output.csv')
+        print(csvpath)
+        print("after printing csvpath")
 
 
       # open an ExcelWriter object to append to the excel workbook
         writer = pd.ExcelWriter(session.get('excel_path'), engine = 'openpyxl', mode = 'a')
         
-        if os.path.exists(ctdpath):
-            ctd = pd.read_csv(ctdpath)
-            ctd.to_excel(writer, sheet_name = 'analysis_asci_placeholder', index = False)
+        if os.path.exists(csvpath):
+            analysis = pd.read_csv(csvpath)
+            analysis.to_excel(writer, sheet_name = 'analysis_asci_placeholder', index = False)
 
         else:
-            if not os.path.exists(ctdpath):
-                print("OA Analysis ran with no errors, but the CTD analysis csv file was not found")
+            if not os.path.exists(csvpath):
+                print("ASCI could not run successfully")
 
-            warnings.append(checkData('tbl_algae', ctd.tmp_row.tolist(), 'Season,Agency,SampleDate,SampleTime,Station,Depth,FieldRep,LabRep','Undefined Warning', 'Could not process analysis for this data set'))
+            warnings.append(checkData('tbl_algae', algae.tmp_row.tolist(), 'Season,Agency,SampleDate,SampleTime,Station,Depth,FieldRep,LabRep','Undefined Warning', 'Could not process analysis for this data set'))
             
-        
         writer.close()
+
+
+    # check 9: Check if collectiontime is in in HH:MM format in 24hour range (0-24:0-59)
+    # This regular expression will match any string formatted as HH:MM within the 24-hour range (00:00-23:59)
+    # correct_time_format = r'^([01]\d|2[0-3]):([0-5]\d)$' 
+    correct_time_format = r'^(0?[0-9]|1\d|2[0-3]):([0-5]\d)$' 
+    # time_check = algae['collectiontime'].astype(str).str.match(correct_time_format)
+
+    errs.append(
+        checkData(
+            'tbl_algae', 
+            algae[~algae['collectiontime'].astype(str).str.match(correct_time_format)].tmp_row.tolist(),
+            'collectiontime',
+            'Undefined Error', 
+            'collectiontime is not in HH:MM format in 24hour range (0-23:0-59). Time format is required'
+        )
+    )  
 
     else:
         print("Errors found. Skipping the analysis routine.")

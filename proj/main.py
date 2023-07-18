@@ -315,18 +315,19 @@ def main():
 
     # End Custom Checks section    
 
+    # @Aria if you see this, ignore it, we arent going to do it this way
     # Begin Visual Map Checks:
 
-    # Run only if they passed Core Checks
-    if errs == []:
-        # There are visual map checks for SAV, BRUV, Fish and Vegetation:
+    # # Run only if they passed Core Checks
+    # if errs == []:
+    #     # There are visual map checks for SAV, BRUV, Fish and Vegetation:
 
-        map_func = current_app.datasets.get(match_dataset).get('map_func')
-        if map_func is not None:
-            map_output = map_func(all_dfs, current_app.datasets.get(match_dataset).get('spatialtable'))
-            f = open(os.path.join(session.get('submission_dir'),f'{match_dataset}_map.html'),'w')
-            f.write(map_output._repr_html_())
-            f.close()
+    #     map_func = current_app.datasets.get(match_dataset).get('map_func')
+    #     if map_func is not None:
+    #         map_output = map_func(all_dfs, current_app.datasets.get(match_dataset).get('spatialtable'))
+    #         f = open(os.path.join(session.get('submission_dir'),f'{match_dataset}_map.html'),'w')
+    #         f.write(map_output._repr_html_())
+    #         f.close()
 
     # ---------------------------------------------------------------- #
 
@@ -379,8 +380,28 @@ def main():
     # -------------------------------------------------------------------------------- #
 
 
+
+
+    # @Aria here i set "has_visual_map" to False, but make it so it shows up as True if there are no core errors and False otherwise
+    # you can probably do this by doing something like:
+    # has_visual_map = all([e.get('is_core_error') == False for e in errs])
+    has_visual_map = False
+
+    # I set visual map stations to an empty list, but you will want to probably make it a list of dictionaries like this
+    # visual_map_stations = [
+    #   {
+    #       "stationcode" : "SMC0543453",
+    #       "latitude"    : 34.14123,
+    #       "longitude"   : -117.4576564
+    #   },
+    #   ...
+    # ]
+    visual_map_stations = []
+
+    # These are used at the end of report.js in the static folder
+
+
     # These are the values we are returning to the browser as a json
-    # https://pics.me.me/code-comments-be-like-68542608.png
     returnvals = {
         "filename" : filename,
         "marked_filename" : f"{filename.rsplit('.',1)[0]}-marked.{filename.rsplit('.',1)[-1]}",
@@ -392,7 +413,9 @@ def main():
         "submissionid": session.get("submissionid"),
         "critical_error": False,
         "all_datasets": list(current_app.datasets.keys()),
-        "table_to_tab_map" : session['table_to_tab_map']
+        "table_to_tab_map" : session['table_to_tab_map'],
+        "visual_map": has_visual_map,
+        "visual_map_stations": visual_map_stations
     }
     
     #print(returnvals)
