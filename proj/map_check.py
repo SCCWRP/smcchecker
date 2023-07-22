@@ -10,7 +10,7 @@ map_check = Blueprint('map_check', __name__)
 @map_check.route('/map', methods=['GET'], strict_slashes=False)
 def getmap():
     #submissionid = session.get('submissionid')
-    return render_template(f'visual_map.html')
+    return render_template(f'visual_map_shapefile_download.html')
 
 get_map_info = Blueprint('get_map_info', __name__)
 @get_map_info.route('/getmapinfo', methods = ['GET','POST'], strict_slashes=False)
