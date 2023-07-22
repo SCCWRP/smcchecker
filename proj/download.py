@@ -181,7 +181,16 @@ def get_masterid():
         sites_content = gis.content.search(query="title: SMCGISSites", item_type="Feature Layer Collection")[0]
         sites_fl = gis.content.get(sites_content.id)
         sites_sdf = sites_fl.layers[0].query(where=f"masterid in {masterid}").sdf
-        sites_sdf.filter(items=[col for col in sites_sdf.columns if col not in current_app.system_fields]).spatial.to_featureclass(
+        sites_sdf = sites_sdf.rename(columns={'stationcode':'stationcod'})
+        sites_sdf = sites_sdf.filter(
+            items=[
+                *['masterid'],
+                *[col for col in sites_sdf.columns if col not in current_app.system_fields]
+            ] 
+        )
+        print(sites_sdf)
+        
+        sites_sdf.spatial.to_featureclass(
             location=os.path.join(os.getcwd(),"export","shapefiles_for_download","sites.shp"), 
             overwrite=True
         )
@@ -190,8 +199,14 @@ def get_masterid():
         catchments_content = gis.content.search(query="title: SMCGISCatchments", item_type="Feature Layer Collection")[0]
         catchments_fl = gis.content.get(catchments_content.id)
         catchments_sdf = catchments_fl.layers[0].query(where=f"masterid in {masterid}").sdf
-
-        catchments_sdf.filter(items=[col for col in catchments_sdf.columns if col not in current_app.system_fields]).spatial.to_featureclass(
+        catchments_sdf = catchments_sdf.rename(columns={'stationcode':'stationcod'})
+        catchments_sdf = catchments_sdf.filter(
+            items=[
+                *['masterid'],
+                *[col for col in sites_sdf.columns if col not in current_app.system_fields]
+            ] 
+        )
+        catchments_sdf.spatial.to_featureclass(
             location=os.path.join(os.getcwd(),"export","shapefiles_for_download","catchments.shp"), 
             overwrite=True
         )
@@ -200,10 +215,6 @@ def get_masterid():
     if len(matched_aliases) > 0:
         alias_report = ", ".join([f"StationCode: {v} is an alias of MasterID: {k}" for x in matched_aliases for k,v in x.items()])  
     
-    
-    print(matched_masterids)
-    print(unmatched)
-    print(alias_report)
     return_vals = {
         "not_in_lookup": not_in_lookup,
         "delineated_yes": matched_masterids,
