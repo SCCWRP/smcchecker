@@ -133,7 +133,7 @@ def download_shapefile():
     login_agencies = pd.read_sql("SELECT DISTINCT login_agency from gissites", g.eng).login_agency.values
 
 
-    return render_template("downloadsf.html", login_agencies=login_agencies)
+    return render_template("download_shapefile_tool.html", login_agencies=login_agencies)
 
 @download.route('/checkstationsf', methods = ['POST','GET'])
 def get_masterid():
@@ -188,7 +188,6 @@ def get_masterid():
                 *[col for col in sites_sdf.columns if col not in current_app.system_fields]
             ] 
         )
-        print(sites_sdf)
         
         sites_sdf.spatial.to_featureclass(
             location=os.path.join(os.getcwd(),"export","shapefiles_for_download","sites.shp"), 
