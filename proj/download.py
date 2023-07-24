@@ -188,9 +188,12 @@ def get_masterid():
                 *[col for col in sites_sdf.columns if col not in current_app.system_fields]
             ] 
         )
-        
+        print('sites_sdf')
+        print(sites_sdf[['masterid','stationcod']])
+
+        # write data to shapefiles for downloading
         sites_sdf.spatial.to_featureclass(
-            location=os.path.join(os.getcwd(),"export","shapefiles_for_download","sites.shp"), 
+            location=os.path.join(os.getcwd(), "export", "shapefiles_for_download", "sites.shp"), 
             overwrite=True
         )
         export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","sites.json"), sites_sdf, ['masterid'])
@@ -202,11 +205,14 @@ def get_masterid():
         catchments_sdf = catchments_sdf.filter(
             items=[
                 *['masterid'],
-                *[col for col in sites_sdf.columns if col not in current_app.system_fields]
+                *[col for col in catchments_sdf.columns if col not in current_app.system_fields]
             ] 
         )
+        print('catchments_sdf')
+        print(catchments_sdf[['masterid','stationcod']])
+        # write data to shapefiles for downloading
         catchments_sdf.spatial.to_featureclass(
-            location=os.path.join(os.getcwd(),"export","shapefiles_for_download","catchments.shp"), 
+            location=os.path.join(os.getcwd(), "export", "shapefiles_for_download","catchments.shp"), 
             overwrite=True
         )
         export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","catchments.json"), catchments_sdf, ['masterid'])
