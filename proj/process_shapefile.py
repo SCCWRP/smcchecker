@@ -9,8 +9,7 @@ from .utils.read_shapefile import build_all_dfs_from_sf
 from .utils.sdf_to_json import export_sdf_to_json
 from .utils.exceptions import default_exception_handler
 from .utils.convert_projection import convert_projection
-from .core.functions import fetch_meta
-from .core.core import core
+from .core.core_api_call import core_api_call
 from .custom.shapefile_custom import shapefile
 
 
@@ -155,12 +154,6 @@ def process_sf():
                 export_sdf_to_json(os.path.join(parent_zipfile_path, "catchments.json"), all_dfs[key]['data'], ["stationcode"])
 
 
-        #meta data is needed for the core checks to run, to check precision, length, datatypes, etc
-        dbmetadata = {
-            tblname: fetch_meta(tblname, g.eng)
-            for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
-        }
-
     
         # tack on core errors to errors list
         # debug = False will cause corechecks to run with multiprocessing, 
@@ -171,7 +164,7 @@ def process_sf():
             k: all_dfs.get(k).get('data').drop(columns=['shape'])
             for k in all_dfs.keys()
         }
-        core_output = core(all_dfs_data, g.eng, dbmetadata, debug = True)
+        core_output = core_api_call(all_dfs_data)
 
         errs.extend(core_output['core_errors'])
         warnings.extend(core_output['core_warnings'])

@@ -277,10 +277,10 @@ def taxonomy(all_dfs):
     print("Errors list")
     print(errs)
 
-    if all(not err for err in errs):
-        print("No errors!!!!!!!!!!!!!!!!!!!!!!!!!")
-    else:
-        print("errs list is not empty")
+    # if all(not err for err in errs):
+    #     print("No errors: errs list is empty")
+    # else:
+    #     print("errs list is not empty")
 
     if all(not err for err in errs):
         print("No errors - running analysis routine")

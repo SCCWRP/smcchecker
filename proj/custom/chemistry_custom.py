@@ -331,11 +331,24 @@ def chemistry(all_dfs):
 
     # For Check 18, see line 449.
     # Check 18: If multiple records have equal LabBatch, AnalyteName, DilFactor then RL values for those records must also be equivalent. - WARNING
-     
+    
+    # From Robert - I'm not sure this below code will work to get the badrows
+    # chemistryresults[(chemistryresults.stationcode != '000NONPJ') & (chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (chemistryresults['dilfactor'].duplicated()) & (~chemistryresults['rl'].duplicated())].tmp_row.tolist()
+    # Please thoroughly check to make sure it is doing what it should be
+
+    # The below code should do it since it is grouping baseed on the specified columns
+    groupcols = ['labbatch', 'analytename', 'dilfactor']
+    invalid_groups = chemistryresults.groupby(groupcols) \
+        .filter(
+            lambda g: len(g['rl'].unique()) > 1
+        )
+    invalid_records = invalid_groups[invalid_groups.stationcode != '000NONPJ']
+
+    badrows = chemistryresults.merge(invalid_records, on = groupcols, how = 'left').tmp_row.tolist()
     warnings.append(
         checkData(
             'tbl_chemistryresults',
-            chemistryresults[(chemistryresults.stationcode != '000NONPJ') & (chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (chemistryresults['dilfactor'].duplicated()) & (~chemistryresults['rl'].duplicated())].tmp_row.tolist(),
+            badrows,
             'rl',
             'Undefined Warning',
             'If multiple records have equal LabBatch, AnalyteName, DilFactor then RL values for those records must also be equivalent. This shows that RL has different values with the matched record'
@@ -344,7 +357,7 @@ def chemistry(all_dfs):
 
     ## For Check 19, see line 472 in ChemistryChecks.py.
     # Check 19: If multiple records have equal LabBatch, AnalyteName then MethodNames should also be equivalent.  - WARNING
-    
+    # Same logic should apply here
     warnings.append(
         checkData(
             'tbl_chemistryresults',

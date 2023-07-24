@@ -7,8 +7,7 @@ import pandas as pd
 # custom imports, from local files
 from .preprocess import clean_data
 from .match import match
-from .core.core import core
-from .core.functions import fetch_meta
+from .core.core_api_call import core_api_call
 from .utils.generic import save_errors, correct_row_offset
 from .utils.excel import mark_workbook
 from .utils.exceptions import default_exception_handler
@@ -239,21 +238,7 @@ def main():
 
     print("Core Checks")
 
-    # meta data is needed for the core checks to run, to check precision, length, datatypes, etc
-    dbmetadata = {
-        tblname: fetch_meta(tblname, g.eng)
-        for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
-    }
-
-   
-    # tack on core errors to errors list
-    
-    # debug = False will cause corechecks to run with multiprocessing, 
-    # but the logs will not show as much useful information
-    print("Right before core runs")
-    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
-    core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
-    print("Right after core runs")
+    core_output = core_api_call(all_dfs)
 
     errs.extend(core_output['core_errors'])
     warnings.extend(core_output['core_warnings'])
