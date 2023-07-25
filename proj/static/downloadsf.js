@@ -11,6 +11,11 @@ async function(e){
 
     let inputStations = document.getElementById("input-station-sf").value.trim().replace(/["';]/g, '').replace(/;/g, '').replace(/\s+/g, '')
 
+    if (inputStations == ''){
+        document.getElementById('loading-spinner').classList.add("hidden")
+        return alert('Station inputs are empty')
+    }
+
     formData = new FormData()
     formData.append('input_stations', inputStations)
     
