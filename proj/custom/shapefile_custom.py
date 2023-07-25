@@ -45,7 +45,7 @@ def shapefile(all_dfs):
         "badrows": badrows, 
         "badcolumn": "shape",
         "error_type": "Invalid Geometry Type",
-        "error_message": "You submitted an invalid geometry for a polygon"
+        "error_message": "Multi-polygons are found in your data. Please note that multi-polygons are not accepted at this time."
     }
     errs = [*errs, checkData(**args)]
     print("check ran - Check 0a: Check if geometry of polygon is valid")
