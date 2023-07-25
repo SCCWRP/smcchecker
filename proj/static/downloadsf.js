@@ -17,7 +17,7 @@ async function(e){
     }
 
     formData = new FormData()
-    formData.append('input_stations', inputStations)
+    formDatexa.append('input_stations', inputStations)
     
     let resp = await fetch(`/smcchecker/checkstationsf`,{
         method: 'post',
