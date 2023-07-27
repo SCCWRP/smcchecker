@@ -41,7 +41,7 @@ def channelengineering(all_dfs):
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
-    #   "badrows": df[df.temperature != 'asdf'].index.tolist(),
+    #   "badrows": df[df.temperature != 'asdf'].tmp_row.tolist(),
     #   "badcolumn": "temperature",
     #   "error_type" : "Not asdf",
     #   "error_message" : "This is a helpful useful message for the user"
@@ -53,7 +53,7 @@ def channelengineering(all_dfs):
     # populate df called channelengineering
     channelengineering = all_dfs['tbl_channelengineering']
     # create tmp_row using index from df
-    channelengineering['tmp_row'] = channelengineering.index
+    channelengineering['tmp_row'] = channelengineering.tmp_row
 
     channelengineering_args = {
         "dataframe": channelengineering,
@@ -82,7 +82,7 @@ def channelengineering(all_dfs):
         checkData(
             'tbl_channelengineering',
             channelengineering[(channelengineering.determinationcomments.isna())
-            & (channelengineering.determination == 'Other')].index.tolist(),
+            & (channelengineering.determination == 'Other')].tmp_row.tolist(),
             'determinationcomments',
             'Undefined Warning',
             'You have entered Other for determination field, comment is required'
@@ -94,7 +94,7 @@ def channelengineering(all_dfs):
         checkData(
             'tbl_channelengineering', 
             channelengineering[(channelengineering.leftsideofstructure == 'Other')
-                                    & (channelengineering.leftsidecomments.isna())].index.tolist(),
+                                    & (channelengineering.leftsidecomments.isna())].tmp_row.tolist(),
             'leftsidecomments',
             'Undefined Warning',
             'You have entered Other for leftsideofstructure field, comment is required.')
@@ -106,7 +106,7 @@ def channelengineering(all_dfs):
         checkData(
             'tbl_channelengineering', 
             channelengineering[(channelengineering.rightsideofstructure == 'Other')
-                                    & (channelengineering.rightsidecomments.isna())].index.tolist(),
+                                    & (channelengineering.rightsidecomments.isna())].tmp_row.tolist(),
             'rightsidecomments',
             'Undefined Warning',
             'You have entered Other for rightsidestructure field, comment is required.'
@@ -119,7 +119,7 @@ def channelengineering(all_dfs):
         checkData(
             'tbl_channelengineering', 
             channelengineering[(channelengineering.structureshape == 'Other')
-                                    & (channelengineering.structureshapecomments.isna())].index.tolist(),
+                                    & (channelengineering.structureshapecomments.isna())].tmp_row.tolist(),
             'structureshapecomments',
             'Undefined Warning',
             'You have entered Other for structureshape field, comment is required.'
@@ -180,10 +180,10 @@ def channelengineering(all_dfs):
         exceptions = ['leftsideofstructure','rightsideofstructure']
         # update not in part of conditional
         if fieldname not in exceptions:
-            badrows = df[(df.channeltype == 'Engineered') & (df[fieldname] == 'NR')].index.tolist()
+            badrows = df[(df.channeltype == 'Engineered') & (df[fieldname] == 'NR')].tmp_row.tolist()
            
         else:
-            badrows = df[(df.channeltype == 'Engineered') & (df[fieldname].isin(['NR', 'Other']))].index.tolist()
+            badrows = df[(df.channeltype == 'Engineered') & (df[fieldname].isin(['NR', 'Other']))].tmp_row.tolist()
         return(badrows)
     
 
@@ -226,7 +226,7 @@ def channelengineering(all_dfs):
         badrows = channelengineering[
             (channelengineering.channeltype == 'Natural') & 
             (~(channelengineering[fieldname].isin(acceptable_values)))
-        ].index.tolist()
+        ].tmp_row.tolist()
         
         print(f'these are the bad rows for check7 {badrows}')
         return badrows
@@ -392,7 +392,7 @@ def channelengineering(all_dfs):
             checkData(
                 'tbl_channelengineering', 
                 channelengineering[(channelengineering.lowflowpresence == 'Present')
-                                        & ((channelengineering.lowflowwidth == 'NR') )].index.tolist(),
+                                        & ((channelengineering.lowflowwidth == 'NR') )].tmp_row.tolist(),
                 'lowflowwidth',
                 'Undefined Error',
                 'The lowflowpresence field is recorded as Present, but the lowflowwidth field says NR (Not Recorded)'
@@ -406,7 +406,7 @@ def channelengineering(all_dfs):
             checkData(
                 'tbl_channelengineering', 
                 channelengineering[(channelengineering.gradecontrolpresence == 'Present')
-                                        & (channelengineering.gradecontrollocation == 'NR')].index.tolist(),
+                                        & (channelengineering.gradecontrollocation == 'NR')].tmp_row.tolist(),
                 'gradecontrollocation',
                 'Undefined Error',
                 'The gradecontrolpresence field is recorded as Present, but the gradecontrollocation field says NR (Not Recorded)'
