@@ -258,7 +258,7 @@ def algae(all_dfs):
     print("Errors list")
     print(errs)
 
-    if all(not err for err in errs):
+    if all(not err for err in errs): # len(errs) == 0 ?
         print("No errors: errs list is empty")
     else:
         print("errs list is not empty")
