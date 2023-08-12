@@ -34,13 +34,17 @@ RUN apt-get update
 RUN apt-get install -y libc6-dev
 RUN apt-get install -y libkrb5-dev
 RUN pip3 install arcgis 
-RUN apt-get install -y mdbtools
+# RUN apt-get install -y mdbtools
 RUN pip3 install pandas_access
 
 #RUN pip3 install opencv-python
 
 # Install what we need for the analysis indices
-RUN apt-get install -y r-base
+### Installing the latest R
+# https://linux.how2shout.com/install-the-latest-r-programming-language-version-on-debian-11-bullseye/
+RUN apt-get update
+RUN apt install -y r-base
+#########################
 RUN apt-get install -y git
 WORKDIR /tmp
 RUN git clone https://github.com/SCCWRP/CSCI
@@ -75,6 +79,11 @@ WORKDIR /var/www/checker/
 
 RUN pip3 install boto3
 RUN pip3 install geopy
+
+RUN Rscript -e 'install.packages(c("DBI", "RPostgreSQL"))'
+RUN Rscript -e 'install.packages(c("lubridate"))'
+RUN Rscript -e 'install.packages(c("readxl"))'
+
 
 # this Dockerfile is for the SMC checker, since there are certain libraries that are unique to this checking system
 # sudo docker image build -t sccwrp/flask:smcchecker .

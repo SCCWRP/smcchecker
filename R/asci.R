@@ -1,22 +1,42 @@
-#asci.R is associated with Algae datatype
-randomdataframe <- data.frame(testcol1 = c(1,2,3,4,5), testcol2 = c(5,6,7,8,9), testcol3 = c('a','b','c','d','e'))
-print("dataframe: ")
-randomdataframe
+library(DBI)
+library(dplyr)
+library(RPostgreSQL)
+library(ASCI)
+library(readxl)
 
-args <- commandArgs(trailingOnly=TRUE)
-print("args:")
-args
+args = commandArgs(trailingOnly=TRUE)
+
 dir <- args[1]
-print("dir:")
-dir
 filename <- args[2]
-print("filename:")
-filename
-wbpath <- file.path(dir, filename)
-print("wbpath:")
-wbpath
-output <- (randomdataframe)
-print("Output:")
-output
 
-write.csv(randomdataframe, file = file.path(dir, 'output.csv'), row.names=FALSE)
+print('Connecting to the database')
+con <- dbConnect(
+  PostgreSQL(),
+  host = Sys.getenv('DB_HOST'),
+  dbname = Sys.getenv('DB_NAME'),
+  user = Sys.getenv('DB_USER'),
+  password = Sys.getenv('DB_PASSWORD')
+)
+print('Created database connection')
+
+alg <- readxl::read_excel(file.path(dir, filename))
+
+gis <- dbGetQuery(con, 'SELECT * FROM vw_asci_gispredictors') %>% filter(StationCode %in% alg$stationcode)
+
+alg <- alg %>% 
+  select(c('stationcode','sampledate','replicate','sampletypecode','baresult','result','finalid')) %>% 
+  rename(
+    `StationCode` = stationcode,
+    `SampleDate` = sampledate,
+    `Replicate` = replicate,
+    `SampleTypeCode` = sampletypecode,
+    `BAResult` = baresult,
+    `Result` = result,
+    `FinalID` = finalid                
+  )
+
+
+output <- ASCI(alg, gis) %>% smcify 
+
+write.csv(output, file = file.path(dir, 'ASCI_scores.csv'), row.names = FALSE)
+
