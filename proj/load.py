@@ -61,7 +61,10 @@ def load():
     warnings = pd.DataFrame( json.loads(open(os.path.join(session['submission_dir'], 'warnings.json') , 'r').read()) )
       
     for tbl in all_dfs.keys():
-
+        if tbl in current_app.tabs_to_ignore:
+            print("skipping tab")
+            print(tbl)
+            continue
         # Lowercase all column names first
         all_dfs[tbl].columns = [x.lower() for x in all_dfs[tbl].columns]
 
