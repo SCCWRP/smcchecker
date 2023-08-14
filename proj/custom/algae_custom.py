@@ -239,7 +239,7 @@ def algae(all_dfs):
     # check 9: Check if collectiontime is in in HH:MM format in 24hour range (0-24:0-59)
     # This regular expression will match any string formatted as HH:MM within the 24-hour range (00:00-23:59)
     # correct_time_format = r'^([01]\d|2[0-3]):([0-5]\d)$' 
-    correct_time_format = r'^(0?[0-9]|1\d|2[0-3]):([0-5]\d)$' 
+    correct_time_format = r'^(0?[0-9]|1\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$'
     # time_check = algae['collectiontime'].astype(str).str.match(correct_time_format)
 
     errs.append(
@@ -252,61 +252,44 @@ def algae(all_dfs):
         )
     )  
 
-
-
     print("-------------------------------------------------------- R SCRIPT -------------------------------------------")
-    print("Errors list")
-    print(errs)
+    errs = [er for er in errs if len(er) > 0]
+    
+    if len(errs) == 0:
 
-    if all(not err for err in errs):
-        print("No errors: errs list is empty")
-    else:
-        print("errs list is not empty")
-
-    if all(not err for err in errs):
-        print("No errors - running analysis routine")
-        # Rscript /path/demo.R tmp.csv
-        print("session.get('excel_path')")
-        print(session.get('excel_path'))
-        print("os.path.join(os.getcwd(), 'R', 'asci.R')")
-        print(os.path.join(os.getcwd(), 'R', 'asci.R'))
         cmdlist = [
             'Rscript',
-            f"{os.path.join(os.getcwd(),'R', 'asci.R')}",
-            f"{session.get('submission_dir')}",
-            'output.csv'
+            f"{os.path.join(os.getcwd(), 'R', 'asci.R')}", 
+            f"{session.get('submission_dir')}", 
+            f"{session.get('excel_path').rsplit('/', 1)[-1]}"
         ]
-        print(cmdlist)
-        proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
-
-        if not bool(re.search(proc.stderr, '\s*')):
-            print(f"Error occurred in OA analysis script:\n{proc.stderr}")
-
-        # submission_dir = os.path.join(os.getcwd(), 'R', 'submission_dir')
-        csvpath = os.path.join(session.get('submission_dir'),'output.csv')
-        print(csvpath)
-        print("after printing csvpath")
-
-
-      # open an ExcelWriter object to append to the excel workbook
-        writer = pd.ExcelWriter(session.get('excel_path'), engine = 'openpyxl', mode = 'a')
         
-        if os.path.exists(csvpath):
-            analysis = pd.read_csv(csvpath)
-            analysis.to_excel(writer, sheet_name = 'analysis_asci_placeholder', index = False)
-
+        proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
+        
+        if proc.returncode == 0:
+            print('ASCI ran successfully')
+            try:
+                analysis_algae_path = os.path.join(session.get('submission_dir'), 'ASCI_scores.csv')
+                with  pd.ExcelWriter(session.get('excel_path'), engine = 'openpyxl', mode = 'a') as writer:
+                    analysis_algae = pd.read_csv(analysis_algae_path)
+                    analysis_algae.to_excel(writer, sheet_name = 'ASCI', index = False)
+            except Exception as e:
+                print(f"There was an error while trying to append the ASCI csv to the submitted file: {e}")
         else:
-            if not os.path.exists(csvpath):
-                print("ASCI could not run successfully")
-
-            warnings.append(checkData('tbl_algae', algae.tmp_row.tolist(), 'Season,Agency,SampleDate,SampleTime,Station,Depth,FieldRep,LabRep','Undefined Warning', 'Could not process analysis for this data set'))
-            
-        writer.close()
-
-
-    else:
-        print("Errors found. Skipping the analysis routine.")
+            print("There was an error with ASCI: ")
+            print(proc.stderr)
+            warnings.append(
+                checkData(
+                    'tbl_algae', 
+                    algae.tmp_row.tolist(), 
+                    'stationcode,sampledate,replicate,sampletypecode,baresult,result,finalid',
+                    'Undefined Warning', 
+                    'Could not process analysis for this data set'
+                )
+            )
+    
     print("-------------------------END of Rscript analysis----------------------------------------")
 
     print("-------------------------start of return of errors and warnings----------------------------------------")
     return {'errors': errs, 'warnings': warnings}
+
