@@ -185,12 +185,10 @@ def get_masterid():
         sites_sdf = sites_sdf.filter(
             items=[
                 *['masterid'],
-                *[col for col in sites_sdf.columns if col not in current_app.system_fields]
+                #*[col for col in sites_sdf.columns if col not in current_app.system_fields]
+                *['SHAPE']
             ] 
         )
-        print('sites_sdf')
-        print(sites_sdf[['masterid','stationcod']])
-
         # write data to shapefiles for downloading
         sites_sdf.spatial.to_featureclass(
             location=os.path.join(os.getcwd(), "export", "shapefiles_for_download", "sites.shp"), 
@@ -205,11 +203,11 @@ def get_masterid():
         catchments_sdf = catchments_sdf.filter(
             items=[
                 *['masterid'],
-                *[col for col in catchments_sdf.columns if col not in current_app.system_fields]
+                #*[col for col in catchments_sdf.columns if col not in current_app.system_fields]
+                *['SHAPE']
             ] 
         )
-        print('catchments_sdf')
-        print(catchments_sdf[['masterid','stationcod']])
+
         # write data to shapefiles for downloading
         catchments_sdf.spatial.to_featureclass(
             location=os.path.join(os.getcwd(), "export", "shapefiles_for_download","catchments.shp"), 
