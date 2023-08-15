@@ -78,30 +78,33 @@ def taxonomy(all_dfs):
     }
 
     # Check 1: Within taxonomy data, return a warning if a submission contains multiple dates within a single site    
-    multiple_dates_within_site_info = check_multiple_dates_within_site(taxonomysampleinfo)
-    multiple_dates_within_site_results = check_multiple_dates_within_site(taxonomyresults)
+    print("# Check 1: Within taxonomy data, return a warning if a submission contains multiple dates within a single site")    
+    # multiple_dates_within_site_info = check_multiple_dates_within_site(taxonomysampleinfo)
+    # multiple_dates_within_site_results = check_multiple_dates_within_site(taxonomyresults)
 
-    warnings.append(
-        checkData(
-            'tbl_taxonomysampleinfo', 
-            multiple_dates_within_site_info[0],
-            'sampledate',
-            'Value Error', 
-            f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_info[1]} unique sample dates were submitted. Is this correct?'
-        )
-    )    
+    # warnings.append(
+    #     checkData(
+    #         'tbl_taxonomysampleinfo', 
+    #         multiple_dates_within_site_info[0],
+    #         'sampledate',
+    #         'Value Error', 
+    #         f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_info[1]} unique sample dates were submitted. Is this correct?'
+    #     )
+    # )    
     # Check 2: Within taxonomy data, return a warning if a submission contains multiple dates within a single site
-    warnings.append(
-        checkData(
-            'tbl_taxonomyresults', 
-            multiple_dates_within_site_results[0],
-            'sampledate',
-            'Value Error', 
-            f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
-        )
-    )  
+    print("# Check 2: Within taxonomy data, return a warning if a submission contains multiple dates within a single site")
+    # warnings.append(
+    #     checkData(
+    #         'tbl_taxonomyresults', 
+    #         multiple_dates_within_site_results[0],
+    #         'sampledate',
+    #         'Value Error', 
+    #         f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
+    #     )
+    # )  
 
     # Check 3: Return warnings on missing phab data
+    print("# Check 3: Return warnings on missing phab data")
     #phab data that will be used in checks 2 and 3 below
     info_sites = list(set(taxonomysampleinfo['stationcode'].unique()))
     results_sites = list(set(taxonomyresults['stationcode'].unique()))
@@ -143,9 +146,13 @@ def taxonomy(all_dfs):
         )
     )  
 
-   # Check 4- missing phab records for taxonomyresults submission
+    # Check 4- missing phab records for taxonomyresults submission
+    print("# Check 4- missing phab records for taxonomyresults submission")
 
     #Adding "indicator = True" adds a column called _merge that tells you whether the row is in both or one of the tables.
+    taxonomyresults['sampledate'] = pd.to_datetime(taxonomyresults['sampledate'])
+    phab_data['sampledate'] = pd.to_datetime(phab_data['sampledate'])
+
     merge_tax_with_phab = taxonomyresults.merge(phab_data, how = 'left', on = ['stationcode', 'sampledate'], indicator = True)
     #keeping record of the rows that are missing in phab but are present in taxonomy . 
     badrows_results = merge_tax_with_phab[merge_tax_with_phab['_merge'] == 'left_only'].tmp_row.tolist()
@@ -161,6 +168,7 @@ def taxonomy(all_dfs):
     )  
 
     ## Check 5: Return warnings on submission dates mismatching with phab dates
+    print("## Check 5: Return warnings on submission dates mismatching with phab dates")
     mismatched_phab_date_info = check_mismatched_phab_date(taxonomysampleinfo, phab_data)    
 
     mismatched_phab_date_results = check_mismatched_phab_date(taxonomyresults, phab_data)
@@ -188,6 +196,7 @@ def taxonomy(all_dfs):
     ) 
 
     # Check 6:TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier 
+    print("# Check 6:TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier ")
     errs.append(
         checkData(
             'tbl_taxonomyresults', 
@@ -199,6 +208,7 @@ def taxonomy(all_dfs):
     ) 
     print('##############the code ran here########') 
     # Check 7: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo #done
+    print("# Check 7: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo #done")
     #warnning
     errs.append(
         checkData(
@@ -210,6 +220,7 @@ def taxonomy(all_dfs):
         )
     )  
     #Check 8: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults #done
+    print("#Check 8: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults #done")
     #warnning
     errs.append(
         checkData(
@@ -223,6 +234,7 @@ def taxonomy(all_dfs):
     print('code ran consecutive date check')
 
     #Check 9: FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup
+    print("#Check 9: FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup")
     lu_organisms = pd.read_sql("SELECT concat(finalid, '_', lifestagecode) as combinations FROM vw_organism_lifestage_lookup;", g.eng)
     sql_combos = lu_organisms['combinations'].tolist()
     taxonomyresults['tmp_comb'] = taxonomyresults['finalid'].astype(str) + '_' + taxonomyresults['lifestagecode'].astype(str)
@@ -244,7 +256,7 @@ def taxonomy(all_dfs):
     ##################
 	## LOGIC CHECK  ##
     ##################
-    #check 10: Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate.
+    print("#check 10: Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate.")
     taxonomysampleinfo['temp_key'] = taxonomysampleinfo['stationcode'].astype(str) + taxonomysampleinfo['sampledate'].astype(str) + taxonomysampleinfo['fieldreplicate'].astype(str)
     taxonomyresults['temp_key'] = taxonomyresults['stationcode'].astype(str) + taxonomyresults['sampledate'].astype(str) + taxonomyresults['fieldreplicate'].astype(str)
 
@@ -274,50 +286,7 @@ def taxonomy(all_dfs):
     
 
     print("-------------------------------------------------------- R SCRIPT -------------------------------------------")
-    print("Errors list")
-    print(errs)
 
-    # if all(not err for err in errs):
-    #     print("No errors: errs list is empty")
-    # else:
-    #     print("errs list is not empty")
-
-    if all(not err for err in errs):
-        print("No errors - running analysis routine")
-        # Rscript /path/demo.R tmp.csv
-        print("session.get('excel_path')")
-        print(session.get('excel_path'))
-        print("os.path.join(os.getcwd(), 'proj', 'R', 'csci.R')")
-        print(os.path.join(os.getcwd(), 'proj', 'R', 'csci.R'))
-        cmdlist = [
-            'Rscript',
-            f"{os.path.join(os.getcwd(), 'proj', 'R', 'csci.R')}", 
-            f"{session.get('submission_dir')}", 
-            f"{session.get('excel_path').rsplit('/', 1)[-1]}"
-        ]
-
-        print("line 272:")
-        proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
-        print("line 275:")
-
-        msg = f"STDOUT:\n{proc.stdout}\n\nSTDERR:\n{proc.stderr}"
-        print("msg:")
-        print(msg)
-
-        print("line 282")
-        if not bool(re.search(proc.stderr, '\s*')):
-            print(f"Error occurred in OA analysis script:\n{proc.stderr}")
-        print("line 282")
-
-        ctdpath = os.path.join(session.get('submission_dir'), 'output.csv')
-        print("line 285")
-        
-        # if retcode == 0:
-        #     print("R script executed successfully.")
-        # else:
-        #     print("Error: Failed to execute the R script")
-    else:
-        print("Errors found. Skipping the analysis routine.")
         
     #END OF RSCRIPT
     ############################################################################################################################
