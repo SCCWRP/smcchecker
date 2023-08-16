@@ -19,3 +19,4 @@ proj/templates/__pycache__/
 # proj/custom/*_custom.py
 
 docker/deploy.sh
+R/.Rhistory
