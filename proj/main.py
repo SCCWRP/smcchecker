@@ -8,6 +8,8 @@ import pandas as pd
 from .preprocess import clean_data
 from .match import match
 from .core.core_api_call import core_api_call
+from .core.core import core
+from .core.functions import fetch_meta
 from .utils.generic import save_errors, correct_row_offset
 from .utils.excel import mark_workbook
 from .utils.exceptions import default_exception_handler
@@ -236,9 +238,17 @@ def main():
     errs = []
     warnings = []
 
-    print("Core Checks")
+    print("Before Core")
+    # meta data is needed for the core checks to run, to check precision, length, datatypes, etc
+    dbmetadata = {
+        tblname: fetch_meta(tblname, g.eng)
+        for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
+    }
+    core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
+    #core_output = core_api_call(all_dfs)
+    print("After Core")
+    ###
 
-    core_output = core_api_call(all_dfs)
 
     errs.extend(core_output['core_errors'])
     warnings.extend(core_output['core_warnings'])

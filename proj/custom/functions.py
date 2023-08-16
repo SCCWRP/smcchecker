@@ -68,6 +68,7 @@ def checkLogic(df1, df2, cols: list, error_type = "Logic Error", df1_name = "", 
 
 # ---- A few custom checks common to taxonomy, toxicity, and chemistry ---- #
 def check_multiple_dates_within_site(submission):
+    print("enter check_multiple_dates_within_site")
     assert 'stationcode' in submission.columns, "'stationcode' is not a column in submission dataframe"
     assert 'sampledate' in submission.columns, "'sampledate' is not a column in submission dataframe"
     assert 'tmp_row' in submission.columns, "'tmp_row' is not a column in submission dataframe"
@@ -75,12 +76,13 @@ def check_multiple_dates_within_site(submission):
 
     # group by station code and sampledate, grab the first index of each unique date, reset to dataframe
     submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
-
+    print(submission_groupby.groupby('stationcode'))
     # filter on grouped stations that have more than one unique sample date, output sorted list of indices 
     badrows = sorted(list(set(submission_groupby.groupby('stationcode').filter(lambda x: x['sampledate'].count() > 1)['tmp_row'])))
 
     # count number of unique dates within a stationcode
     num_unique_sample_dates = len(badrows)
+    print("done check_multiple_dates_within_site")
     return (badrows, num_unique_sample_dates)
 
 def check_missing_phab_data(submission, phab_data):
