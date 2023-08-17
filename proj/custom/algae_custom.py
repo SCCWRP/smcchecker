@@ -284,7 +284,7 @@ def algae(all_dfs):
                     algae.tmp_row.tolist(), 
                     'stationcode,sampledate,replicate,sampletypecode,baresult,result,finalid',
                     'Undefined Warning', 
-                    'Could not process analysis for this data set'
+                    'Could not process ASCI for this data set'
                 )
             )
     

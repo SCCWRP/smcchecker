@@ -1,104 +1,69 @@
-#GOAL: DONE!
-# Look in the bight checker and try to figure out how we did this, and implement it here
-# just read the code (on nexus or nexus-dev) in the repository /var/www/bight23/checker
+library(DBI)
+library(dplyr)
+library(RPostgreSQL)
+library(CSCI)
+library(readxl)
 
-# In proj/custom/ocean_acidification.py there is a routine at the end of the file that calls an R script with the subprocess library
-# Python opens a subprocess and the R script gets executed
-# There is a file in that same repo in a folder called "R" and the file name is oa.R
-# That is a short analysis script that reads in the excel file from the submission directory and writes a CSV to the submission directory
+args = commandArgs(trailingOnly=TRUE)
 
-# Back in the python script that opened the subprocess, it checks if the csv got written out, 
-# and if it did, it reads it in and appends the data to the user's submission file
-
-# If not, it gives a warning on all rows of the user's dataframe
-
-# Here in the SMC checker we will do all that except for issuing the warning. If it doesnt calculate the analysis, it is what it is
-
-# For now, call this script with subprocess if there are no taxonomy errors. Write out a random dataframe to a CSV
-
-# Back in taxonomy_custom.py, if the dataframe got written out, append it to the user's submission file
-
-# Then do a taxonomy submission and see if your download file has your dataframe that you appended
-
-# You will not yet write this script to actually calculate CSCI, because Duy needs to finish some work on the SMC database, specifically the GIS Metrics table, which you will need
-
-# so, lets say this is the random dataframe that will be written out to a CSV and appended to the user's submission file
-
-# randomdataframe <- data.frame(testcol1 = c(1,2,3,4,5), testcol2 = c(5,6,7,8,9), testcol3 = c('a','b','c','d','e'))
-# randomdataframe
-# write.csv(randomdataframe,"C:\\Users\\GisUser\\SCCWRP\\Staff - P Drive\\Data\\PartTimers\\Aria\\R-Project\\R-downloads\\data.csv", row.names=FALSE)
-
-
-##########---R Script----##############################
-randomdataframe <- data.frame(testcol1 = c(1,2,3,4,5), testcol2 = c(5,6,7,8,9), testcol3 = c('a','b','c','d','e'))
-print("dataframe: ")
-randomdataframe
-
-args <- commandArgs(trailingOnly=TRUE)
-print("args:")
-args
 dir <- args[1]
-print("dir:")
-dir
 filename <- args[2]
-print("filename:")
-filename
-wbpath <- file.path(dir, filename)
-print("wbpath:")
-wbpath
-output <- (randomdataframe)
-print("Output:")
-output
 
-write.csv(randomdataframe, file = file.path(dir, 'output.csv'), row.names=FALSE)
-#################################################################################
-# #Play Ground testing this through R
-# randomdataframe <- data.frame(testcol1 = c(1,2,3,4,5), testcol2 = c(5,6,7,8,9), testcol3 = c('a','b','c','d','e'))
-# print("dataframe: ")
-# randomdataframe
+print('Connecting to the database')
+con <- dbConnect(
+  PostgreSQL(),
+  host = Sys.getenv('DB_HOST'),
+  dbname = Sys.getenv('DB_NAME'),
+  user = Sys.getenv('DB_USER'),
+  password = Sys.getenv('DB_PASSWORD')
+)
+print('Created database connection')
 
-# args <- commandArgs(trailingOnly=TRUE)
-# print("args:")
-# args
-# dir <- args[1]
-# print("dir:")
-# dir
-# filename <- args[2]
-# print("filename:")
-# filename
-# wbpath <- file.path(dir, filename)
-# print("wbpath:")
-# wbpath
-# output <- (randomdataframe)
-# print("Output:")
-# output
+bugs <-  readxl::read_excel(file.path(dir, filename))
 
-# write.csv(randomdataframe, file = file.path(dir, 'output.csv'), row.names=FALSE)
+gis <- dbGetQuery(con, 'SELECT * FROM vw_csci_gispredictors') %>% filter(StationCode %in% bugs$stationcode)
 
+bugs <- bugs %>%
+    mutate(
+        sampleid = paste(stationcode, gsub("[/\\s:]", "", format(sampledate, "%Y%m%d")), fieldreplicate, sep = "_")) %>%
+    select(c('stationcode', 'sampleid' ,'baresult', 'lifestagecode', 'distinctcode', 'finalid')) %>%
+    rename(
+        `StationCode` = stationcode,
+        `SampleID` = sampleid,
+        `FinalID` = finalid,
+        `BAResult` = baresult,
+        `LifeStageCode` = lifestagecode,
+        `Distinct` = distinctcode
+    )
 
-# # Check if the workbook exists
-# if(file.exists(wbpath)){
-#   # Load the existing workbook
-#   wb <- loadWorkbook(wbpath)
-# } else {
-#   # Create a new workbook if it doesn't exist
-#   wb <- createWorkbook()
-# }
+bugs <- cleanData(bugs)
+bugs <- bugs %>% mutate(BAResult = as.numeric(BAResult)) # this can be altered in the view definition
+metadata <- BMIMetrics::loadMetaData()
+namecheck <- paste(bugs$FinalID, bugs$LifeStageCode) %in% paste(metadata$FinalID, metadata$LifeStageCode)
+missing <- which(!namecheck)
+if(length(missing)>0){
+  casenamecheck <- paste(toupper(bugs$FinalID[missing]), bugs$LifeStageCode[missing]) %in% paste(toupper(metadata$FinalID), metadata$LifeStageCode)
+  bugs$FinalID[missing][casenamecheck] <- 
+    as.character(metadata$FinalID[match(toupper(bugs$FinalID[missing][casenamecheck]), toupper(metadata$FinalID))])
+  if(length(namecheck) != (sum(namecheck) + sum(casenamecheck)))
+    warning(c("The following FinalID/LifeStageCode combinations did not match with the internal database:",
+              paste(unique(paste(bugs$FinalID[!namecheck], bugs$LifeStageCode[!namecheck])), collapse=", ")))
+}
+notfound <- bugs %>% filter(!namecheck)
+bugs <- bugs %>% filter(namecheck)
 
-# # Check if the sheet already exists
-# sheetName <- "analysis_csci_placeholder"
-# if (existsSheet(wb, sheetName)) {
-#   # Append a suffix if the sheet already exists
-#   sheetName <- paste0(sheetName, "_new")
-# }
+result <- CSCI(bugs, gis)
 
-# # Add the new worksheet with the dataframe
-# addWorksheet(wb, sheetName)
-# writeData(wb, sheetName, output)
+core <- result$core
+suppl1_grps <- result$Suppl1_grps
+suppl1_mmi <- result$Suppl1_mmi
+suppl2_mmi <- result$Suppl2_mmi
+suppl1_oe <- result$Suppl1_OE
+suppl2_oe <- result$Suppl2_OE
 
-# # Save the workbook
-# saveWorkbook(wb, wbpath, overwrite = TRUE)
-
-########################################
-# Good luck
-
+write.csv(core, file = file.path(dir, 'core.csv'), row.names = FALSE)
+write.csv(suppl1_grps, file = file.path(dir, 'suppl1_grps.csv'), row.names = FALSE)
+write.csv(suppl1_mmi, file = file.path(dir, 'suppl1_mmi.csv'), row.names = FALSE)
+write.csv(suppl2_mmi, file = file.path(dir, 'suppl2_mmi.csv'), row.names = FALSE)
+write.csv(suppl1_oe, file = file.path(dir, 'suppl1_oe.csv'), row.names = FALSE)
+write.csv(suppl2_oe, file = file.path(dir, 'suppl2_oe.csv'), row.names = FALSE)

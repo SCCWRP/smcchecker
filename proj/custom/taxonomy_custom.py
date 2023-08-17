@@ -286,7 +286,45 @@ def taxonomy(all_dfs):
     
 
     print("-------------------------------------------------------- R SCRIPT -------------------------------------------")
-
+    errs = [er for er in errs if len(er) > 0]
+    
+    if len(errs) == 0:
+        taxonomyresults_filename = 'taxonomyresults.xlsx'
+        taxonomyresults.to_excel(os.path.join(session.get('submission_dir'), taxonomyresults_filename), index=False)
+        cmdlist = [
+            'Rscript',
+            f"{os.path.join(os.getcwd(), 'R', 'csci.R')}", 
+            f"{session.get('submission_dir')}", 
+            taxonomyresults_filename
+        ]
+        
+        proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
+        
+        if proc.returncode == 0:
+            print('CSCI ran successfully')
+            try:
+                with  pd.ExcelWriter(session.get('excel_path'), engine = 'openpyxl', mode = 'a') as writer:
+                    pd.read_csv(os.path.join(session.get('submission_dir'), 'core.csv')).to_excel(writer, sheet_name = 'core', index = False)
+                    pd.read_csv(os.path.join(session.get('submission_dir'), 'suppl1_grps.csv')).to_excel(writer, sheet_name = 'suppl1_grps', index = False)
+                    pd.read_csv(os.path.join(session.get('submission_dir'), 'suppl1_mmi.csv')).to_excel(writer, sheet_name = 'suppl1_mmi', index = False)
+                    pd.read_csv(os.path.join(session.get('submission_dir'), 'suppl2_mmi.csv')).to_excel(writer, sheet_name = 'suppl2_mmi', index = False)
+                    pd.read_csv(os.path.join(session.get('submission_dir'), 'suppl1_oe.csv')).to_excel(writer, sheet_name = 'suppl1_oe', index = False)
+                    pd.read_csv(os.path.join(session.get('submission_dir'), 'suppl2_oe.csv')).to_excel(writer, sheet_name = 'suppl2_oe', index = False)
+            
+            except Exception as e:
+                print(f"There was an error while trying to append the CSCI csv to the submitted file: {e}")
+        else:
+            print("There was an error with CSCI: ")
+            print(proc.stderr)
+            warnings.append(
+                checkData(
+                    'tbl_taxonomyresults', 
+                    taxonomyresults.tmp_row.tolist(), 
+                    'stationcode,sampledate,replicate,sampletypecode,baresult,result,finalid',
+                    'Undefined Warning', 
+                    'Could not process CSCI for this data set'
+                )
+            )
         
     #END OF RSCRIPT
     ############################################################################################################################
