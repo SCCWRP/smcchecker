@@ -112,10 +112,22 @@ def trash(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
-    
     print(" after args")
-    ## SITE INFORMATION CHECKS
-    # Check 1: If datum is 'Other (comment required)', then comment is required for trashsiteinfo.
+
+    
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ Trash Site Info Checks ------------------------------------------ #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
+
+    print("# CHECK - 1")
+    # Description: If datum is Other then comment is required (🛑 ERROR 🛑)
+    # Created Coder: Zaib(?)
+    # Created Date: 2021
+    # Last Edited Date: 08/22/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_trashsiteinfo',
@@ -125,12 +137,18 @@ def trash(all_dfs):
             'Datum field is Other (comment required). Comments field is required.'
             )
     )
-    print("check 1 ran - datum other comment required")
+    # END OF CHECK - If datum is Other then comment is required (🛑 ERROR 🛑)
+    print("# END OF CHECK - 1")
 
-    # Check 2: starttime/EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range(0-24:0-59) - (Finished - Duy 02/14). 
-    # time_regex = re.compile("^(2[0-3]|[01]?[0-9]):([0-5]?[0-9])$")
+    print("# CHECK - 2a")
+    # Description: StartTime needs to be in HH:MM format in 24hour range (0-24:0-59) (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/17/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+
     correct_time_format = r'^(0?[0-9]|1\d|2[0-3]):([0-5]\d)$' 
-    #Start Time Checker
 
     errs.append(
         checkData(
@@ -138,11 +156,18 @@ def trash(all_dfs):
             trashsiteinfo[trashsiteinfo['starttime'].apply(lambda x: not bool(re.match(correct_time_format, x)))].tmp_row.tolist(),
             'starttime',
             'Time Formatting Error ',
-            'starttime needs to be in the format HH:MM, and they need to be in the 24-hour range military time'
+            'StartTime needs to be in HH:MM format in 24hour range (0-24:0-59)'
         )
     )
-    
-    #End Time Checker 
+    print("# END OF CHECK - 2a")  
+
+    print("# CHECK - 2b")
+    # Description: EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_trashsiteinfo',
@@ -152,8 +177,9 @@ def trash(all_dfs):
             'EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range'
         )
     )  
-    print("check 2 ran - datum other comment required")
-    # #Start Time Checker
+    print("# END OF CHECK - 2b")    
+    
+    ##start Time Checker
     # errs.append(
     #     checkData(
     #         'tbl_trashsiteinfo',
@@ -175,7 +201,13 @@ def trash(all_dfs):
     #     )
     # )
     
-    #check 3: Start Time needs to be before end time 
+    print("# CHECK - 3")
+    # Description: StartTime must be before EndTime (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     if (
         all(
             [
@@ -197,123 +229,203 @@ def trash(all_dfs):
                 'StartTime must be before EndTime'
             )
         )
+    print("# END OF CHECK - 3")
 
-    #check 4: If debriscategory contains Other then comment is required
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ End Trash Site Info Checks -------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
+
+
+
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ Trash Tally Checks ---------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
+    print("# CHECK - 4")
+    # Description: If debriscategory contains Other then comment is required (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory == 'Other') & (trashtally.comments.isna())].tmp_row.tolist(),
             'comments',
             'Undefined Error',
-            'debriscategory field is Other (comment required). Comments field is required.'
+            'If debriscategory field is Other then comment is required within comment field. Comments field is required.'
             )
     )
+    print("# END OF CHECK - 4")
 
-    #check 5: If debriscategory is Plastic then debrisitem is in lu_trashplastic
+    print("# CHECK - 5")
+    # Description: If debriscategory is Plastic then debrisitem is in lu_trashplastic(🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     lu_plastic = pd.read_sql("SELECT plastic FROM lu_trashplastic",g.eng).plastic.tolist()
 
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory == 'Plastic') & (~trashtally.debrisitem.isin(lu_plastic))].tmp_row.tolist(),
-            'debriscategory',
+            'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_plastic lookup list. If debriscategory is Plastic then debrisitem is in lu_trashplastic'
-            )
+            'Debrisitem is not in lu_plastic lookup list. If debriscategory is Plastic then debrisitem must be in lu_trashplastic. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashplastic"> lu_trashplastic Lookup List</a>'
+            )          
     )
+    print("# END OF CHECK - 5")
 
-    #check 6: If debriscategory is Fabric_Cloth then debrisitem is lu_trashfabricandcloth
+    print("# CHECK - 6")
+    # Description: If debriscategory is Fabric_Cloth then debrisitem is lu_trashfabricandcloth (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     lu_fabricandcloth = pd.read_sql("SELECT fabricandcloth FROM lu_trashfabricandcloth",g.eng).fabricandcloth.tolist()
 
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory.str.lower() == 'fabric_cloth') & (~trashtally.debrisitem.isin(lu_fabricandcloth))].tmp_row.tolist(),
-            'debriscategory',
+            'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_trashfabricandcloth lookup list. If debriscategory is Fabric_Cloth then debrisitem is in lu_trashfabricandcloth'
+            'Debrisitem is not in lu_trashfabricandcloth lookup list. If debriscategory is Fabric_Cloth then debrisitem must be in lu_trashfabricandcloth. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashfabricandcloth"> lu_trashfabricandcloth Lookup List</a>'
             )
     )
+    print("# END OF CHECK - 6")
 
-    #check 7: If debriscategory is Large then debrisitem is in lu_trashlarge
+    print("# CHECK - 7")
+    # Description: If debriscategory is Large then debrisitem is in lu_trashlarge (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     lu_large = pd.read_sql("SELECT large FROM lu_trashlarge",g.eng).large.tolist()
 
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory.str.lower() == 'large') & (~trashtally.debrisitem.isin(lu_large))].tmp_row.tolist(),
-            'debriscategory',
+            'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_large lookup list. If debriscategory is Large then debrisitem is in lu_trashlarge'
+            'Debrisitem is not in lu_large lookup list. If debriscategory is Large then debrisitem must be in lu_trashlarge. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashlarge"> lu_trashlarge Lookup List</a>'
             )
     )
+    print("# END OF CHECK - 7")
 
-
-    #check 8: If debriscategory is Biodegradable then debrisitem is in lu_trashbiodegradable
+    print("# CHECK - 8")
+    # Description: If debriscategory is Biodegradable then debrisitem is in lu_trashbiodegradable (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     lu_biodegradable = pd.read_sql("SELECT biodegradable FROM lu_trashbiodegradable",g.eng).biodegradable.tolist()
 
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory.str.lower() == 'biodegradable') & (~trashtally.debrisitem.isin(lu_biodegradable))].tmp_row.tolist(),
-            'debriscategory',
+            'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_biodegradable lookup list. If debriscategory is Biodegradable then debrisitem is in lu_trashbiodegradable'
+            'Debrisitem is not in lu_biodegradable lookup list. If debriscategory is Biodegradable then debrisitem must be in lu_trashbiodegradable. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashbiodegradable"> lu_trashbiodegradable Lookup List</a>'
             )
     )
-    # #check 9:If debriscategory is Biohazard then debrisitem is in lu_trashbiohazard
+    print("# END OF CHECK - 8")
+
+    print("# CHECK - 9")
+    # Description: If debriscategory is Biohazard then debrisitem is in lu_trashbiohazard (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     lu_biohazard = pd.read_sql("SELECT biohazard FROM lu_trashbiohazard",g.eng).biohazard.tolist()
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory.str.lower() == 'biohazard') & (~trashtally.debrisitem.isin(lu_biohazard))].tmp_row.tolist(),
-            'debriscategory',
+            'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_biohazard lookup list. If debriscategory is Biohazard then debrisitem is in lu_trashbiohazard'
+            'Debrisitem is not in lu_biohazard lookup list. If debriscategory is Biohazard then debrisitem must be in lu_trashbiohazard. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashbiohazard"> lu_trashbiohazard Lookup List</a>'
             )
     )
+    print("# END OF CHECK - 9")
 
-    # #check 10:If debriscategory is Construction then debrisitem is in lu_trashconstruction
+    print("# CHECK - 10")
+    # Description: If debriscategory is Construction then debrisitem is in lu_trashconstruction (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     lu_construction = pd.read_sql("SELECT construction FROM lu_trashconstruction",g.eng).construction.tolist()
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory.str.lower() == 'construction') & (~trashtally.debrisitem.isin(lu_construction))].tmp_row.tolist(),
-            'debriscategory',
+            'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_construction lookup list. If debriscategory is Construction then debrisitem is in lu_trashconstruction'
+            'Debrisitem is not in lu_construction lookup list. If debriscategory is Construction then debrisitem is in lu_trashconstruction. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashconstruction"> lu_trashconstruction Lookup List</a>'
             )
     )
+    print("# END OF CHECK - 10")
 
-    #check 11:If debriscategory is Glass then debrisitem is in lu_trashglass
+    print("# CHECK - 11")
+    # Description: If debriscategory is Glass then debrisitem is in lu_trashglass (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. 
+    # NOTE (08/22/23): Aria - this has a issue it flaggs Glass Pieces even though its in the lookup list not sure why this is happening??
     lu_glass = pd.read_sql("SELECT glass FROM lu_trashglass",g.eng).glass.tolist()
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory.str.lower() == 'glass') & (~trashtally.debrisitem.isin(lu_glass))].tmp_row.tolist(),
-            'debriscategory',
+            'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_glass lookup list. If debriscategory is Glass then debrisitem is in lu_trashglass'
+            'Debrisitem is not in lu_glass lookup list. If debriscategory is Glass then debrisitem must be in lu_trashglass. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashglass"> lu_trashglass Lookup List</a>'
             )
     )
-    #check 12:If debriscategory is Metal then debrisitem is in lu_trashmetal
+    print("# END OF CHECK - 11")
+
+    print("# CHECK - 12")
+    # Description: If debriscategory is Metal then debrisitem is in lu_trashmetal (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/22/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     lu_metal = pd.read_sql("SELECT metal FROM lu_trashmetal",g.eng).metal.tolist()
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory.str.lower() == 'metal') & (~trashtally.debrisitem.isin(lu_metal))].tmp_row.tolist(),
-            'debriscategory',
+            'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_metal lookup list. If debriscategory is Metal then debrisitem is in lu_trashmetal'
+            'Debrisitem is not in lu_metal lookup list. If debriscategory is Metal then debrisitem must be in lu_trashmetal. For more information, you may refer to the <a href="https://checker.sccwrp.org/smcchecker/scraper?action=help&layer=lu_trashmetal"> lu_trashmetal Lookup List</a>'
             )
     )
+    print("# END OF CHECK - 12")
+
     #check 13:If debriscategory is Miscellaneous then debrisitem is in lu_trashmiscellaneous
     lu_miscellaneous = pd.read_sql("SELECT miscellaneous FROM lu_trashmiscellaneous",g.eng).miscellaneous.tolist()
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory.str.lower() == 'miscellaneous') & (~trashtally.debrisitem.isin(lu_miscellaneous))].tmp_row.tolist(),
-            'debriscategory',
+            'debrisitem',
             'Undefined Error',
             'Debrisitem is not in lu_miscellaneous lookup list. If debriscategory is Miscellaneous then debrisitem is in lu_trashmiscellaneous'
             )
@@ -330,5 +442,10 @@ def trash(all_dfs):
     )
     
 
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------End Trash Tally Checks ------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
 
     return {'errors': errs, 'warnings': warnings}
