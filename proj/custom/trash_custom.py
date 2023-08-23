@@ -270,14 +270,14 @@ def trash(all_dfs):
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     lu_plastic = pd.read_sql("SELECT plastic FROM lu_trashplastic",g.eng).plastic.tolist()
-
+    # https://checker.sccwrp.org/smcchecker/scraper?action=help&layer=lu_trashmetal
     errs.append(
         checkData(
             'tbl_trashtally',
             trashtally[(trashtally.debriscategory == 'Plastic') & (~trashtally.debrisitem.isin(lu_plastic))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_plastic lookup list. If debriscategory is Plastic then debrisitem must be in lu_trashplastic. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashplastic"> lu_trashplastic Lookup List</a>'
+            'The value you entered does not match the lookup list <a href=https://checker.sccwrp.org/smcchecker/scraper?action=help&layer=lu_trashplastic>lu_trashplastic</a>'
             )          
     )
     print("# END OF CHECK - 5")
@@ -297,7 +297,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'fabric_cloth') & (~trashtally.debrisitem.isin(lu_fabricandcloth))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_trashfabricandcloth lookup list. If debriscategory is Fabric_Cloth then debrisitem must be in lu_trashfabricandcloth. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashfabricandcloth"> lu_trashfabricandcloth Lookup List</a>'
+            'The value you entered does not match the lookup list <a href=https://checker.sccwrp.org/smcchecker/scraper?action=help&layer=lu_trashfabricandcloth>lu_trashfabricandcloth</a>'
             )
     )
     print("# END OF CHECK - 6")
@@ -317,7 +317,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'large') & (~trashtally.debrisitem.isin(lu_large))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_large lookup list. If debriscategory is Large then debrisitem must be in lu_trashlarge. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashlarge"> lu_trashlarge Lookup List</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashlarge>lu_trashlarge</a>'
             )
     )
     print("# END OF CHECK - 7")
@@ -337,7 +337,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'biodegradable') & (~trashtally.debrisitem.isin(lu_biodegradable))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_biodegradable lookup list. If debriscategory is Biodegradable then debrisitem must be in lu_trashbiodegradable. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashbiodegradable"> lu_trashbiodegradable Lookup List</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashbiodegradable>lu_trashbiodegradable</a>'
             )
     )
     print("# END OF CHECK - 8")
@@ -356,7 +356,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'biohazard') & (~trashtally.debrisitem.isin(lu_biohazard))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_biohazard lookup list. If debriscategory is Biohazard then debrisitem must be in lu_trashbiohazard. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashbiohazard"> lu_trashbiohazard Lookup List</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashbiohazard>lu_trashbiohazard</a>'
             )
     )
     print("# END OF CHECK - 9")
@@ -375,7 +375,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'construction') & (~trashtally.debrisitem.isin(lu_construction))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_construction lookup list. If debriscategory is Construction then debrisitem is in lu_trashconstruction. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashconstruction"> lu_trashconstruction Lookup List</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashconstruction>lu_trashconstruction</a>'
             )
     )
     print("# END OF CHECK - 10")
@@ -395,7 +395,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'glass') & (~trashtally.debrisitem.isin(lu_glass))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_glass lookup list. If debriscategory is Glass then debrisitem must be in lu_trashglass. For more information, you may refer to the <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashglass"> lu_trashglass Lookup List</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashglass>lu_trashglass</a>'
             )
     )
     print("# END OF CHECK - 11")
@@ -414,12 +414,18 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'metal') & (~trashtally.debrisitem.isin(lu_metal))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_metal lookup list. If debriscategory is Metal then debrisitem must be in lu_trashmetal. For more information, you may refer to the <a href="https://checker.sccwrp.org/smcchecker/scraper?action=help&layer=lu_trashmetal"> lu_trashmetal Lookup List</a>'
+            'The value you entered does not match the lookup list <a href=https://checker.sccwrp.org/smcchecker/scraper?action=help&layer=lu_trashmetal>lu_trashmetal</a>'
             )
     )
     print("# END OF CHECK - 12")
 
-    #check 13:If debriscategory is Miscellaneous then debrisitem is in lu_trashmiscellaneous
+    print("# CHECK - 13")
+    # Description: If debriscategory is Miscellaneous then debrisitem is in lu_trashmiscellaneous (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/23/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     lu_miscellaneous = pd.read_sql("SELECT miscellaneous FROM lu_trashmiscellaneous",g.eng).miscellaneous.tolist()
     errs.append(
         checkData(
@@ -427,10 +433,18 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'miscellaneous') & (~trashtally.debrisitem.isin(lu_miscellaneous))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_miscellaneous lookup list. If debriscategory is Miscellaneous then debrisitem is in lu_trashmiscellaneous'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashmiscellaneous>lu_trashmiscellaneous</a>'
             )
     )
-    # #check 14:If debriscategory is None then debrisitem must be 'No Trash Present'
+    print("# END OF CHECK - 13")
+
+    print("# CHECK - 14")
+    # Description: If debriscategory is None then debrisitem must be 'No Trash Present' (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: NA
+    # Last Edited Date: 08/23/2023
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_trashtally',
@@ -440,7 +454,8 @@ def trash(all_dfs):
             "If debriscategory is None then debrisitem must be 'No Trash Present'"
             )
     )
-    
+    print("# END OF CHECK - 14")
+
 
     ######################################################################################################################
     # ------------------------------------------------------------------------------------------------------------------ #
