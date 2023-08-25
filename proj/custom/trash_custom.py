@@ -210,15 +210,15 @@ def trash(all_dfs):
     )
 
     #check 5: If debriscategory is Plastic then debrisitem is in lu_trashplastic
-    lu_plastic = pd.read_sql("SELECT plastic FROM lu_trashplastic",g.eng).plastic.tolist()
+    lu_trashplastic = pd.read_sql("SELECT plastic FROM lu_trashplastic",g.eng).plastic.tolist()
 
     errs.append(
         checkData(
             'tbl_trashtally',
-            trashtally[(trashtally.debriscategory == 'Plastic') & (~trashtally.debrisitem.isin(lu_plastic))].tmp_row.tolist(),
-            'debriscategory',
+            trashtally[(trashtally.debriscategory == 'Plastic') & (~trashtally.debrisitem.isin(lu_trashplastic))].tmp_row.tolist(),
+            'debrisitem',
             'Undefined Error',
-            'Debrisitem is not in lu_plastic lookup list. If debriscategory is Plastic then debrisitem is in lu_trashplastic'
+            'The value you entered does not match the lookup list <a href="https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_trashplastic">lu_trashplastic</a>'
             )
     )
 
