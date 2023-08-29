@@ -69,12 +69,21 @@ def vertebrate(all_dfs):
         "error_message": ""
     }
 
-    #Aria 5/11/2023
-    print(" after args")
-    # check 1: Check If no_observation == F (false) then taxon, lifestage, abundance fields are required and cant be 'Not Recorded', and they must come from 
-    #         lu_vertebratetaxon, lu_vertebratelifestage, and lu_vertebrateabundance respectively
-   
-   #Taxon
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------- Vertebrate Checks ---------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
+
+    print("# CHECK - 1")
+    # Description: Check If no_observation == F (false) then taxon, lifestage, abundance fields are required and cant be 'Not Recorded', and they must come from lu_vertebratetaxon, lu_vertebratelifestage, and lu_vertebrateabundance respectively (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 5/11/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works   
+
+    #Taxon
     errs.append(
         checkData(
             'tbl_vertebrateobservation',
@@ -106,10 +115,16 @@ def vertebrate(all_dfs):
             'If no_observation = F then abundance fields is required, abundance cant be empty or null '
             )
     )
+   # END OF CHECK - If No_Observation is False, then Taxon is required with value from lu_vertebratetaxon. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 1")
 
-    print("check 1 ran -working")
-
-    #check 2: If SiteType == 'exists' then the stationid must come from lu_station  (not lu_stations)
+    print("# CHECK - 2")
+    # Description: If SiteType == 'exists' then the stationid must come from lu_station  (not lu_stations)(🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 5/11/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works   
     errs.append(
         checkData(
             'tbl_vertebrateobservation',
@@ -120,6 +135,14 @@ def vertebrate(all_dfs):
             )
     )
 
-#completed by Aria 5/12/2023
+   # END OF CHECK - If SiteType == 'exists' then the stationid must come from lu_station  (not lu_stations) (🛑 ERROR 🛑)
+    print("# END OF CHECK - 2")
+
+
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # -----------------------------------End of Vertebrate Checks ------------------------------------------------------ #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
 
     return {'errors': errs, 'warnings': warnings}
