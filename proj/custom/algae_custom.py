@@ -77,7 +77,14 @@ def algae(all_dfs):
     # ------------------------------------------------------------------------------------------------------------------ #
     ######################################################################################################################
 
-
+    print("# CHECK - 1a")
+    # Description: If sampletypecode = 'Integrated' then (a) actualorganismcount and (b) baresult are required fields and cannot be empty or have -88. (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 2021
+    # Last Edited Date: 08/22/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+    print("# first check if actualorganismcount is empty")
     errs.append(
         checkData(
             'tbl_algae', 
