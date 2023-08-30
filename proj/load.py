@@ -52,7 +52,7 @@ def load():
         ) \
         .table_name \
         .values
-
+    print(all_dfs.keys())
     assert all(sheet in valid_tables for sheet in all_dfs.keys()), \
         f"Sheetname in excel file {excel_path} not found in the list of tables that can be submitted to"
 
@@ -62,8 +62,6 @@ def load():
       
     for tbl in all_dfs.keys():
         if tbl in current_app.tabs_to_ignore:
-            print("skipping tab")
-            print(tbl)
             continue
         # Lowercase all column names first
         all_dfs[tbl].columns = [x.lower() for x in all_dfs[tbl].columns]

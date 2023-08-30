@@ -114,8 +114,7 @@ def main():
             if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))
         }
         
-        # filter out empty dataframes
-        all_dfs = { dfname: df for dfname, df in all_dfs.items() if not df.empty }
+
         
         if len(all_dfs) == 0:
             returnvals = {
@@ -140,6 +139,7 @@ def main():
     # keys of all_dfs should be no longer the original sheet names but rather the table names that got matched, if any
     # if the tab didnt match any table it will not alter that item in the all_dfs dictionary
     print("Running match tables routine")
+    print(all_dfs.keys)
     match_dataset, match_report, all_dfs = match(all_dfs)
     
     print("match(all_dfs)")
