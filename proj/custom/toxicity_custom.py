@@ -86,7 +86,19 @@ def toxicity(all_dfs):
         "error_message": ""
     }
 
-    # Check 1: Within toxicity data, return a warning if a submission contains multiple dates within a single site    
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ Toxicity Checks ------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
+
+    print("# CHECK - 1")
+    # Description: Within toxicity data, return a warning if a submission contains multiple dates within a single site   (🛑 Warning 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/22/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     multiple_dates_within_site_summary = check_multiple_dates_within_site(toxicitysummary)
     multiple_dates_within_site_results = check_multiple_dates_within_site(toxicityresults)
 
@@ -129,8 +141,16 @@ def toxicity(all_dfs):
         ;"""
     phab_data = pd.read_sql(sql_query, g.eng)
     
+    # END OF CHECK - Within toxicity data, return a warning if a submission contains multiple dates within a single site   (🛑 Warning 🛑)    
+    print("# END of CHECK - 1")
 
-    # Check 2: Return warnings on missing phab data
+    print("# CHECK - 2")
+    # Description:  Return warnings on missing phab data  (🛑 Warning 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/22/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     
     missing_phab_data_summary = check_missing_phab_data(toxicitysummary, phab_data)
     missing_phab_data_results = check_missing_phab_data(toxicityresults, phab_data)
@@ -154,6 +174,8 @@ def toxicity(all_dfs):
             f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting toxicity data.'
         )
     )  
+    # END OF CHECK - Return warnings on missing phab data (🛑 Warning 🛑)    
+    print("# END of CHECK - 2")
 
     # # Check 3: Return warnings on submission dates mismatching with phab dates
     # mismatched_phab_date_summary = check_mismatched_phab_date(toxicitysummary, phab_data)
@@ -177,6 +199,12 @@ def toxicity(all_dfs):
     #         'Value Error', 
     #         f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
     #     )
-    # )  
+    # )
+    # 
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------END of Toxicity Checks ------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################  
 
     return {'errors': errs, 'warnings': warnings}

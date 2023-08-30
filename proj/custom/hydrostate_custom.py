@@ -64,13 +64,14 @@ def hydrostate(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
-
-    #Updating by Aria Askaryar 05/09/2023
-
-    #Check 1:       
-    # Total for the following columns must add to 100%
-    # cascades + dry + glides + pools + rapids + riffles + runs = 100%
-
+    print("Start of custom checks for hydrostate")
+    print("# CHECK - 1")
+    # Description: Total for the following columns must add to 100%. cascades + dry + glides + pools + rapids + riffles + runs = 100% (🛑 Warnings 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 05/09/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_hydrologicstate',
@@ -80,5 +81,8 @@ def hydrostate(all_dfs):
             'The values do not add up to 100%. The following coloumns sum must equal 100. cascades + dry + glides + pools + rapids + riffles + runs = 100% '
         )
     )
+    # END OF CHECK - Total for the following columns must add to 100%. cascades + dry + glides + pools + rapids + riffles + runs = 100% (🛑 Warnings 🛑)
+    print("# END OF CHECK - 1")
+    print("End of custom checks for hydrostate")
 
     return {'errors': errs, 'warnings': warnings}

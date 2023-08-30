@@ -51,6 +51,7 @@ def hydromod(all_dfs):
 
     # return {'errors': errs, 'warnings': warnings}
 
+
     hydromod = all_dfs['tbl_hydromod']
 
     hydromod['tmp_row'] = hydromod.index
@@ -64,16 +65,27 @@ def hydromod(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
-    '''
-    Check 1: 
-    If FullyArmored is No and LateralSusceptibilityL is 2 then BankHeightL1 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityL is 2 then BankHeightL1 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityL is 2 then BankHeightL2 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityL is 2 then BankHeightL3 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityL is 2 then BankAngleL1 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityL is 2 then BankAngleL2 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityL is 2 then BankAngleL3 is required (cannot be -88)
-    '''
+
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ Hydromod Checks ------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
+
+    print("# CHECK - 1")
+    # Description:If FullyArmored is No and LateralSusceptibilityL is 2 then the following is required: (🛑 ERROR 🛑)
+    # If FullyArmored is No and LateralSusceptibilityL is 2 then BankHeightL1 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityL is 2 then BankHeightL1 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityL is 2 then BankHeightL2 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityL is 2 then BankHeightL3 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityL is 2 then BankAngleL1 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityL is 2 then BankAngleL2 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityL is 2 then BankAngleL3 is required (cannot be -88)
+    # Created Coder: Ayah
+    # Created Date: 05/24/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
         'tbl_hydromod',
@@ -132,16 +144,23 @@ def hydromod(all_dfs):
         'You have entered No for FullyArmored and 2 for LateralSusceptibilityL, BankAngleL3 is required'
         )
     )
-    '''
-    Check 2:
-    If FullyArmored is No and LateralSusceptibilityR is 2 then BankHeightR1 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityR is 2 then BankHeightR2 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityR is 2 then BankHeightR3 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityR is 2 then BankAngleR1 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityR is 2 then BankAngleR2 is required (cannot be -88)
-    If FullyArmored is No and LateralSusceptibilityR is 2 then BankAngleR3 is required (cannot be -88)
+   # END OF CHECK - If FullyArmored is No and LateralSusceptibilityL is 2 then following is required (cannot be -88) (🛑 ERROR 🛑)
+    print("# END OF CHECK - 1")
 
-    '''
+    print("# CHECK - 2")
+    # Description:If FullyArmored is No and LateralSusceptibilityL is 2 then the following is required: (🛑 ERROR 🛑)
+    # If FullyArmored is No and LateralSusceptibilityR is 2 then BankHeightR1 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityR is 2 then BankHeightR2 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityR is 2 then BankHeightR3 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityR is 2 then BankAngleR1 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityR is 2 then BankAngleR2 is required (cannot be -88)
+    # If FullyArmored is No and LateralSusceptibilityR is 2 then BankAngleR3 is required (cannot be -88)
+    # Created Coder: Ayah
+    # Created Date: 05/24/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+
     errs.append(
         checkData(
         'tbl_hydromod',
@@ -201,16 +220,22 @@ def hydromod(all_dfs):
         'You have entered No for FullyArmored and 2 for LateralSusceptibilityR, BankAngleR3 is required'
         )
     )
-    
-    '''
-    Check 3:
-    FullyAmored is Yes	
-	If fullyarmored is Yes then StreamBedState must be C or NR
-	If fullyarmored is Yes then GradeControl must be A or NR
-	If fullyarmored is Yes then ArmoringPotential must be A or NR
-	If fullyarmored is Yes then lateralsusceptibilityl must be 1
-	If fullyarmored is Yes then lateralsusceptibilityr must be 1
-    '''  
+    # END OF CHECK - If FullyArmored is No and LateralSusceptibilityL is 2 then following is required (cannot be -88) (🛑 ERROR 🛑)
+    print("# END OF CHECK - 2")
+
+    print("# CHECK - 3")
+    # Description:FullyAmored is Yes then: (🛑 ERROR 🛑)
+	# If fullyarmored is Yes then StreamBedState must be C or NR
+	# If fullyarmored is Yes then GradeControl must be A or NR
+	# If fullyarmored is Yes then ArmoringPotential must be A or NR
+	# If fullyarmored is Yes then lateralsusceptibilityl must be 1
+	# If fullyarmored is Yes then lateralsusceptibilityr must be 1
+    # Created Coder: Ayah
+    # Created Date: 05/24/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+
     errs.append(
         checkData(
         'tbl_hydromod',
@@ -260,7 +285,8 @@ def hydromod(all_dfs):
         'You have entered Yes for FullyArmored, so LateralSusceptibilityR cannot be 1.'
         )
     )
-
+    # END OF CHECK - If FullyArmored is Yes (🛑 ERROR 🛑)
+    print("# END OF CHECK - 3")
 
     
     return {'errors': errs, 'warnings': warnings}

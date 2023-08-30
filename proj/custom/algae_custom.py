@@ -71,10 +71,19 @@ def algae(all_dfs):
     #ste = pd.read_sql("SELECT * FROM lu_algae_ste", g.eng).drop('objectid', axis = 1).rename(columns={'order_': 'order'})
     lu_algae = pd.read_sql("SELECT * FROM lu_organismalgae", g.eng).rename(columns={'order_':'order'})
 
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ Algae Checks ---------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
 
-    # 1. If sampletypecode = 'Integrated' then (a) actualorganismcount and (b) baresult are required fields and cannot be empty or have -88.
-    print("# 1. If sampletypecode = 'Integrated' then actualorganismcount and baresult are required fields and cannot be empty or have -88.")
-    # 1a. first check if actualorganismcount is empty
+    print("# CHECK - 1a")
+    # Description: If sampletypecode = 'Integrated' then (a) actualorganismcount and (b) baresult are required fields and cannot be empty or have -88. (🛑 ERROR 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 2021
+    # Last Edited Date: 08/22/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     print("# first check if actualorganismcount is empty")
     errs.append(
         checkData(
@@ -85,8 +94,16 @@ def algae(all_dfs):
             'SampleType is Integrated. ActualOrganismCount is a required field.'
         )
     )
+   # END OF CHECK - If sampletypecode = 'Integrated' then (a) actualorganismcount are required fields and cannot be empty or have -88. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 1a")
 
-    # 1b. second check if baresult is empty
+    print("# CHECK - 1b")
+    # Description: second check if baresult is empty(🛑 ERROR 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     print("# second check if baresult is empty")
     errs.append(
         checkData(
@@ -97,6 +114,8 @@ def algae(all_dfs):
             'SampleTypeCode is Integrated. BAResult is a required field.'
         )
     )
+   # END OF CHECK - If sampletypecode = 'Integrated' then (b) baresult are required fields and cannot be empty or have -88. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 1b")
 
     # With check #1 it is worth mentioning that the class of the organisms for sampletypecode of "Integrated" should be "Bacillariophyceae"
     # We can check this against the STE lookup list 
@@ -106,9 +125,16 @@ def algae(all_dfs):
     #merged = algae.merge(ste, how = 'inner', on = 'finalid')
     merged = algae.merge(lu_algae, how = 'inner', on = 'finalid')
     
-    # 2. Warning if species is not in the STE lookup list.
-    # Issue: Some finalids provided by lu_algae_ste do not exist in lu_organismalgae and vice versa.
+    print("# CHECK - 2")
+    # Description: Warning if species is not in the STE lookup list.(🛑 WARNING 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE Issue: Some finalids provided by lu_algae_ste do not exist in lu_organismalgae and vice versa.
     #        If LookUp Fail with lu_organismalgae, STE LookUp cannot be checked due to Core Error. - Newly updated lookup lu_organismalgae in database.
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+
     print("# Warn them if the species is not in the STE lookup list - COMMENTED OUT CHECK FOR STE LOOKUP - NOT RUN") # What is the purpose of this check?
     # warnings.append(
     #     checkData(
@@ -119,10 +145,18 @@ def algae(all_dfs):
     #         'This species is not in the STE lookup list, which will affect ASCI scores. If this is a concern to you, you can contact Susie Theroux at susannat@sccwrp.org. For more information, you may refer to the <a target=\\\"blank\\\" href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_algae_ste\\\">STE Lookup List</a>'
     #     )
     # )
+   # END OF CHECK -  Warning if species is not in the STE lookup list. (🛑 WARNING 🛑)
+    print("# END OF CHECK - 2")
 
+    print("# CHECK - 3")
+    # Description: Warning if organism is a diatom (phylum is Bacillariophyta), but sampletypecode does not say Integrated.(🛑 WARNING 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE Consider revising the warning message as STE lookup no longer stands. - Zaib
 
-    # 3. Warning if organism is a diatom (phylum is Bacillariophyta), but sampletypecode does not say Integrated.
-    # Consider revising the warning message as STE lookup no longer stands. - Zaib
     warnings.append(
         checkData(
             'tbl_algae', 
@@ -132,9 +166,17 @@ def algae(all_dfs):
             'This organism is a diatom (of the Bacillariophyta phylum), but the SampleTypeCode does not say Integrated. For more information, you may refer to the <a target=\\\"blank\\\" href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_algae_ste\\\">STE Lookup List</a>'
         )
     )
+    # END OF CHECK - Warning if organism is a diatom (phylum is Bacillariophyta), but sampletypecode does not say Integrated. (🛑 WARNING 🛑)
+    print("# END OF CHECK - 3")
 
-    # 4. Check if sampletypecode is Integrated but phylum is not Bacillariophyta. 
-    # Issue: phylum values between lu_organismalgae and lu_algae_ste do no always match or lu_algae_ste is missing some finalids
+    print("# CHECK - 4")
+    # Description: Check if sampletypecode is Integrated but phylum is not Bacillariophyta. (🛑 WARNING 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE Issue: phylum values between lu_organismalgae and lu_algae_ste do no always match or lu_algae_ste is missing some finalids
     #   Example: sampletypecode = 'Macroalgae' and finalid = 'Achnantheiopsis' should issue an ERROR since sampletypecode is expected to be 'Integrated'. 
     #           Empty dataframe is checked when lu_algae_ste is inner joined with algae (dropped) data. 
     #           Check is skipped when merged dataframe is empty due to inner join on finalid where finalid does not exist in lu_algae_ste.
@@ -153,8 +195,18 @@ def algae(all_dfs):
     print(merged[['sampletypecode', 'finalid', 'phylum']])
     print("dropped data")
     print(algae[['sampletypecode','finalid']])
-    
-    # 5. Check values in result column are numeric.
+
+    # END OF CHECK - Check if sampletypecode is Integrated but phylum is not Bacillariophyta.  (🛑 ERROR 🛑)
+    print("# END OF CHECK - 4")
+
+    print("# CHECK - 5")
+    # Description: Check values in result column are numeric. (🛑 WARNING 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+
     #algae = algae[algae['result'].apply(lambda x: convert_dtype(float, x))]
     errs.append(
         checkData(
@@ -165,9 +217,17 @@ def algae(all_dfs):
             'Result values cannot accept text. Please revise the result to a numeric value. If result should be empty, enter -88.'
         )
     )
+    # END OF CHECK -Check values in result column are numeric. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 5")
 
-    # 6. Check if sampletypecode = 'Macroalgae' then result are required fields and cannot be empty or have -88.
-    # SECOND CHECK REMOVED AFTER SPEAKING WITH SUSIE - ActualOrganismCount is not required.
+    print("# CHECK - 6")
+    # Description:  Check if sampletypecode = 'Macroalgae' then result are required fields and cannot be empty or have -88. (🛑 WARNING 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works    
+    # NOTE SECOND CHECK REMOVED AFTER SPEAKING WITH SUSIE - ActualOrganismCount is not required.
     # Issue: result is a varchar column in the database
     #       -88 (numeric) is flagged when checking result value
     #       '-88' (text) passes when it SHOULD NOT!
@@ -184,11 +244,19 @@ def algae(all_dfs):
             'SampleTypeCode is Macroalgae. Result is a required field.'
         )
     )    
-
+    # END OF CHECK -Check if sampletypecode = 'Macroalgae' then result are required fields and cannot be empty or have -88. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 6")
     
     # 7. Check if sampletypecode = 'Microalgae' then (a) actualorganismcount and (b) result are required fields and cannot be empty or have -88.
-    print("If sampletypecode = 'Microalgae' then actualorganismcount and baresult are required fields and cannot be empty or have -88")    
-    # 7a. first check if actualorganismcount is empty
+    print("CHECK 7:If sampletypecode = 'Microalgae' then actualorganismcount and baresult are required fields and cannot be empty or have -88")    
+
+    print("# CHECK - 7a")
+    # Description:  first check if actualorganismcount is empty OR -88(🛑 WARNING 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works    
     errs.append(
         checkData(
             'tbl_algae', 
@@ -198,8 +266,16 @@ def algae(all_dfs):
             'SampleType is MicroAlgae. ActualOrganismCount is a required field.'
         )
     )
-    # 7b. second check if result is empty
-    # result originally checked with '-88' (text)
+    # END OF CHECK -Check if sampletypecode = 'Macroalgae' then result are required fields and cannot be empty or have -88. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 7a")
+
+    print("# CHECK - 7b")
+    # Description: second check if result is empty, result originally checked with '-88' (text)(🛑 WARNING 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works 
     errs.append(
         checkData(
             'tbl_algae', 
@@ -209,11 +285,20 @@ def algae(all_dfs):
             'SampleTypeCode is Microalgae. Result is a required field.'
         )
     )
-
+    # END OF CHECK -Check if sampletypecode = 'Macroalgae' then result are required fields and cannot be empty or have -88. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 7b")
 
     # 8. Check if sampletypecode = 'Epiphyte' then (a) actualorganismcount and (b) baresult are required fields and cannot be empty or have -88.
     print("If sampletypecode = 'Epiphyte' then actualorganismcount and baresult are required fields and cannot be empty or have -88")
-    # 8a. first check if actualorganismcount is empty
+
+    print("# CHECK - 8a")
+    # Description: first check if actualorganismcount is empty (🛑 WARNING 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works 
+
     print(algae[(algae.sampletypecode == 'Epiphyte') & (algae.actualorganismcount == -88)])
     errs.append(
         checkData(
@@ -223,8 +308,18 @@ def algae(all_dfs):
             'Undefined Error', 
             'SampleTypeCode is Epiphyte. ActualOrganismCount is a required field.'
         )
-    )    
-    # 8b. second check if baresult is empty
+    )   
+    # END OF CHECK - first check if actualorganismcount is empty(🛑 ERROR 🛑)
+    print("# END OF CHECK - 8a")
+
+    print("# CHECK - 8b")
+    # Description: second check if baresult is empty (🛑 WARNING 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works 
+
     print(algae[(algae.sampletypecode == 'Epiphyte') & (algae.baresult == -88)])
     errs.append(
         checkData(
@@ -235,8 +330,17 @@ def algae(all_dfs):
             'SampleTypeCode is Epiphyte. BAResult is a required field.'
         )
     )
+    # END OF CHECK -second check if baresult is empty. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 8b")
 
-    # check 9: Check if collectiontime is in in HH:MM format in 24hour range (0-24:0-59)
+    print("# CHECK - 9")
+    # Description: Check if collectiontime is in in HH:MM format in 24hour range (0-24:0-59) (🛑 WARNING 🛑)
+    # Created Coder: (?)
+    # Created Date: 2021
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works 
+
     # This regular expression will match any string formatted as HH:MM within the 24-hour range (00:00-23:59)
     # correct_time_format = r'^([01]\d|2[0-3]):([0-5]\d)$' 
     correct_time_format = r'^(0?[0-9]|1\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$'
@@ -251,6 +355,16 @@ def algae(all_dfs):
             'collectiontime is not in HH:MM format in 24hour range (0-23:0-59). Time format is required'
         )
     )  
+    # END OF CHECK -Check if collectiontime is in in HH:MM format in 24hour range (0-24:0-59). (🛑 ERROR 🛑)
+    print("# END OF CHECK - 9")
+
+    print("END of all Algae checks")
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------End Algae Checks ------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
+
 
     print("-------------------------------------------------------- R SCRIPT -------------------------------------------")
     errs = [er for er in errs if len(er) > 0]

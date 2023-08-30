@@ -75,8 +75,20 @@ def chemistry(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
+    
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ Chemistry Checks ------------------------------------------------ #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
 
-    # Check 1: Within chemistry data, return a warning if a submission contains multiple dates within a single site # validated
+    print("# CHECK - 1")
+    # Description:  Within chemistry data, return a warning if a submission contains multiple dates within a single site (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 2/6/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria adjusts the format so it follows the coding standard. Did not touch the code.
     multiple_dates_within_site_results = check_multiple_dates_within_site(chemistryresults)   
 
     warnings.append(
@@ -88,6 +100,8 @@ def chemistry(all_dfs):
             f'Warning! You are submitting chemistry data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
         )
     )  
+    # END OF CHECK 1 - Within chemistry data, return a warning if a submission contains multiple dates within a single site. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 1")
 
     # phab data that will be used in checks 2 and 3 below
     results_sites = list(set(chemistryresults['stationcode'].unique()))
@@ -105,8 +119,16 @@ def chemistry(all_dfs):
     print("phab_data:")
     print(phab_data)
 
-    # Check 2: Return warnings on missing phab data # commented out for now
-    # this check is not working as expected - zaib 6feb2023
+    
+    print("# CHECK - 2")
+    # Description:  Return warnings on missing phab data (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 6/6/2023
+    # Last Edited Coder: Aria
+    # NOTE  (6feb2023): this check is not working as expected - zaib 
+    # NOTE (08/24/23): Aria adjusts the format so it follows the coding standard. Did not touch the code.
+
     missing_phab_data_results = check_missing_phab_data(chemistryresults, phab_data)
     print("missing_phab_data_results:")
     print(missing_phab_data_results)
@@ -120,9 +142,16 @@ def chemistry(all_dfs):
             f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting chemistry data.'
         )
     )  
+    # END OF CHECK 2 - Return warnings on missing phab data (🛑 ERROR 🛑)
+    print("# END OF CHECK - 2")
 
-
-    # Check 3: Return warnings on submission dates mismatching with phab dates
+    print("# CHECK - 3")
+    # Description:  Return warnings on submission dates mismatching with phab dates. (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 6/6/2023
+    # Last Edited Coder: Aria
+    # NOTE (08/24/23): Aria adjusts the format so it follows the coding standard.
     mismatched_phab_date_results = check_mismatched_phab_date(chemistryresults, phab_data)
 
     warnings.append(
@@ -134,6 +163,8 @@ def chemistry(all_dfs):
             f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
         )
     )  
+    # END OF CHECK 3 - Return warnings on submission dates mismatching with phab dates. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 3")
 
     # LOGIC CHECK -- using logic check routine instead of zipping dataframes
     # # Check 4: Return error for logic check where (a) result not in batch and (b) batch not in result.
@@ -150,9 +181,13 @@ def chemistry(all_dfs):
     # print("batch_notin_result:")
     # print(batch_notin_result)
     
-    # # Check 4a: batch not in result
-    # chemistry batch
-    ## chemistrybatch & chemistryresults
+    print("# CHECK - 4a")
+    # Description: batch not in result (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 6/6/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria adjusts the format so it follows the coding standard.
     match_cols = ['labbatch','labagencycode']
     badrows = chemistrybatch[~chemistrybatch[match_cols].isin(chemistryresults[match_cols].to_dict(orient='list')).all(axis=1)].tmp_row.tolist()
     chemistrybatch_args.update({
@@ -162,10 +197,16 @@ def chemistry(all_dfs):
         "error_message": f"Each record in batch must have a corresponding record in results. Records are matched based on {', '.join(match_cols)}."
     })
     errs = [*errs, checkData(**chemistrybatch_args)]
-    
-    # # Check 4b: result not in batch
-    # chemistryresults
-    ## chemistryresults & chemistrybatch
+    # END OF CHECK 4a - batch not in result (🛑 ERROR 🛑)
+    print("# END OF CHECK - 4a")
+
+    print("# CHECK - 4b")
+    # Description:  result not in batch (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 6/6/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria adjusts the format so it follows the coding standard.
     match_cols = ['labbatch','labagencycode']
     badrows = chemistryresults[~chemistryresults[match_cols].isin(chemistrybatch[match_cols].to_dict(orient='list')).all(axis=1)].tmp_row.tolist()
     chemistryresults_args.update({
@@ -175,15 +216,22 @@ def chemistry(all_dfs):
         "error_message": f"Each record in results must have a corresponding record in batch. Records are matched based on {', '.join(match_cols)}."
     })
     errs = [*errs, checkData(**chemistryresults_args)]
+    # END OF CHECK 4b - batch not in result (🛑 ERROR 🛑)
+    print("# END OF CHECK - 4b")
 
-    # END CHECK 4
-    # END LOGIC CHECK
-
+    #check 5 removed since its a core check 
     # # Check 5: Regex check to ensure that whitespaces will not pass for no null fields (a) LabSampleID and (b) LabBatch. -- taken care of by core checks
 
-    # Check 6: If MatrixName is samplewater, blankwater, or labwater then the following AnalyteName must be updated from Nitrate as N03 to Nitrate as N.
-    # Note: lu_analyte has 'Nitrate as N03' instead of 'Nitrate as NO3'
-    # the nameUpdate function COULD be revised, but I'm not sure if that is necessary
+    print("# CHECK - 6")
+    # Description:  If MatrixName is samplewater, blankwater, or labwater then the following AnalyteName must be updated from Nitrate as N03 to Nitrate as N. (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 5/2/2023
+    # Last Edited Coder: Zaib
+    # NOTE: lu_analyte has 'Nitrate as N03' instead of 'Nitrate as NO3'
+    # NOTE the nameUpdate function COULD be revised, but I'm not sure if that is necessary
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
+
     errs.append(
         checkData(
             'tbl_chemistryresults',
@@ -193,8 +241,16 @@ def chemistry(all_dfs):
             'Matrixname is samplewater, blankwater, or labwater. Nitrate as N03 must now be writen as Nitrate as N.'
         )
     )
+    # END OF CHECK 6 - If MatrixName is samplewater, blankwater, or labwater then the following AnalyteName must be updated from Nitrate as N03 to Nitrate as N. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 6")
 
-    # Check 7: If MatrixName is samplewater, blankwater, or labwater then the following AnalyteName must be updated from Phosphorus as PO4 to Phosphorus as P.
+    print("# CHECK - 7")
+    # Description:  If MatrixName is samplewater, blankwater, or labwater then the following AnalyteName must be updated from Phosphorus as PO4 to Phosphorus as P. (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 5/2/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     errs.append(
         checkData(
             'tbl_chemistryresults',
@@ -204,8 +260,16 @@ def chemistry(all_dfs):
             'Phosphorus as PO4 must now be writen as Phosphorus as P'
         )
     )
+    # END OF CHECK 7 - If MatrixName is samplewater, blankwater, or labwater then the following AnalyteName must be updated from Phosphorus as PO4 to Phosphorus as P. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 7")
 
-    # Check 8: If MatrixName is samplewater, blankwater, or labwater then the following must hold true: if AnalyteName = Ash Free Dry Mass then Unit must be mg/cm2.
+    print("# CHECK - 8")
+    # Description:  If MatrixName is samplewater, blankwater, or labwater then the following must hold true: if AnalyteName = Ash Free Dry Mass then Unit must be mg/cm2. (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 5/2/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     errs.append(
         checkData(
             'tbl_chemistryresults',
@@ -215,8 +279,16 @@ def chemistry(all_dfs):
             'If the AnalyteName is Ash Free Dry Mass, the Unit must be mg/cm2.'
         )
     )
+    # END OF CHECK 8 - If MatrixName is samplewater, blankwater, or labwater then the following must hold true: if AnalyteName = Ash Free Dry Mass then Unit must be mg/cm2. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 8")
 
-    # Check 9: If MatrixName is samplewater, blankwater, or labwater then the following must hold true: if AnalyteName = Chlorophyll a then Unit must be ug/cm2.
+    print("# CHECK - 9")
+    # Description: If MatrixName is samplewater, blankwater, or labwater then the following must hold true: if AnalyteName = Chlorophyll a then Unit must be ug/cm2. (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 5/2/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.    
     errs.append(
         checkData(
             'tbl_chemistryresults',
@@ -226,11 +298,18 @@ def chemistry(all_dfs):
             'If AnalyteName is Chlorophyll a, the Unit must be ug/cm2.'
         )
     )
+    # END OF CHECK 9 - If MatrixName is samplewater, blankwater, or labwater then the following must hold true: if AnalyteName = Chlorophyll a then Unit must be ug/cm2. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 9")
 
-    # # Check 10: Result column in results table must be numeric. (Check 11 nested)
+    # # Check 10: Result column in results table must be numeric. (Check 11 nested) 
 
-    # # Check 11: If ResQualCode is NR or ND then (a) result must be negative and (b) comment is required.
-    # # Check 11a: Warning if ResQualCode is NR or ND then (a) result must be negative.
+    print("# CHECK - 11a")
+    # Description: Warning if ResQualCode is NR or ND then (a) result must be negative. (Warning )
+    # Created Coder: Aria
+    # Created Date: 2023
+    # Last Edited Date: 6/6/2023
+    # Last Edited Coder: Aria
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.   
     warnings.append(
         checkData(
             'tbl_chemistryresults',
@@ -240,8 +319,17 @@ def chemistry(all_dfs):
             'If ResQualCode is NR or ND then result must be negative value'
         )
     )
+    # END OF CHECK 11a - Warning if ResQualCode is NR or ND then (a) result must be negative. (Warning )
+    print("# END OF CHECK - 11a")
 
-    # # Check 11b: Warning if ResQualCode is NR or ND then (b) comment is required. # Jeff requested to remove this one. 5/21/2019
+    print("# CHECK - 11b")
+    # Description: Warning if ResQualCode is NR or ND then (b) comment is required. (Warning )
+    # Created Coder: Aria
+    # Created Date: 2023
+    # Last Edited Date: 6/6/2023
+    # Last Edited Coder: Aria
+    # NOTE # Jeff requested to remove this one. 5/21/2019
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.  
     warnings.append(
         checkData(
             'tbl_chemistryresults',
@@ -251,10 +339,16 @@ def chemistry(all_dfs):
             'If ResQualCode is NR or ND then comment is required'
         )
     )
-
-    # #### REVIST CODE BLOCK IN ChemistryChecks.py 345 - 359 
-
-    # Check 12: If result is less than RL but NOT negative then ResQualCode should be DNQ. - ERROR 
+    # END OF CHECK 11b -Warning if ResQualCode is NR or ND then (b) comment is required. (Warning )
+    print("# END OF CHECK - 11b")
+    
+    print("# CHECK - 12")
+    # Description:  If result is less than RL but NOT negative then ResQualCode should be DNQ. (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 5/2/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     errs.append(
         checkData(
             'tbl_chemistryresults',
@@ -264,8 +358,16 @@ def chemistry(all_dfs):
             'If Result is less than RL, but not -88, then ResQualCode should be DNQ.'
         )
     )
+    # END OF CHECK 12 - If result is less than RL but NOT negative then ResQualCode should be DNQ. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 12")
 
-    # Check 13: If result is negative (or zero) then ResQualCode need to be ND. - ERROR
+    print("# CHECK - 13")
+    # Description:  If result is negative (or zero) then ResQualCode need to be ND. (🛑 ERROR 🛑)
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 5/2/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     errs.append(
         checkData(
             'tbl_chemistryresults',
@@ -275,8 +377,16 @@ def chemistry(all_dfs):
             'If Result is less than or equal to zero, then the ResQualCode should be ND.'
         )
     )
+    # END OF CHECK 13 - If result is negative (or zero) then ResQualCode need to be ND. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 13")
 
-    # Check 14: RL and MDL cannot both be -88. - WARNING
+    print("# CHECK - 14")
+    # Description:   RL and MDL cannot both be -88. - WARNING
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 5/2/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     warnings.append(
         checkData(
             'tbl_chemistryresults',
@@ -286,8 +396,16 @@ def chemistry(all_dfs):
             'The MDL and RL cannot both be -88.'
         )
     )
+    # END OF CHECK 14 - RL and MDL cannot both be -88. ( Warning )
+    print("# END OF CHECK - 14")
 
-    # Check 15: RL cannot be less than MDL. - WARNING 
+    print("# CHECK - 15")
+    # Description:   RL cannot be less than MDL. - WARNING 
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 5/2/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     warnings.append(
         checkData(
             'tbl_chemistryresults',
@@ -297,8 +415,16 @@ def chemistry(all_dfs):
             'The RL cannot be less than MDL.'
         )
     )
+    # END OF CHECK 15 - RL cannot be less than MDL. - WARNING 
+    print("# END OF CHECK - 15")
 
-    # Check 16: If SampleTypeCode is in the set MS1, MS2, LCS, CRM, MSBLDup, BlankSp and the Unit is NOT % then Expected Value cannot be 0. --- <=0 gives warning
+    print("# CHECK - 16")
+    # Description:  If SampleTypeCode is in the set MS1, MS2, LCS, CRM, MSBLDup, BlankSp and the Unit is NOT % then Expected Value cannot be 0. --- <=0 gives warning - WARNING
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 5/2/2023
+    # Last Edited Coder: Zaib
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     warnings.append(
         checkData(
             'tbl_chemistryresults',
@@ -308,9 +434,17 @@ def chemistry(all_dfs):
             'Expected Value required based on SampleTypeCode.'
         )
     )
+    # END OF CHECK 16 -  If SampleTypeCode is in the set MS1, MS2, LCS, CRM, MSBLDup, BlankSp and the Unit is NOT % then Expected Value cannot be 0. --- <=0 gives warning - WARNING
+    print("# END OF CHECK - 16")
 
-    # For Check 17, see line 421 in ChemistryChecks.py.
-    # Check 17: If multiple records have equal LabBatch, AnalyteName, DilFactor then MDL values for those records must also be equivalent. -- WARNING
+    print("# CHECK - 17")
+    # Description:  If multiple records have equal LabBatch, AnalyteName, DilFactor then MDL values for those records must also be equivalent. -- WARNING
+    # Created Coder: Zaib
+    # Created Date: 2023
+    # Last Edited Date: 5/2/2023
+    # Last Edited Coder: Zaib
+    # NOTE # For Check 17, see line 421 in ChemistryChecks.py.
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     groups = chemistryresults.groupby(['labbatch','analytename','dilfactor'])['mdl'].apply(
         lambda x: True if len(set(x)) > 1 else False
         ).reset_index(name = 'multiple mdl values')
@@ -325,39 +459,57 @@ def chemistry(all_dfs):
         df = bad_groups.dilfactor[i]
         # this is where the checkData function runs...
 
+    # END OF CHECK 17 -  If multiple records have equal LabBatch, AnalyteName, DilFactor then MDL values for those records must also be equivalent. -- WARNING
+    print("# END OF CHECK - 17")
     #### STOPPED HERE - zaib 9feb2023
 
     ###  Aria Started working here -5/23/2023 started on check18    #########################
 
-    # For Check 18, see line 449.
-    # Check 18: If multiple records have equal LabBatch, AnalyteName, DilFactor then RL values for those records must also be equivalent. - WARNING
-    
-    # From Robert - I'm not sure this below code will work to get the badrows
-    # chemistryresults[(chemistryresults.stationcode != '000NONPJ') & (chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (chemistryresults['dilfactor'].duplicated()) & (~chemistryresults['rl'].duplicated())].tmp_row.tolist()
-    # Please thoroughly check to make sure it is doing what it should be
+    ## check 18 is commented out because its removed from the Data Product Review:
 
-    # The below code should do it since it is grouping baseed on the specified columns
-    groupcols = ['labbatch', 'analytename', 'dilfactor']
-    invalid_groups = chemistryresults.groupby(groupcols) \
-        .filter(
-            lambda g: len(g['rl'].unique()) > 1
-        )
-    invalid_records = invalid_groups[invalid_groups.stationcode != '000NONPJ']
+    # print("# CHECK - 18")
+    # # Description:  If multiple records have equal LabBatch, AnalyteName, DilFactor then RL values for those records must also be equivalent. - WARNING
+    # # Created Coder: unknown
+    # # Created Date: unknown
+    # # Last Edited Date: unknown
+    # # Last Edited Coder: unknown 
+    # # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
+    # ############### Additional Notes #########################################
+    # # From Robert - I'm not sure this below code will work to get the badrows
+    # # chemistryresults[(chemistryresults.stationcode != '000NONPJ') & (chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (chemistryresults['dilfactor'].duplicated()) & (~chemistryresults['rl'].duplicated())].tmp_row.tolist()
+    # # Please thoroughly check to make sure it is doing what it should be
 
-    badrows = chemistryresults.merge(invalid_records, on = groupcols, how = 'left').tmp_row.tolist()
-    warnings.append(
-        checkData(
-            'tbl_chemistryresults',
-            badrows,
-            'rl',
-            'Undefined Warning',
-            'If multiple records have equal LabBatch, AnalyteName, DilFactor then RL values for those records must also be equivalent. This shows that RL has different values with the matched record'
-        )
-    )
+    # # The below code should do it since it is grouping baseed on the specified columns
+    # groupcols = ['labbatch', 'analytename', 'dilfactor']
+    # invalid_groups = chemistryresults.groupby(groupcols) \
+    #     .filter(
+    #         lambda g: len(g['rl'].unique()) > 1
+    #     )
+    # invalid_records = invalid_groups[invalid_groups.stationcode != '000NONPJ']
 
-    ## For Check 19, see line 472 in ChemistryChecks.py.
-    # Check 19: If multiple records have equal LabBatch, AnalyteName then MethodNames should also be equivalent.  - WARNING
-    # Same logic should apply here
+    # # badrows = chemistryresults.merge(invalid_records, on = groupcols, how = 'left').tmp_row.tolist()
+    # badrows = invalid_records.tmp_row.tolist()
+
+    # warnings.append(
+    #     checkData(
+    #         'tbl_chemistryresults',
+    #         badrows,
+    #         'rl',
+    #         'Undefined Warning',
+    #         'If multiple records have equal LabBatch, AnalyteName, DilFactor then RL values for those records must also be equivalent. This shows that RL has different values with the matched record'
+    #     )
+    # )
+    # # END OF CHECK 18 
+    # print("# END OF CHECK - 18")
+
+    print("# CHECK - 19")
+    # Description:  If multiple records have equal LabBatch, AnalyteName then MethodNames should also be equivalent.  - WARNING
+    # Created Coder: Aria
+    # Created Date: 2023
+    # Last Edited Date: 5/31/2023
+    # Last Edited Coder: Aria
+    # NOTE For Check 19, see line 472 in ChemistryChecks.py.
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     warnings.append(
         checkData(
             'tbl_chemistryresults',
@@ -367,8 +519,16 @@ def chemistry(all_dfs):
             ' If multiple records have equal LabBatch, AnalyteName then MethodNames should also be equivalent. Check methodname.'
         )
     )
+    # END OF CHECK 19 -  If multiple records have equal LabBatch, AnalyteName then MethodNames should also be equivalent.  - WARNING
+    print("# END OF CHECK - 19")
 
-    #Check 20:If multiple records have equal LabBatch, AnalyeName then Unit should also be equivalent
+    print("# CHECK - 20")
+    # Description:  If multiple records have equal LabBatch, AnalyeName then Unit should also be equivalent - WARNING
+    # Created Coder: Aria
+    # Created Date: 2023
+    # Last Edited Date: 5/31/2023
+    # Last Edited Coder: Aria
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     warnings.append(
         checkData(
             'tbl_chemistryresults',
@@ -378,10 +538,16 @@ def chemistry(all_dfs):
             'If multiple records have equal LabBatch, AnalyteName then Unit should also be equivalent. Check methodname.'
         )
     )
-    
-    print("the code ran here chem")
+    # END OF CHECK 20 -  If multiple records have equal LabBatch, AnalyeName then Unit should also be equivalent  - WARNING
+    print("# END OF CHECK - 20")    
 
-    # Check 21: If LabSubmissionCode is A, MD, or QI then LabBatchComments are required. - WARNING 
+    print("# CHECK - 21")
+    # Description:  IIf LabSubmissionCode is A, MD, or QI then LabBatchComments are required. - WARNING 
+    # Created Coder: Aria
+    # Created Date: 2023
+    # Last Edited Date: 5/31/2023
+    # Last Edited Coder: Aria
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     required_codes = ["A", "MD", "QI"]
 
     warnings.append(
@@ -393,8 +559,16 @@ def chemistry(all_dfs):
             'If labsubmissioncode is A, MD, or QI then labbatchcomments are required. Check comment.'
         )
     )
+    # END OF CHECK 21 - If LabSubmissionCode is A, MD, or QI then LabBatchComments are required. - WARNING 
+    print("# END OF CHECK - 21")    
     
-    # Check 22: If SampleTypeCode is in the set Grab, LabBlank, Integrated then ExpectedValue must be -88 (unless the unit is % recovery). - ERROR
+    print("# CHECK - 22")
+    # Description:  If SampleTypeCode is in the set Grab, LabBlank, Integrated then ExpectedValue must be -88 (unless the unit is % recovery).(🛑 ERROR 🛑)
+    # Created Coder: Aria
+    # Created Date: 2023
+    # Last Edited Date: 5/31/2023
+    # Last Edited Coder: Aria
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     required_sampletypecodes = ["Grab", "LabBlank", "Integrated"]
     
     errs.append(
@@ -406,8 +580,16 @@ def chemistry(all_dfs):
             'If SampleTypeCode is in the set Grab, LabBlank, Integrated then ExpectedValue must be -88 (unless the unit is recovery)'
         )
     )
+    # END OF CHECK 22 - If SampleTypeCode is in the set Grab, LabBlank, Integrated then ExpectedValue must be -88 (unless the unit is % recovery).(🛑 ERROR 🛑)
+    print("# END OF CHECK - 22")    
 
-    # Check 23: If SampleTypeCode is in the set MS1, LCS, BlankSp, CRM then ExpectedValue cannot be -88. - ERROR 
+    print("# CHECK - 23")
+    # Description:  If SampleTypeCode is in the set MS1, LCS, BlankSp, CRM then ExpectedValue cannot be -88.(🛑 ERROR 🛑)
+    # Created Coder: Aria
+    # Created Date: 2023
+    # Last Edited Date: 5/31/2023
+    # Last Edited Coder: Aria
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
     required_sampletypecodes23 = ["MS1", "LCS", "BlankSp", "CRM"]
         
     errs.append(
@@ -419,9 +601,16 @@ def chemistry(all_dfs):
             ' If SampleTypeCode is in the set MS1, LCS, BlankSp, CRM then ExpectedValue cannot be -88.'
         )
     )
-    
-    # Check  24: If Unit is % recovery then ExpectedValue cannot have -88. - ERROR ---checks up until here end at LINE 544 in ChemistryChecks.py
-            
+    # END OF CHECK 23 - If SampleTypeCode is in the set MS1, LCS, BlankSp, CRM then ExpectedValue cannot be -88.(🛑 ERROR 🛑)
+    print("# END OF CHECK - 23")    
+
+    print("# CHECK - 24")
+    # Description:  If Unit is % recovery then ExpectedValue cannot have -88. (🛑 ERROR 🛑)
+    # Created Coder: Aria
+    # Created Date: 2023
+    # Last Edited Date: 5/31/2023
+    # Last Edited Coder: Aria
+    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.            
     errs.append(
         checkData(
             'tbl_chemistryresults',
@@ -431,8 +620,13 @@ def chemistry(all_dfs):
             "If Unit is '%' recovery then ExpectedValue cannot have -88."
         )
     )
-    
-    ###### Aria Stopped working here     ####################################################################################
+    # END OF CHECK 24 - If Unit is % recovery then ExpectedValue cannot have -88. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 24")    
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------End of Chemistry Checks ------------------------------------------ #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
 
     # EXTRA CHECKS FROM SUBMISSION GUIDE -- PAUSE -- CONTINUE THIS LATER --> ADD THE ABOVE CHECKS TO THE QA REVIEW AND CUSTOM CHECKS FILE
     # NOTE: Import all of the comments for tracking purposes from SMC ChemistryChecks.py. 
@@ -444,11 +638,9 @@ def chemistry(all_dfs):
     return {'errors': errs, 'warnings': warnings}
 
 
+######################################################################################################################
 #################Transfered over code from old server 192.168.1.17 ##################################################
 ############### all commented out in the old server as well ###################################################
-
-
-
                 ########################################
                 ##                                    ##
                 ## Extra Checks from Submission Guide ##

@@ -67,6 +67,13 @@ def phab(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
+    
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ PHAB Checks ----------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
+
     # errs.append(
     #     checkData(
     #         'tbl_algae', 
@@ -81,8 +88,14 @@ def phab(all_dfs):
     # This was given to us by Rafi and posted to Teams website
     #    checkData(phabphab[phab.sampledate > datetime.today()].tmp_row.tolist(), 'SampleDate', 'Undefined Error', 'error', 'It appears that this sample came from the future', phab)
 
-    ##Check 3: SampleDate cannot be from the future
-
+    print("# CHECK - 3")
+    # Description: SampleDate cannot be from the future (🛑 ERROR 🛑)
+    # Created Coder: Ayah
+    # Created Date: 04/03/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+   
     errs.append(
         checkData(
             'tbl_phab',
@@ -92,8 +105,17 @@ def phab(all_dfs):
             'It appears that this sample came from the future'                  
         )
     )
+    # END OF CHECK - SampleDate cannot be from the future (🛑 ERROR 🛑)
+    print("# END OF CHECK - 3")
 
-    ## Check 4: If ResQualCode is NR, ND, or NA, then Result should be NULL
+    print("# CHECK - 4")
+    # Description: If ResQualCode is NR, ND, or NA, then Result should be NULL (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 04/03/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+   
     warnings.append(
         checkData(
             'tbl_phab',
@@ -103,7 +125,16 @@ def phab(all_dfs):
             'If the resqualcode is NR, then the result should be -88, or left blank.'               
         )
     )
-    #Check 5: If ResQualCode is NR, ND, or NA then VariableResult should be Not Recorded or NULL 
+    # END OF CHECK - If ResQualCode is NR, ND, or NA, then Result should be NULL(🛑 Warning 🛑)
+    print("# END OF CHECK - 4")
+
+    print("# CHECK - 5")
+    # Description:If ResQualCode is NR, ND, or NA then VariableResult should be Not Recorded or NULL  (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 04/03/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     warnings.append(
         checkData(
             'tbl_phab',
@@ -113,8 +144,16 @@ def phab(all_dfs):
             'If the resqualcode is NR, then the variableresult should say Not Recorded, or be left blank.'              
         )
     )
+    # END OF CHECK - If ResQualCode is NR, ND, or NA then VariableResult should be Not Recorded or NULL (🛑 Warning 🛑)
+    print("# END OF CHECK - 5")
     
-    #Check 6: For QACode flagged as None, Result should not be reported (meaning Result must be -88 or NULL)
+    print("# CHECK - 6")
+    # Description: For QACode flagged as None, Result should not be reported (meaning Result must be -88 or NULL) (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 04/03/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     warnings.append(
         checkData(
             'tbl_phab',
@@ -124,8 +163,16 @@ def phab(all_dfs):
             "The QA Flag is not None here, but there appears to be a value reported in the Result column.",            
         )
     )
+    # END OF CHECK -  For QACode flagged as None, Result should not be reported (meaning Result must be -88 or NULL)(🛑 Warning 🛑)
+    print("# END OF CHECK - 6")
 
-    # Check 7: For QACode flagged as None, VariableResult should not be reported (meaning VariableResult must be NR, NULL, or empty)  
+    print("# CHECK - 7")
+    # Description: For QACode flagged as None, VariableResult should not be reported (meaning VariableResult must be NR, NULL, or empty)(🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 04/03/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works    
     warnings.append(
         checkData(
             'tbl_phab',
@@ -135,7 +182,16 @@ def phab(all_dfs):
             "The QA Flag is not None here, but there appears to be a value reported in the VaraibleResult column."            
         )
     )
-    # Check 8: Warn for Analyte SpecifcConductivity if Result value is less than 50
+    # END OF CHECK - For QACode flagged as None, VariableResult should not be reported (meaning VariableResult must be NR, NULL, or empty) (🛑 Warning 🛑)
+    print("# END OF CHECK - 7")
+
+    print("# CHECK - 8")
+    # Description: Warn for Analyte SpecifcConductivity if Result value is less than 50 (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 04/03/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works    
     warnings.append(
         checkData(
             'tbl_phab',
@@ -145,10 +201,17 @@ def phab(all_dfs):
             "SpecificConductivity must be reported in units of uS/cm. Your data submission contains very low values, which should indicate that data were recorded as mS/cm instead. Please verify that data is reported in the required units",                       
         )
     )
+    # END OF CHECK -  Warn for Analyte SpecifcConductivity if Result value is less than 50 (🛑 Warning 🛑)
+    print("# END OF CHECK - 8")
 
- # Check 9: If the Result value for the Analyte Temperature is higher than 31, then issue a warning
- # Tell them they need to make sure they measured in Celsius, not Fahrenheit
-
+    print("# CHECK - 9")
+    # Description: If the Result value for the Analyte Temperature is higher than 31, then issue a warning (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 04/03/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works  
+    # NOTE Tell them they need to make sure they measured in Celsius, not Fahrenheit
     warnings.append(
         checkData(
             'tbl_phab',
@@ -158,9 +221,16 @@ def phab(all_dfs):
             "The temperature value here seems a little bit high. Just make sure that you measured the temperature in Celsius, not Fahrenheit",            
         )
     )
+    # END OF CHECK -  Warn for Analyte SpecifcConductivity if Result value is less than 50 (🛑 Warning 🛑)
+    print("# END OF CHECK - 9")
 
-# Check 10: if the Result Value for the Analyte "Oxygen, Dissolved" is above 14.6
-
+    print("# CHECK - 10")
+    # Description:if the Result Value for the Analyte "Oxygen, Dissolved" is above 14.6 (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 04/03/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works  
     warnings.append(
         checkData(
             'tbl_phab',
@@ -169,8 +239,15 @@ def phab(all_dfs):
             'Undefined Warning',
             "The Result reported for analyte Oxygen Dissolved seems a bit high. Be sure to report the result in units of mg/L, not Percentage.",            
         )
-    
     )
+    # END OF CHECK -  if the Result Value for the Analyte "Oxygen, Dissolved" is above 14.6 (🛑 Warning 🛑)
+    print("# END OF CHECK - 10")
+    
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ END of PHAB Checks ---------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
 
     print("-------------------------------------------------------- R SCRIPT -------------------------------------------")
     print("Errors list")

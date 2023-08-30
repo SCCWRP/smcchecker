@@ -76,9 +76,19 @@ def taxonomy(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ Taxonomy Checks ------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
 
-    # Check 1: Within taxonomy data, return a warning if a submission contains multiple dates within a single site    
-    print("# Check 1: Within taxonomy data, return a warning if a submission contains multiple dates within a single site")    
+    print("# CHECK - 1")
+    # Description: Within taxonomy data, return a warning if a submission contains multiple dates within a single site  (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 06/21/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     # multiple_dates_within_site_info = check_multiple_dates_within_site(taxonomysampleinfo)
     # multiple_dates_within_site_results = check_multiple_dates_within_site(taxonomyresults)
 
@@ -90,9 +100,19 @@ def taxonomy(all_dfs):
     #         'Value Error', 
     #         f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_info[1]} unique sample dates were submitted. Is this correct?'
     #     )
-    # )    
-    # Check 2: Within taxonomy data, return a warning if a submission contains multiple dates within a single site
-    print("# Check 2: Within taxonomy data, return a warning if a submission contains multiple dates within a single site")
+    # )
+
+    # END OF CHECK - Within taxonomy data, return a warning if a submission contains multiple dates within a single site")    
+    print("# END OF CHECK - 1")
+
+    print("# CHECK - 2")
+    # Description: Within taxonomy data, return a warning if a submission contains multiple dates within a single site (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 06/21/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+
     # warnings.append(
     #     checkData(
     #         'tbl_taxonomyresults', 
@@ -102,9 +122,17 @@ def taxonomy(all_dfs):
     #         f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
     #     )
     # )  
+    # END OF CHECK - Within taxonomy data, return a warning if a submission contains multiple dates within a single site)    
+    print("# END OF CHECK - 2")
 
-    # Check 3: Return warnings on missing phab data
-    print("# Check 3: Return warnings on missing phab data")
+    print("# CHECK - 3")
+    # Description: Return warnings on missing phab data (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 06/21/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+
     #phab data that will be used in checks 2 and 3 below
     info_sites = list(set(taxonomysampleinfo['stationcode'].unique()))
     results_sites = list(set(taxonomyresults['stationcode'].unique()))
@@ -145,9 +173,16 @@ def taxonomy(all_dfs):
             f'Warning! PHAB data has not been submitted for site(s): {list(taxonomysampleinfo.stationcode[badrows_sampleinfo])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
         )
     )  
+    # END OF CHECK - Warn if PHAB sampleinfo data has not been submitted for StationCode/SampleDate prior to Taxonomy submission    
+    print("# END OF CHECK - 3")
 
-    # Check 4- missing phab records for taxonomyresults submission
-    print("# Check 4- missing phab records for taxonomyresults submission")
+    print("# CHECK - 4")
+    # Description: missing phab records for taxonomyresults submission(🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 06/21/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
 
     #Adding "indicator = True" adds a column called _merge that tells you whether the row is in both or one of the tables.
     taxonomyresults['sampledate'] = pd.to_datetime(taxonomyresults['sampledate'])
@@ -166,9 +201,17 @@ def taxonomy(all_dfs):
             f'Warning! PHAB data has not been submitted for site(s): {list(taxonomyresults.stationcode[badrows_results])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
         )
     )  
+    # END OF CHECK - missing phab records for taxonomyresults submission    
+    print("# END OF CHECK - 4")
 
-    ## Check 5: Return warnings on submission dates mismatching with phab dates
-    print("## Check 5: Return warnings on submission dates mismatching with phab dates")
+    print("# CHECK - 5")
+    # Description: Return warnings on submission dates mismatching with phab dates(🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 06/21/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+
     mismatched_phab_date_info = check_mismatched_phab_date(taxonomysampleinfo, phab_data)    
 
     mismatched_phab_date_results = check_mismatched_phab_date(taxonomyresults, phab_data)
@@ -183,6 +226,8 @@ def taxonomy(all_dfs):
             f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_info[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
         )
     )  
+    # END OF CHECK - sampleinfo sheet
+    print("sampleinfo sheet")    
 
     #results sheet
     warnings.append(
@@ -193,10 +238,18 @@ def taxonomy(all_dfs):
             'Value Error', 
             f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
         )
-    ) 
+    )
+    print("result sheet")    
+    # END OF CHECK - results sheet: Return warnings on submission dates mismatching with phab dates    
+    print("# END OF CHECK - 5")
 
-    # Check 6:TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier 
-    print("# Check 6:TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier ")
+    print("# CHECK - 6")
+    # Description: TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier(🛑 Error 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 06/21/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_taxonomyresults', 
@@ -206,10 +259,16 @@ def taxonomy(all_dfs):
             'Taxonomicqualifier must contain at least one value from lu_taxonomicqualifier '
         )
     ) 
-    print('##############the code ran here########') 
-    # Check 7: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo #done
-    print("# Check 7: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo #done")
-    #warnning
+    # END OF CHECK -TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier    
+    print("# END OF CHECK - 6")
+
+    print("# CHECK - 7")
+    # Description:  Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 06/21/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_taxonomysampleinfo', 
@@ -219,9 +278,16 @@ def taxonomy(all_dfs):
             'Consecutive Dates. Make sure you did not accidentally drag down the date'
         )
     )  
-    #Check 8: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults #done
-    print("#Check 8: Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults #done")
-    #warnning
+    # END OF CHECK - Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo     
+    print("# END OF CHECK - 7")
+
+    print("# CHECK - 8")
+    # Description:  Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults(🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 06/21/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_taxonomyresults',
@@ -231,10 +297,16 @@ def taxonomy(all_dfs):
             'Consecutive Dates. Make sure you did not accidentally drag down the date'
         )
     ) 
-    print('code ran consecutive date check')
+    # END OF CHECK - Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults      
+    print("# END OF CHECK - 8")
 
-    #Check 9: FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup
-    print("#Check 9: FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup")
+    print("# CHECK - 9")
+    # Description:  FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 06/21/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     lu_organisms = pd.read_sql("SELECT concat(finalid, '_', lifestagecode) as combinations FROM vw_organism_lifestage_lookup;", g.eng)
     sql_combos = lu_organisms['combinations'].tolist()
     taxonomyresults['tmp_comb'] = taxonomyresults['finalid'].astype(str) + '_' + taxonomyresults['lifestagecode'].astype(str)
@@ -250,13 +322,23 @@ def taxonomy(all_dfs):
             'FinalID/LifeStageCode combination must match the combination found in vw_organism_lifestage_lookup'
             )
     )
-
-    #end of custom checks
+    # END OF CHECK - FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup     
+    print("# END OF CHECK - 9")
+    
+    #############end of custom checks########################################################################################
 
     ##################
 	## LOGIC CHECK  ##
     ##################
-    print("#check 10: Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate.")
+    
+    print("# CHECK - 10")
+    # Description:  Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate. (🛑 Warning 🛑)
+    # Created Coder: Aria Askaryar
+    # Created Date: 06/21/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+
     taxonomysampleinfo['temp_key'] = taxonomysampleinfo['stationcode'].astype(str) + taxonomysampleinfo['sampledate'].astype(str) + taxonomysampleinfo['fieldreplicate'].astype(str)
     taxonomyresults['temp_key'] = taxonomyresults['stationcode'].astype(str) + taxonomyresults['sampledate'].astype(str) + taxonomyresults['fieldreplicate'].astype(str)
 
@@ -283,7 +365,18 @@ def taxonomy(all_dfs):
             'Each Taxonomy Result record must have a corresponding Taxonomy SampleInfo record. Records are matched on StationCode,SampleDate, and FieldReplicate.'
             )
     )
-    
+    # END OF CHECK - Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate.     
+    print("# END OF CHECK - 10")
+
+    ######################
+	## End LOGIC CHECK  ##
+    ######################
+
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ---------------------------------------------END Taxonomy Checks ------------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################    
 
     print("-------------------------------------------------------- R SCRIPT -------------------------------------------")
     errs = [er for er in errs if len(er) > 0]

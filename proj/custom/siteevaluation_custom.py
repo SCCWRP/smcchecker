@@ -63,8 +63,14 @@ def siteevaluation(all_dfs):
         "error_message": ""
     }
 
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ Siteevaluation Checks ------------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
 
-    # Check 1: if evalstatuscode == 'NE' then: the following must be equal to "U":
+    print("# CHECK - 1")
+    # Description: if evalstatuscode == 'NE' then: the following must be equal to "U":
     # waterbodystatuscode
     # flowstatuscode
     # wadeablestatuscode
@@ -82,8 +88,11 @@ def siteevaluation(all_dfs):
     #    siteevalcheck('evalstatuscode', 'NE', 'fieldreconcode', 'N')
     #    siteevalcheck('evalstatuscode', 'NE', 'samplestatuscode', 'NS')
     # -- End of 'Check - evalstatuscode == "NE" ...' -- #
-
-    # #Updated by Aria Askaryar on 3/20/2023 
+    # Created Coder: Aria Askaryar
+    # Created Date: 3/20/2023 
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
 
     errs.append(
         checkData(
@@ -94,6 +103,7 @@ def siteevaluation(all_dfs):
             "waterbodystatuscode must have a Vale of U if evalstatuscode is NE "
         )
     )
+    print("Pass: If evalstatuscode is 'NE' then waterbodystatuscode should be 'U'")
 
     errs.append(
         checkData(
@@ -104,6 +114,7 @@ def siteevaluation(all_dfs):
             "flowstatuscode must have a Vale of U if evalstatuscode is NE"
         )
     )
+    print("Pass: If evalstatuscode is 'NE' then flowstatusbody should be 'U'")
 
     errs.append(
         checkData(
@@ -114,6 +125,7 @@ def siteevaluation(all_dfs):
             "wadeablestatuscode must have a Vale of U"
         )
     )
+    print("Pass: If evalstatuscode is 'NE' then wadeablestatuscode should be 'U'")
 
     errs.append(
         checkData(
@@ -124,6 +136,7 @@ def siteevaluation(all_dfs):
             "physicalaccessstatuscode must have a Vale of U"
         )
     )
+    print("Pass: If evalstatuscode is 'NE' then physicalaccessstatuscode' should be 'U' ")
 
     errs.append(
         checkData(
@@ -134,6 +147,8 @@ def siteevaluation(all_dfs):
             "landpermissionstatuscode must have a Vale of U"
         )
     )
+    print("Pass: If evalstatuscode is 'NE' then landpermissionstatuscode should be 'U' ")
+
     errs.append(
         checkData(
             'tbl_siteeval',
@@ -143,6 +158,8 @@ def siteevaluation(all_dfs):
             "fieldreconcode must have a Vale of N if evalstatuscode is NE"
         )
     )
+    print("Pass: If evalstatuscode is 'NE' then fieldreconcode should be 'N' ")
+
     errs.append(
         checkData(
             'tbl_siteeval',
@@ -152,10 +169,13 @@ def siteevaluation(all_dfs):
             "samplestatuscode must have a Vale of NS if evalstatuscode is NE"
         )
     )
+    print("Pass: If evalstatuscode is 'NE' then samplestatuscode should be 'NS' ")
 
-    #CHECK 2
+    # END OF CHECK 1- ALL(🛑 Warning 🛑)
+    print("# END OF CHECK - 1")
 
-    # -- Check - if samplestatuscode == "S" then ...
+    print("# CHECK - 2")
+    # Description: if samplestatuscode == "S" then:
     # evalstatuscode == "E"
     # fieldreconcode == "Y"
     # waterbodystatuscode == "S"
@@ -163,10 +183,11 @@ def siteevaluation(all_dfs):
     # wadeablestatuscode (SMC or PSA) == "W"
     # physicalaccessstatuscode == "A"
     # landpermissionstatuscode == "G"
-
-    # #Updated by Aria Askaryar on 4/05/2023 
-    #Check 2 is completed by Aria Askaryar 4/06/2023
-
+    # Created Coder: Aria Askaryar
+    # Created Date: 4/06/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_siteeval',
@@ -230,9 +251,11 @@ def siteevaluation(all_dfs):
             "If samplestatuscode is S then landpermissionstatuscode must be G "
         )
     )
+    # END OF CHECK 2- ALL(🛑 Warning 🛑)
+    print("# END OF CHECK - 2")
 
-    #Check 3   
-    # -- Check - if samplestatuscode == "NS" then ...
+    print("# CHECK - 3")
+    # Description: if samplestatuscode == "NS" then:
     # evalstatuscode == "E"
     # fieldreconcode == "Y"
     # waterbodystatuscode == "S" or "U "
@@ -240,6 +263,11 @@ def siteevaluation(all_dfs):
     # wadeablestatuscode (SMC or PSA) == "W"
     # physicalaccessstatuscode == "A"
     # landpermissionstatuscode == "G"
+    # Created Coder: Aria Askaryar
+    # Created Date: 4/06/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_siteeval',
@@ -304,14 +332,21 @@ def siteevaluation(all_dfs):
             "If samplestatuscode is NS then landpermissionstatuscode must be G "
         )
     )     
-    #Check 4   
-    # -- Check - if waterbodystatuscode != "S" or "U" then ...
+    # END OF CHECK 3- ALL(🛑 Warning 🛑)
+    print("# END OF CHECK - 3")
+
+    print("# CHECK - 4")
+    # Description: if waterbodystatuscode != "S" or "U" then:
     # flowstatuscode must be 'Not a stream'
     # wadeablestatuscode  must be 'Not a stream'
     # landpermissioncode  must be 'Not a stream'
     # physicalaccessstatuscode must be 'Not a stream'
     # samplesatuscode must be 'Not a stream'
-    
+    # Created Coder: Aria Askaryar
+    # Created Date: 4/06/2023
+    # Last Edited Date: 08/29/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     errs.append(
         checkData(
             'tbl_siteeval',
@@ -361,5 +396,14 @@ def siteevaluation(all_dfs):
             "If waterbodystatuscode is not 'S' or 'U' then samplestatuscode must be 'Not a stream' "
         )
     ) 
-    
+    # END OF CHECK 4- ALL(🛑 Warning 🛑)
+    print("# END OF CHECK - 4")
+
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------End of Siteevaluation Checks ------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
+
+
     return {'errors': errs, 'warnings': warnings}
