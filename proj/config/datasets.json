@@ -29,6 +29,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -99,6 +100,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -170,6 +172,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -239,6 +242,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -312,6 +316,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -381,6 +386,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -453,6 +459,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -523,6 +530,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -592,6 +600,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -661,6 +670,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -734,6 +744,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
@@ -803,6 +814,7 @@
                 "fieldtype": "select",
                 "independent": "True",
                 "static_options": [
+                    2023,
                     2022,
                     2021,
                     2020,
