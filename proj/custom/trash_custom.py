@@ -144,11 +144,11 @@ def trash(all_dfs):
     # Description: StartTime needs to be in HH:MM format in 24hour range (0-24:0-59) (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/17/2023
-    # Last Edited Coder: Aria Askaryar
+    # Last Edited Date: 08/31/2023
+    # Last Edited Coder: Nick Lombardo
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
-
-    correct_time_format = r'^(0?[0-9]|1\d|2[0-3]):([0-5]\d)$' 
+    # NOTE (08/31/23): Nick adjusted regex to account for optional seconds characters in time format
+    correct_time_format = r'^(0?[0-9]|1\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$' 
 
     errs.append(
         checkData(
@@ -205,9 +205,11 @@ def trash(all_dfs):
     # Description: StartTime must be before EndTime (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/22/2023
-    # Last Edited Coder: Aria Askaryar
+    # Last Edited Date: 08/31/2023
+    # Last Edited Coder: Nick Lombardo
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (08/31/23): Nick Fixed time format for to_datetime functions. pandas parses the time correctly
+    #                   either way (HH:MM, or HH:MM:SS) without the "format" argument
     if (
         all(
             [
@@ -217,9 +219,8 @@ def trash(all_dfs):
         )
     ):
         
-        trashsiteinfo['starttime'] = pd.to_datetime(trashsiteinfo['starttime'], format='%H:%M').dt.time
-        trashsiteinfo['endtime'] = pd.to_datetime(trashsiteinfo['endtime'], format='%H:%M').dt.time
-
+        trashsiteinfo['starttime'] = pd.to_datetime(trashsiteinfo['starttime']).dt.time
+        trashsiteinfo['endtime'] = pd.to_datetime(trashsiteinfo['endtime']).dt.time
         errs.append(
             checkData(
                 'tbl_trashsiteinfo',
