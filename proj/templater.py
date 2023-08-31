@@ -88,7 +88,7 @@ def template():
                             "Information about this spreadsheet:",
                             "SCCWRP spreadsheets follow a standard format, each consisting of several sheets: protocol metadata, sample metadata, sample data, and a glossary.",
                             "Metadata for each column can be found by selecting the header cell for that column, or in the glossary sheet. Please do not add or rename columns. Use note columns to provide additional information or context.",
-                            "Questions or comments? Please contact Jan Walker at janw@sccwrp.org or Liesl Tiefenthaler at lieslt@sccwrp.org"
+                            "Questions or comments? Please contact Jeff Brown at jeffb@sccwrp.org"
                         ]
                     }
                 
