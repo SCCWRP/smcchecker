@@ -413,9 +413,9 @@ def taxonomy(all_dfs):
                 checkData(
                     'tbl_taxonomyresults', 
                     taxonomyresults.tmp_row.tolist(), 
-                    'stationcode,sampledate,replicate,sampletypecode,baresult,result,finalid',
+                    'stationcode',
                     'Undefined Warning', 
-                    'Could not process CSCI for this data set'
+                    'Could not process CSCI for these stations'
                 )
             )
         

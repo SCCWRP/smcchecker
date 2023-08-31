@@ -174,7 +174,7 @@ def template():
     )
     
     # fill missing descriptions with N/A
-    column_comment_df['column_comment'] = column_comment_df['column_comment'].fillna("N/A")
+    column_comment_df['column_comment'] = column_comment_df['column_comment'].fillna("Field descriptions are not provided")
     column_comment = {x:y for x,y in zip(column_comment_df['column_name'], column_comment_df['column_comment'])}
 
     excel_file_path = f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx"
