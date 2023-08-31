@@ -64,8 +64,21 @@ def channelengineering(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
+
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------ Channel Engineering Checks -------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
+
+    print("# CHECK - 1")
+    # Description: If Other for the bottom field then corresponding bottomcomments field is required.(🛑 Warning 🛑)
+    # Created Coder: Ayah
+    # Created Date: 6/12/2023
+    # Last Edited Date: 08/31/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     
-    # Check 1: If Other for the bottom field then corresponding bottomcomments field is required.
     warnings.append(
         checkData(
             'tbl_channelengineering',
@@ -75,9 +88,16 @@ def channelengineering(all_dfs):
             'You have entered Other for bottom field, comment is required.'
         )
     )
-  
+     # END OF CHECK - If Other for the bottom field then corresponding bottomcomments field is required.(🛑 Warning 🛑)
+    print("# END OF CHECK - 1") 
 
-    #Check 2: Check 2: If Other for the determination field then corresponding determinationcomments field is required
+    print("# CHECK - 2")
+    # Description: If Other for the determination field then corresponding determinationcomments field is required(🛑 Warning 🛑)
+    # Created Coder: Ayah
+    # Created Date: 6/12/2023
+    # Last Edited Date: 08/31/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     warnings.append(
         checkData(
             'tbl_channelengineering',
@@ -88,8 +108,16 @@ def channelengineering(all_dfs):
             'You have entered Other for determination field, comment is required'
         )
     )  
- 
-    #Check 3: If Other for the leftsideofstructure field then corresponding leftsidecomments field is required
+    # END OF CHECK - If Other for the determination field then corresponding determinationcomments field is required(🛑 Warning 🛑)
+    print("# END OF CHECK - 2") 
+
+    print("# CHECK - 3")
+    # Description:  If Other for the leftsideofstructure field then corresponding leftsidecomments field is required (🛑 Warning 🛑)
+    # Created Coder: Ayah
+    # Created Date: 6/12/2023
+    # Last Edited Date: 08/31/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     warnings.append(
         checkData(
             'tbl_channelengineering', 
@@ -99,9 +127,17 @@ def channelengineering(all_dfs):
             'Undefined Warning',
             'You have entered Other for leftsideofstructure field, comment is required.')
     )
+    # END OF CHECK -  If Other for the leftsideofstructure field then corresponding leftsidecomments field is required  (🛑 Warning 🛑)
+    print("# END OF CHECK - 3") 
     
+    print("# CHECK - 4")
+    # Description:   If Other for the rightsideofstructure field then corresponding rightsidecomments field is required (🛑 Warning 🛑)
+    # Created Coder: Ayah
+    # Created Date: 6/12/2023
+    # Last Edited Date: 08/31/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
 
-     #Check 4: If Other for the rightsideofstructure field then corresponding rightsidecomments field is required
     warnings.append(
         checkData(
             'tbl_channelengineering', 
@@ -112,8 +148,16 @@ def channelengineering(all_dfs):
             'You have entered Other for rightsidestructure field, comment is required.'
         )
     )
+    # END OF CHECK -  If Other for the rightsideofstructure field then corresponding rightsidecomments field is required (🛑 Warning 🛑)
+    print("# END OF CHECK - 4") 
 
-    #Check 5: If Other for the structureshape field then corresponding structureshapecomments field is required
+    print("# CHECK - 5")
+    # Description: If Other for the structureshape field then corresponding structureshapecomments field is required (🛑 Warning 🛑)
+    # Created Coder: Ayah
+    # Created Date: 6/12/2023
+    # Last Edited Date: 08/31/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
 
     warnings.append(
         checkData(
@@ -125,6 +169,8 @@ def channelengineering(all_dfs):
             'You have entered Other for structureshape field, comment is required.'
             )
         )
+    # END OF CHECK -  If Other for the structureshape field then corresponding structureshapecomments field is required (🛑 Warning 🛑)
+    print("# END OF CHECK - 5") 
 
     # Check 6: (Engineered Channels) if channeltype == "Engineered" then the following fields are required:
 #            bottom --> Cannot be NR
@@ -176,6 +222,26 @@ def channelengineering(all_dfs):
 #    errorLog(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['vegetation'] == 'NR')])
 #    checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng['vegetation'] == 'NR') ].tmp_row.tolist(), 'vegetation', 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the vegetation field is NR', chaneng)
 
+    print("# CHECK - 6")
+    # Description:  if channeltype == "Engineered" then the following fields are required:(🛑 Warning 🛑)
+    # (Engineered Channels)
+    #            bottom --> Cannot be NR
+    #            structurewidth --> Apparently it is allowed to be anything. Even NR. NOTE Ask Rafi about this one - IDK why I wrote this (Robert) -- WARNING
+    #            UPDATE - We think structurewidth should also not be allowed to be NR for engineered channels 8/1/2019 (Robert)
+    #            structureshape --> Cannot be NR
+    #            leftsideofstructure --> Cannot be NR or Other
+    #            leftvegetation --> Cannot be NR
+    #            rightsideofstructure --> Cannot be NR or Other
+    #            rightvegetation -- Cannot be NR
+    #            vegetation --> Cannot be NR
+    #            lowflowpresence --> Cannot be NR
+    #            lowflowwidth --> Cannot be NR
+    # Created Coder: Ayah
+    # Created Date: 6/12/2023
+    # Last Edited Date: 08/31/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+
     def EngineeredChannelChecks(df, fieldname):
         exceptions = ['leftsideofstructure','rightsideofstructure']
         # update not in part of conditional
@@ -206,15 +272,30 @@ def channelengineering(all_dfs):
             for field in fields_to_check
         ]
     ]
-
-    
-
+    # END OF CHECK - If channeltype is Engineered then bottom cannot be NR(🛑 Warning 🛑)
+    print("# END OF CHECK - 6") 
 
     # @Aria/Ayah here is a challenge - try to implement a below solution similar to the one above 
     # Hint is to make a dictionary of fields and their corresponding acceptable values, and then use dictionary comprehension
     # Feel free to use ChatGPT
     
-    #Check 7
+    print("# CHECK - 7")
+    # Description:  if channeltype == "Natural" then the following fields are required:(🛑 Warning 🛑)
+    # 'leftsideofstructure': ['NR'],
+    # 'rightsideofstructure': ['NR'],
+    # 'bottom': ['NR', 'Soft/Natural'],
+    # 'structureshape': ['NR', 'Natural'],
+    # 'structurewidth': ['NR'],
+    # 'leftvegetation': ['NR'],
+    # 'rightvegetation': ['NR'],
+    # 'vegetation': ['NR'],
+    # 'lowflowpresence': ['NR'],
+    # 'lowflowwidth': ['NR']
+    # Created Coder: Ayah
+    # Created Date: 6/12/2023
+    # Last Edited Date: 08/31/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     def NaturalChannelCheck(channelengineering, fieldname):
         acceptable_values = ['NR', '']
         
@@ -264,7 +345,8 @@ def channelengineering(all_dfs):
             'The channeltype is Natural, but the structurewidth field is not filled with NR'
         )
     )
-
+    # END OF CHECK -If channeltype is Natural then bottom should be empty, NR, or Soft/Natural (🛑 ERROR 🛑)
+    print("# END OF CHECK - 7") 
 
     # #NaturalChannelCheck(channelengineering, 'bottom')
     # errs.append(
@@ -385,8 +467,14 @@ def channelengineering(all_dfs):
     #     )
     # )
 
- # Check 8: if lowflowpresence == "Present" then lowflowwidth is required
-#    checkData(chaneng[ (chaneng.lowflowpresence == 'Present') & (chaneng.lowflowwidth == 'NR') ].tmp_row.tolist(), 'lowflowwidth', 'Undefined Error', 'error', 'The lowflowpresence field is recorded as Present, but the lowflowwidth field says NR (Not Recorded)', chaneng)
+    print("# CHECK - 8")
+    # Description:  if lowflowpresence == "Present" then lowflowwidth is required(🛑 Warning 🛑)
+    # Created Coder: Ayah
+    # Created Date: 6/12/2023
+    # Last Edited Date: 08/31/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE checkData(chaneng[ (chaneng.lowflowpresence == 'Present') & (chaneng.lowflowwidth == 'NR') ].tmp_row.tolist(), 'lowflowwidth', 'Undefined Error', 'error', 'The lowflowpresence field is recorded as Present, but the lowflowwidth field says NR (Not Recorded)', chaneng)
 
     errs.append(
             checkData(
@@ -398,9 +486,17 @@ def channelengineering(all_dfs):
                 'The lowflowpresence field is recorded as Present, but the lowflowwidth field says NR (Not Recorded)'
         )
     )
+    # END OF CHECK -If lowflowpresence is Present then lowflowwidth is required (🛑 ERROR 🛑)
+    print("# END OF CHECK - 8") 
          
-# Check 9: if gradecontrolpresence  == "Present" then gradecontrollocation is required
-#checkData(chaneng[ (chaneng.gradecontrolpresence == 'Present') & (chaneng.gradecontrollocation == 'NR') ].tmp_row.tolist(), 'gradecontrollocation', 'Undefined Error', 'error', 'The gradecontrolpresence field is recorded as Present, but the gradecontrollocation field says NR (Not Recorded)', chaneng)
+    print("# CHECK - 9")
+    # Description: if gradecontrolpresence  == "Present" then gradecontrollocation is required (🛑 Warning 🛑)
+    # Created Coder: Ayah
+    # Created Date: 6/12/2023
+    # Last Edited Date: 08/31/23
+    # Last Edited Coder: Aria Askaryar
+    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE #checkData(chaneng[ (chaneng.gradecontrolpresence == 'Present') & (chaneng.gradecontrollocation == 'NR') ].tmp_row.tolist(), 'gradecontrollocation', 'Undefined Error', 'error', 'The gradecontrolpresence field is recorded as Present, but the gradecontrollocation field says NR (Not Recorded)', chaneng)
 
     errs.append(
             checkData(
@@ -412,6 +508,15 @@ def channelengineering(all_dfs):
                 'The gradecontrolpresence field is recorded as Present, but the gradecontrollocation field says NR (Not Recorded)'
                 )
      )
+    # END OF CHECK -If gradecontrolpresence is Present then gradecontrollocation is required (cannot be NR) (🛑 ERROR 🛑)
+    print("# END OF CHECK - 9") 
+
+
+    ######################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------------ #
+    # ----------------------------------------- END of Channel Engineering Checks -------------------------------------- #
+    # ------------------------------------------------------------------------------------------------------------------ #
+    ######################################################################################################################
 
 
     return {'errors': errs, 'warnings': warnings}
