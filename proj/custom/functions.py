@@ -360,7 +360,7 @@ def multivalue_lookup_check(df, field, listname, listfield, dbconnection, displa
         "badrows": badrows,
         "badcolumn": displayfieldname,
         "error_type": "Lookup Error",
-        "error_message": f"""One of the values here is not in the lookup list <a target = "_blank" href=/{current_app.script_root}/scraper?action=help&layer={listname}>{listname}</a>"""
+        "error_message": f"""One of the values here is not in the lookup list <a target = "_blank" href=scraper?action=help&layer={listname}>{listname}</a>"""
     }
 
     return args

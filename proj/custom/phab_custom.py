@@ -253,59 +253,59 @@ def phab(all_dfs):
     print("Errors list")
     print(errs)
 
-    if all(not err for err in errs):
-        print("No errors: errs list is empty")
-    else:
-        print("errs list is not empty")
+    # if all(not err for err in errs):
+    #     print("No errors: errs list is empty")
+    # else:
+    #     print("errs list is not empty")
 
-    if all(not err for err in errs):
-        print("No errors - running analysis routine")
-        # Rscript /path/demo.R tmp.csv
-        print("session.get('excel_path')")
-        print(session.get('excel_path'))
-        print("os.path.join(os.getcwd(), 'R', 'phab.R')")
-        print(os.path.join(os.getcwd(), 'R', 'phab.R'))
-        cmdlist = [
-            'Rscript',
-            f"{os.path.join(os.getcwd(),'R', 'phab.R')}",
-            f"{session.get('submission_dir')}",
-            'output.csv'
-        ]
-        print(cmdlist)
-        proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
+    # if all(not err for err in errs):
+    #     print("No errors - running analysis routine")
+    #     # Rscript /path/demo.R tmp.csv
+    #     print("session.get('excel_path')")
+    #     print(session.get('excel_path'))
+    #     print("os.path.join(os.getcwd(), 'R', 'phab.R')")
+    #     print(os.path.join(os.getcwd(), 'R', 'phab.R'))
+    #     cmdlist = [
+    #         'Rscript',
+    #         f"{os.path.join(os.getcwd(),'R', 'phab.R')}",
+    #         f"{session.get('submission_dir')}",
+    #         'output.csv'
+    #     ]
+    #     print(cmdlist)
+    #     proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
 
-        if not bool(re.search(proc.stderr, '\s*')):
-            print(f"Error occurred in OA analysis script:\n{proc.stderr}")
+    #     if not bool(re.search(proc.stderr, '\s*')):
+    #         print(f"Error occurred in OA analysis script:\n{proc.stderr}")
 
-        # submission_dir = os.path.join(os.getcwd(), 'R', 'submission_dir')
-        ctdpath = os.path.join(session.get('submission_dir'),'output.csv')
-        print(ctdpath)
-        print("after printing ctdpath")
+    #     # submission_dir = os.path.join(os.getcwd(), 'R', 'submission_dir')
+    #     ctdpath = os.path.join(session.get('submission_dir'),'output.csv')
+    #     print(ctdpath)
+    #     print("after printing ctdpath")
 
-        # if proc == 0:
-        #     print("R script executed successfully.")
-        # else:
-        #     print("Error: Failed to execute the R script")
+    #     # if proc == 0:
+    #     #     print("R script executed successfully.")
+    #     # else:
+    #     #     print("Error: Failed to execute the R script")
 
 
-      # open an ExcelWriter object to append to the excel workbook
-        writer = pd.ExcelWriter(session.get('excel_path'), engine = 'openpyxl', mode = 'a')
+    #   # open an ExcelWriter object to append to the excel workbook
+    #     writer = pd.ExcelWriter(session.get('excel_path'), engine = 'openpyxl', mode = 'a')
         
-        if os.path.exists(ctdpath):
-            ctd = pd.read_csv(ctdpath)
-            ctd.to_excel(writer, sheet_name = 'analysis_phab_placeholder', index = False)
+    #     if os.path.exists(ctdpath):
+    #         ctd = pd.read_csv(ctdpath)
+    #         ctd.to_excel(writer, sheet_name = 'analysis_phab_placeholder', index = False)
 
-        else:
-            if not os.path.exists(ctdpath):
-                print("OA Analysis ran with no errors, but the CTD analysis csv file was not found")
+    #     else:
+    #         if not os.path.exists(ctdpath):
+    #             print("OA Analysis ran with no errors, but the CTD analysis csv file was not found")
 
-            warnings.append(checkData('tbl_algae', ctd.tmp_row.tolist(), 'Season,Agency,SampleDate,SampleTime,Station,Depth,FieldRep,LabRep','Undefined Warning', 'Could not process analysis for this data set'))
+    #         warnings.append(checkData('tbl_algae', ctd.tmp_row.tolist(), 'Season,Agency,SampleDate,SampleTime,Station,Depth,FieldRep,LabRep','Undefined Warning', 'Could not process analysis for this data set'))
             
         
-        writer.close()
+    #     writer.close()
 
-    else:
-        print("Errors found. Skipping the analysis routine.")
+    # else:
+    #     print("Errors found. Skipping the analysis routine.")
     print("-------------------------END of Rscript analysis----------------------------------------")
 
     print("-------------------------start of return of errors and warnings----------------------------------------")

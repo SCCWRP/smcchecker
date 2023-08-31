@@ -277,7 +277,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory == 'Plastic') & (~trashtally.debrisitem.isin(lu_plastic))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=https://checker.sccwrp.org/smcchecker/scraper?action=help&layer=lu_trashplastic>lu_trashplastic</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashplastic>lu_trashplastic</a>'
             )          
     )
     print("# END OF CHECK - 5")
@@ -297,7 +297,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'fabric_cloth') & (~trashtally.debrisitem.isin(lu_fabricandcloth))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=https://checker.sccwrp.org/smcchecker/scraper?action=help&layer=lu_trashfabricandcloth>lu_trashfabricandcloth</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashfabricandcloth>lu_trashfabricandcloth</a>'
             )
     )
     print("# END OF CHECK - 6")
@@ -414,7 +414,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'metal') & (~trashtally.debrisitem.isin(lu_metal))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=https://checker.sccwrp.org/smcchecker/scraper?action=help&layer=lu_trashmetal>lu_trashmetal</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashmetal>lu_trashmetal</a>'
             )
     )
     print("# END OF CHECK - 12")

@@ -53,7 +53,7 @@ def channelengineering(all_dfs):
     # populate df called channelengineering
     channelengineering = all_dfs['tbl_channelengineering']
     # create tmp_row using index from df
-    channelengineering['tmp_row'] = channelengineering.tmp_row
+    channelengineering['tmp_row'] = channelengineering.index
 
     channelengineering_args = {
         "dataframe": channelengineering,
@@ -187,14 +187,14 @@ def channelengineering(all_dfs):
 #
 #    def EngineeredChannelChecks(fieldname):
 #        errorLog('Check - if channeltype == Engineered then the %s field is required' % fieldname)
-#        errorLog('Submitted Data where channeltype == Engineered but the %s is missing:' % fieldname)
+#        errorLog('Submitted Data where channeltype == Engineered but the %s is NR:' % fieldname)
 #        exceptions = ['leftsideofstructure', 'rightsideofstructure']
 #       if fieldname not in exceptions:
 #            errorLog(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng[fieldname] == 'NR') ])
-#            checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng[fieldname] == 'NR') ].tmp_row.tolist(), fieldname, 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the %s field is missing' % fieldname, chaneng)
+#            checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng[fieldname] == 'NR') ].tmp_row.tolist(), fieldname, 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the %s field is NR' % fieldname, chaneng)
 #        else:
 #            errorLog(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng[fieldname].isin(['NR', 'Other'])) ])
-#            checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng[fieldname].isin(['NR', 'Other'])) ].tmp_row.tolist(), fieldname, 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the %s field is missing' % fieldname, chaneng)
+#            checkData(chaneng[ (chaneng.channeltype == 'Engineered') & (chaneng[fieldname].isin(['NR', 'Other'])) ].tmp_row.tolist(), fieldname, 'Undefined Warning', 'warning', 'The channeltype is Engineered, but the %s field is NR' % fieldname, chaneng)
 #    EngineeredChannelChecks('bottom')
 #    EngineeredChannelChecks('structureshape')
 #    #EngineeredChannelChecks('structurewidth') #I will make this a warning. NR is technically on the submission template where they enter data. Robert 8/1/2019
@@ -267,7 +267,7 @@ def channelengineering(all_dfs):
                 EngineeredChannelChecks(channelengineering, field),
                 field,
                 'Undefined Warning',
-                f'The channeltype is Engineered, but the {field} field is missing'
+                f'The channeltype is Engineered, but the {field} field is NR'
             )
             for field in fields_to_check
         ]
@@ -306,6 +306,7 @@ def channelengineering(all_dfs):
         
         badrows = channelengineering[
             (channelengineering.channeltype == 'Natural') & 
+            (~channelengineering[fieldname].isna()) &
             (~(channelengineering[fieldname].isin(acceptable_values)))
         ].tmp_row.tolist()
         
@@ -479,11 +480,15 @@ def channelengineering(all_dfs):
     errs.append(
             checkData(
                 'tbl_channelengineering', 
-                channelengineering[(channelengineering.lowflowpresence == 'Present')
-                                        & ((channelengineering.lowflowwidth == 'NR') )].tmp_row.tolist(),
+                channelengineering[
+                    (channelengineering.lowflowpresence == 'Present') & 
+                    (
+                        (channelengineering.lowflowwidth == 'NR') | (channelengineering.lowflowwidth.isna())
+                    )
+                ].tmp_row.tolist(),
                 'lowflowwidth',
                 'Undefined Error',
-                'The lowflowpresence field is recorded as Present, but the lowflowwidth field says NR (Not Recorded)'
+                'If lowflowpresence field is recorded as Present, the lowflowwidth field cannot be empty or NR'
         )
     )
     # END OF CHECK -If lowflowpresence is Present then lowflowwidth is required (🛑 ERROR 🛑)
@@ -501,11 +506,15 @@ def channelengineering(all_dfs):
     errs.append(
             checkData(
                 'tbl_channelengineering', 
-                channelengineering[(channelengineering.gradecontrolpresence == 'Present')
-                                        & (channelengineering.gradecontrollocation == 'NR')].tmp_row.tolist(),
+                channelengineering[
+                    (channelengineering.gradecontrolpresence == 'Present') & 
+                    (
+                        (channelengineering.gradecontrollocation == 'NR') | (channelengineering.gradecontrollocation.isna())
+                    )
+                ].tmp_row.tolist(),
                 'gradecontrollocation',
                 'Undefined Error',
-                'The gradecontrolpresence field is recorded as Present, but the gradecontrollocation field says NR (Not Recorded)'
+                'If gradecontrolpresence field is recorded as Present, the gradecontrollocation field cannot be empty or NR'
                 )
      )
     # END OF CHECK -If gradecontrolpresence is Present then gradecontrollocation is required (cannot be NR) (🛑 ERROR 🛑)
