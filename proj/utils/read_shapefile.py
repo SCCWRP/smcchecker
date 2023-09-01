@@ -31,7 +31,7 @@ def build_all_dfs_from_sf(path_to_shapefiles):
 
         df, shp_path = read_shapefile(zipfile)
         df.columns = list(map(str.lower, df.columns))
-        df.drop(columns=['index','objectid','level_0'], inplace=True, errors='ignore')
+        df.drop(columns=['index','objectid','level_0',"shape_length","shape_area"], inplace=True, errors='ignore')
         df.rename(columns={'stationcod': 'stationcode'}, inplace=True)
         print(df)
         if all(df['shape'].geom.geometry_type == 'point'):

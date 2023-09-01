@@ -86,7 +86,7 @@ def template():
                     {
                         'How to use:': [
                             "Information about this spreadsheet:",
-                            "SCCWRP spreadsheets follow a standard format, each consisting of several sheets: protocol metadata, sample metadata, sample data, and a glossary.",
+                            "SCCWRP spreadsheets follow a standard format, each consisting of several sheets: data templates, lookup lists, glossary.",
                             "Metadata for each column can be found by selecting the header cell for that column, or in the glossary sheet. Please do not add or rename columns. Use note columns to provide additional information or context.",
                             "Questions or comments? Please contact Jeff Brown at jeffb@sccwrp.org"
                         ]
@@ -174,7 +174,7 @@ def template():
     )
     
     # fill missing descriptions with N/A
-    column_comment_df['column_comment'] = column_comment_df['column_comment'].fillna("Field descriptions are not provided")
+    column_comment_df['column_comment'] = column_comment_df['column_comment'].fillna("Field description is not provided")
     column_comment = {x:y for x,y in zip(column_comment_df['column_name'], column_comment_df['column_comment'])}
 
     excel_file_path = f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx"
@@ -195,8 +195,7 @@ def template():
         format_fkey.set_rotation(90)
 
         # BOTH PKEY AND FKEY
-        format_pkey_fkey = workbook.add_format(
-            {'bold': True, 'text_wrap': True, 'fg_color': '#D7D6D6'})
+        format_pkey_fkey = workbook.add_format({'bold': True, 'text_wrap': True, 'fg_color': '#D7D6D6'})
         format_pkey_fkey.set_align('center')
         format_pkey_fkey.set_align('vcenter')
         format_pkey_fkey.set_rotation(90)

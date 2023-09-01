@@ -1,7 +1,8 @@
 {
     "EXCEL_OFFSET" : 0,
     "SYSTEM_FIELDS" : [
-        "project_code","masterid","objectid", "globalid", "created_date", "created_user", "last_edited_date","last_edited_user", "submissionid", "warnings", "login_email", "lastchangedate","level_0","approve"
+        "project_code","masterid","objectid", "globalid", "created_date", "created_user", "last_edited_date","last_edited_user", "submissionid", "warnings", "login_email", "lastchangedate",
+        "level_0","approve","vertsuscept","averagelatsuscept","Shape_Length","Shape_Area"
     ],
     "EXCEL_TABS_TO_IGNORE": ["Instructions","glossary","Lookup Lists", "Batch_Example", "Results_Example","RECONExample","ASCI","core","suppl1_grps","suppl1_mmi","suppl2_mmi","suppl1_oe","suppl2_oe"],
     "MAINTAINERS": ["pauls@sccwrp.org", "robertb@sccwrp.org", "duyn@sccwrp.org", "zaibq@sccwrp.org","ayahh@sccwrp.org","ariaa@sccwrp.org"]
