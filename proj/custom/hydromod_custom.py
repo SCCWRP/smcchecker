@@ -277,24 +277,27 @@ def hydromod(all_dfs):
 
     errs.append(
         checkData(
-        'tbl_hydromod',
-        hydromod[
-            (hydromod.fullyarmored == "Yes") & 
-            (hydromod.lateralsusceptibilityl == 1)
-        ].tmp_row.tolist(), 
-        'lateralsusceptibilityl',
-        'Undefined Error',
-        'You have entered Yes for FullyArmored, so LateralSusceptibilityL cannot be 1.'
+            'tbl_hydromod',
+            hydromod[
+                (hydromod.fullyarmored == "Yes") & 
+                (hydromod.lateralsusceptibilityl != 1)
+            ].tmp_row.tolist(), 
+            'lateralsusceptibilityl',
+            'Undefined Error',
+            'If FullyArmored is Yes then LateralSusceptibilityL must be 1'
         )
     )
 
     errs.append(
         checkData(
         'tbl_hydromod',
-        hydromod[(hydromod.fullyarmored == "Yes") & ((hydromod.lateralsusceptibilityr == 1))].tmp_row.tolist(), 
+        hydromod[
+            (hydromod.fullyarmored == "Yes") & 
+            (hydromod.lateralsusceptibilityr != 1)
+        ].tmp_row.tolist(), 
         'lateralsusceptibilityr',
         'Undefined Error',
-        'You have entered Yes for FullyArmored, so LateralSusceptibilityR cannot be 1.'
+        'If FullyArmored is Yes then LateralSusceptibilityR must be 1'
         )
     )
     # END OF CHECK - If FullyArmored is Yes (🛑 ERROR 🛑)
