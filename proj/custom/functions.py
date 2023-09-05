@@ -388,3 +388,61 @@ def nameUpdate(df, field, conditions, oldname, newname):
     print(errs)
     print("Call the checkData function")
     checkData(errs.tmp_row.tolist(),field,'Undefined Error','error','%s must now be written as %s.' %(oldname, newname),df)
+
+def mismatch(df1, df2, mergecols = None, left_mergecols = None, right_mergecols = None, row_identifier = 'tmp_row'):
+    
+    # gets rows in df1 that are not in df2
+    # row identifier column is tmp_row by default
+
+    # If the first dataframe is empty, then there can be no badrows
+    if df1.empty:
+        return []
+
+    # if second dataframe is empty, all rows in df1 are mismatched
+    if df2.empty:
+        return df1[row_identifier].tolist() if row_identifier != 'index' else df1.index.tolist()
+
+    # Hey, you never know...
+    assert not '_present_' in df1.columns, 'For some reason, the reserved column name _present_ is in columns of df1'
+    assert not '_present_' in df2.columns, 'For some reason, the reserved column name _present_ is in columns of df2'
+
+    if mergecols is not None:
+        assert set(mergecols).issubset(set(df1.columns)), f"""In mismatch function - {','.join(mergecols)} is not a subset of the columns of the dataframe """
+        assert set(mergecols).issubset(set(df2.columns)), f"""In mismatch function - {','.join(mergecols)} is not a subset of the columns of the dataframe """
+        tmp = df1.astype(str) \
+            .merge(
+                df2.astype(str).assign(_present_='yes'),
+                on = mergecols, 
+                how = 'left',
+                suffixes = ('','_df2')
+            )
+    
+    elif (right_mergecols is not None) and (left_mergecols is not None):
+        assert set(left_mergecols).issubset(set(df1.columns)), f"""In mismatch function - {','.join(left_mergecols)} is not a subset of the columns of the dataframe of the first argument"""
+        assert set(right_mergecols).issubset(set(df2.columns)), f"""In mismatch function - {','.join(right_mergecols)} is not a subset of the columns of the dataframe of the second argument"""
+        
+        tmp = df1.astype(str) \
+            .merge(
+                df2.astype(str).assign(_present_='yes'),
+                left_on = left_mergecols, 
+                right_on = right_mergecols, 
+                how = 'left',
+                suffixes = ('','_df2')
+            )
+
+    else:
+        raise Exception("In mismatch function - improper use of function - No merging columns are defined")
+
+    if not tmp.empty:
+        badrows = tmp[isnull(tmp._present_)][row_identifier].tolist() \
+            if row_identifier not in (None, 'index') \
+            else tmp[isnull(tmp._present_)].index.tolist()
+    else:
+        badrows = []
+
+    assert \
+        all(isinstance(item, int) or (isinstance(item, str) and item.isdigit()) for item in badrows), \
+        "In mismatch function - Not all items in 'badrows' are integers or strings representing integers"
+    
+    badrows = [int(x) for x in badrows]
+    return badrows
