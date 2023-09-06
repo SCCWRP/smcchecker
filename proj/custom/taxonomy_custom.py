@@ -247,9 +247,10 @@ def taxonomy(all_dfs):
     # Description: TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier(🛑 Error 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: 06/21/2023
-    # Last Edited Date: 08/29/23
-    # Last Edited Coder: Aria Askaryar
+    # Last Edited Date: 09/05/23
+    # Last Edited Coder: Duy Nguyen
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (09/05/23): This check was improperly written. I need to rewrite it.
     # errs.append(
     #     checkData(
     #         'tbl_taxonomyresults', 
