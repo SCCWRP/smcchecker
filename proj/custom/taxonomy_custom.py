@@ -89,18 +89,18 @@ def taxonomy(all_dfs):
     # Last Edited Date: 08/29/23
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
-    # multiple_dates_within_site_info = check_multiple_dates_within_site(taxonomysampleinfo)
-    # multiple_dates_within_site_results = check_multiple_dates_within_site(taxonomyresults)
+    multiple_dates_within_site_info = check_multiple_dates_within_site(taxonomysampleinfo)
+    multiple_dates_within_site_results = check_multiple_dates_within_site(taxonomyresults)
 
-    # warnings.append(
-    #     checkData(
-    #         'tbl_taxonomysampleinfo', 
-    #         multiple_dates_within_site_info[0],
-    #         'sampledate',
-    #         'Value Error', 
-    #         f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_info[1]} unique sample dates were submitted. Is this correct?'
-    #     )
-    # )
+    warnings.append(
+        checkData(
+            'tbl_taxonomysampleinfo', 
+            multiple_dates_within_site_info[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_info[1]} unique sample dates were submitted. Is this correct?'
+        )
+    )
 
     # END OF CHECK - Within taxonomy data, return a warning if a submission contains multiple dates within a single site")    
     print("# END OF CHECK - 1")
@@ -113,15 +113,15 @@ def taxonomy(all_dfs):
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
 
-    # warnings.append(
-    #     checkData(
-    #         'tbl_taxonomyresults', 
-    #         multiple_dates_within_site_results[0],
-    #         'sampledate',
-    #         'Value Error', 
-    #         f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
-    #     )
-    # )  
+    warnings.append(
+        checkData(
+            'tbl_taxonomyresults', 
+            multiple_dates_within_site_results[0],
+            'sampledate',
+            'Value Error', 
+            f'Warning! You are submitting taxonomy data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
+        )
+    )  
     # END OF CHECK - Within taxonomy data, return a warning if a submission contains multiple dates within a single site)    
     print("# END OF CHECK - 2")
 
@@ -250,15 +250,15 @@ def taxonomy(all_dfs):
     # Last Edited Date: 08/29/23
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
-    errs.append(
-        checkData(
-            'tbl_taxonomyresults', 
-            taxonomyresults[~taxonomyresults['taxonomicqualifier'].isin(["D","I","L","M","None","O"])].tmp_row.tolist(),
-            'taxonomicqualifier',
-            'Error', 
-            'Taxonomicqualifier must contain at least one value from lu_taxonomicqualifier '
-        )
-    ) 
+    # errs.append(
+    #     checkData(
+    #         'tbl_taxonomyresults', 
+    #         taxonomyresults[~taxonomyresults['taxonomicqualifier'].isin(["D","I","L","M","None","O"])].tmp_row.tolist(),
+    #         'taxonomicqualifier',
+    #         'Error', 
+    #         'Taxonomicqualifier must contain at least one value from lu_taxonomicqualifier '
+    #     )
+    # ) 
     # END OF CHECK -TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier    
     print("# END OF CHECK - 6")
 
