@@ -177,7 +177,10 @@ def template():
     column_comment_df['column_comment'] = column_comment_df['column_comment'].fillna("Field description is not provided")
     column_comment = {x:y for x,y in zip(column_comment_df['column_name'], column_comment_df['column_comment'])}
 
-    excel_file_path = f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx"
+    if not os.path.exists(f'{os.getcwd()}/export/data_templates'):
+        os.mkdir(f'{os.getcwd()}/export/data_templates')
+        
+    excel_file_path = f"{os.getcwd()}/export/data_templates/{file_prefix}-TEMPLATE.xlsx"
 
     with pd.ExcelWriter(excel_file_path) as writer:
         workbook = writer.book
@@ -239,7 +242,7 @@ def template():
 
 
     print("End Templater")
-    return send_file(f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx", as_attachment=True, download_name=f'{file_prefix}-TEMPLATE.xlsx')
+    return send_file(f"{os.getcwd()}/export/data_templates/{file_prefix}-TEMPLATE.xlsx", as_attachment=True, download_name=f'{file_prefix}-TEMPLATE.xlsx')
     
 
 
