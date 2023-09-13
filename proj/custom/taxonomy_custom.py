@@ -208,58 +208,80 @@ def taxonomy(all_dfs):
     # Description: Return warnings on submission dates mismatching with phab dates(🛑 Warning 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: 06/21/2023
-    # Last Edited Date: 08/29/23
-    # Last Edited Coder: Aria Askaryar
+    # Last Edited Date: 9/7/23
+    # Last Edited Coder: Caspian Thackeray
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (09/07/23): Didn't want to figure out what old code was doing wrong so wrote some new code.
 
-    mismatched_phab_date_info = check_mismatched_phab_date(taxonomysampleinfo, phab_data)    
+    count = 1
+    sheets = [taxonomysampleinfo, taxonomyresults]
+    for sheet in sheets:
+        new_badrows = []
+        for label, row in taxonomysampleinfo.iterrows():
+            date_found = False
+            for _, row2 in phab_data.iterrows():
+                if row['sampledate'] == row2['sampledate']:
+                    date_found = True
+            if date_found == False:
+                new_badrows.append(label)
 
-    mismatched_phab_date_results = check_mismatched_phab_date(taxonomyresults, phab_data)
+        phab_dates = ', '.join(map(str, phab_data['sampledate'].to_list()))
 
-    #sampleinfo sheet
-    warnings.append(
-        checkData(
-            'tbl_taxonomysampleinfo', 
-            mismatched_phab_date_info[0],
-            'sampledate',
-            'Value Error', 
-            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_info[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+        # this makes me cringe but whatever -cas
+        table_name = ''
+        if count == 1:
+            table_name = 'tbl_taxonomysampleinfo'
+        elif count == 2:
+            table_name = 'tbl_taxonomyresults'
+        #
+
+        warnings.append(
+            checkData(
+                table_name, 
+                new_badrows,
+                'sampledate',
+                'Value Error', 
+                f'Warning! PHAB was sampled on {phab_dates}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+            )
         )
-    )  
-    # END OF CHECK - sampleinfo sheet
-    print("sampleinfo sheet")    
+        count = count + 1
 
-    #results sheet
-    warnings.append(
-        checkData(
-            'tbl_taxonomyresults', 
-            mismatched_phab_date_results[0],
-            'sampledate',
-            'Value Error', 
-            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
-        )
-    )
-    print("result sheet")    
-    # END OF CHECK - results sheet: Return warnings on submission dates mismatching with phab dates    
     print("# END OF CHECK - 5")
 
     print("# CHECK - 6")
     # Description: TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier(🛑 Error 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: 06/21/2023
-    # Last Edited Date: 09/05/23
-    # Last Edited Coder: Duy Nguyen
+    # Last Edited Date: 09/13/23
+    # Last Edited Coder: Nick Lombardo
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
-    # NOTE (09/05/23): This check was improperly written. I need to rewrite it.
-    # errs.append(
-    #     checkData(
-    #         'tbl_taxonomyresults', 
-    #         taxonomyresults[~taxonomyresults['taxonomicqualifier'].isin(["D","I","L","M","None","O"])].tmp_row.tolist(),
-    #         'taxonomicqualifier',
-    #         'Error', 
-    #         'Taxonomicqualifier must contain at least one value from lu_taxonomicqualifier '
-    #     )
-    # ) 
+    # NOTE (09/05/23): This check was improperly written. I need to rewrite it
+    # NOTE (09/12/23): Nick confirmed with Rafi that taxonomicqualifier in submission may be a 
+    #                  concatenated list of values from lu_taxonomicqualifier, rather than only
+    #                  a single value from the lookup
+    # NOTE (09/13/23): Finished up check
+    
+    # use str.lower() for checking existence in this list later
+    tq_codes = pd.read_sql('SELECT taxonomicqualifiercode FROM lu_taxonomicqualifier', g.eng).squeeze().str.lower().tolist()
+
+    # require that multiple values are comma-separated, so mark any multiple values that are not
+    # fillna allows us to disregard empty values in the submission (taxonomicqualifier is not required)
+    # if str.split can't split into list of values present in tq_codes, then mark these values
+    # also could be spaces between commas, do strip().lower() to check for existence in tq_codes
+    new_badrows = taxonomyresults[
+        ~taxonomyresults['taxonomicqualifier'].fillna("").str.split(",") \
+            .apply(lambda rowlist: set([x.strip().lower() for x in rowlist if x != ""]).issubset(set(tq_codes)))
+    ].tmp_row.tolist()
+
+    errs.append(
+        checkData(
+            'tbl_taxonomyresults', 
+            new_badrows,
+            'taxonomicqualifier',
+            'Error', 
+            'Taxonomicqualifier must contain at least one value from lu_taxonomicqualifier. If you would like to input multiple values, please separate them by commas.'
+        )
+    ) 
     # END OF CHECK -TaxonomicQualifier must have at least one TaxonomicQualifier from lu_taxonomicqualifier    
     print("# END OF CHECK - 6")
 
