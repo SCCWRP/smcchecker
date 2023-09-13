@@ -2,7 +2,7 @@
 from sqlalchemy import create_engine
 from inspect import currentframe
 from flask import current_app, session, g
-from .functions import checkData, check_multiple_dates_within_site, check_missing_phab_data, check_mismatched_phab_date, consecutive_date
+from .functions import checkData, check_multiple_dates_within_site, check_missing_phab_data, check_mismatched_phab_date, consecutive_date, mismatch
 import pandas as pd
 import re, os
 import subprocess as sp
@@ -286,13 +286,14 @@ def taxonomy(all_dfs):
     print("# END OF CHECK - 6")
 
     print("# CHECK - 7")
-    # Description:  Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo (🛑 Warning 🛑)
+    # Description:  Warning on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo (🛑 Warning 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: 06/21/2023
-    # Last Edited Date: 08/29/23
-    # Last Edited Coder: Aria Askaryar
+    # Last Edited Date: 09/13/23
+    # Last Edited Coder: Nick Lombardo
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
-    errs.append(
+    # NOTE (09/13/23): Nick changed the error to a warning
+    warnings.append(
         checkData(
             'tbl_taxonomysampleinfo', 
             consecutive_date(taxonomysampleinfo),
@@ -301,17 +302,18 @@ def taxonomy(all_dfs):
             'Consecutive Dates. Make sure you did not accidentally drag down the date'
         )
     )  
-    # END OF CHECK - Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo     
+    # END OF CHECK - Warning on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomysampleinfo     
     print("# END OF CHECK - 7")
 
     print("# CHECK - 8")
-    # Description:  Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults(🛑 Warning 🛑)
+    # Description:  Warning on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults(🛑 Warning 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: 06/21/2023
-    # Last Edited Date: 08/29/23
-    # Last Edited Coder: Aria Askaryar
+    # Last Edited Date: 09/13/23
+    # Last Edited Coder: Nick Lombardo
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
-    errs.append(
+    # NOTE (09/13/23): Nick changed the error to a warning
+    warnings.append(
         checkData(
             'tbl_taxonomyresults',
             consecutive_date(taxonomyresults),
@@ -320,25 +322,26 @@ def taxonomy(all_dfs):
             'Consecutive Dates. Make sure you did not accidentally drag down the date'
         )
     ) 
-    # END OF CHECK - Error on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults      
+    # END OF CHECK - Warning on consecutive dates to make sure user did not drag down date for SampleDate for tbl_taxonomyresults      
     print("# END OF CHECK - 8")
 
     print("# CHECK - 9")
-    # Description:  FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup (🛑 Warning 🛑)
+    # Description:  FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup (🛑 Error 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: 06/21/2023
-    # Last Edited Date: 08/29/23
-    # Last Edited Coder: Aria Askaryar
+    # Last Edited Date: 09/13/2023
+    # Last Edited Coder: Nick Lombardo
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
-    lu_organisms = pd.read_sql("SELECT concat(finalid, '_', lifestagecode) as combinations FROM vw_organism_lifestage_lookup;", g.eng)
-    sql_combos = lu_organisms['combinations'].tolist()
-    taxonomyresults['tmp_comb'] = taxonomyresults['finalid'].astype(str) + '_' + taxonomyresults['lifestagecode'].astype(str)
-    badrows = taxonomyresults[~taxonomyresults['tmp_comb'].isin(sql_combos)].tmp_row.tolist()
+    # NOTE (09/13/23): Nick changed to use the mismatch function instead
+    lu_organisms = pd.read_sql("SELECT finalid, lifestagecode FROM vw_organism_lifestage_lookup;", g.eng)
+    # sql_combos = lu_organisms['combinations'].tolist()
+    # taxonomyresults['tmp_comb'] = taxonomyresults['finalid'].astype(str) + '_' + taxonomyresults['lifestagecode'].astype(str)
+    # badrows = taxonomyresults[~taxonomyresults['tmp_comb'].isin(sql_combos)].tmp_row.tolist()
 
     errs.append(
         checkData(
             'tbl_taxonomyresults',
-            badrows,
+            mismatch(taxonomyresults, lu_organisms, mergecols=['finalid', 'lifestagecode']),
             #taxonomyresults[~pd.Series(taxonomyresults.finalid + '_' + taxonomyresults.lifestagecode).isin(valid_pairs_list)].tmp_row.tolist(),
             'finalid, lifestagecode',
             'Undefined Error',
@@ -358,19 +361,19 @@ def taxonomy(all_dfs):
     # Description:  Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate. (🛑 Warning 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: 06/21/2023
-    # Last Edited Date: 08/29/23
-    # Last Edited Coder: Aria Askaryar
+    # Last Edited Date: 09/13/2023
+    # Last Edited Coder: Nick Lombardo
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (09/13/23): Changed to use the mismatch function
 
-    taxonomysampleinfo['temp_key'] = taxonomysampleinfo['stationcode'].astype(str) + taxonomysampleinfo['sampledate'].astype(str) + taxonomysampleinfo['fieldreplicate'].astype(str)
-    taxonomyresults['temp_key'] = taxonomyresults['stationcode'].astype(str) + taxonomyresults['sampledate'].astype(str) + taxonomyresults['fieldreplicate'].astype(str)
+    # taxonomysampleinfo['temp_key'] = taxonomysampleinfo['stationcode'].astype(str) + taxonomysampleinfo['sampledate'].astype(str) + taxonomysampleinfo['fieldreplicate'].astype(str)
+    # taxonomyresults['temp_key'] = taxonomyresults['stationcode'].astype(str) + taxonomyresults['sampledate'].astype(str) + taxonomyresults['fieldreplicate'].astype(str)
 
     # For sampleinfo in results
     errs.append(
         checkData(
             'tbl_taxonomysampleinfo',
-            # taxonomysampleinfo[~taxonomysampleinfo[['stationcode','sampledate','fieldreplicate']].isin(taxonomyresults[['stationcode','sampledate','fieldreplicate']].to_dict(orient='list')).all(axis=1)].index.tolist(),
-            taxonomysampleinfo[~taxonomysampleinfo['temp_key'].isin(taxonomyresults['temp_key'])].index.tolist(),
+            mismatch(taxonomysampleinfo, taxonomyresults, mergecols=['stationcode', 'sampledate', 'fieldreplicate']),
             'stationcode, sampledate, fieldreplicate',
             'Logic Error',
             'Each Taxonomy SampleInfo record must have a corresponding Taxonomy Result record. Records are matched on StationCode,SampleDate, and FieldReplicate.'
@@ -381,8 +384,7 @@ def taxonomy(all_dfs):
     errs.append(
         checkData(
             'tbl_taxonomyresults',
-            # taxonomyresults[~taxonomyresults[['stationcode','sampledate','fieldreplicate']].isin(taxonomysampleinfo[['stationcode','sampledate','fieldreplicate']].to_dict(orient='list')).all(axis=1)].index.tolist(),
-            taxonomyresults[~taxonomyresults['temp_key'].isin(taxonomysampleinfo['temp_key'])].index.tolist(),
+            mismatch(taxonomyresults, taxonomysampleinfo, mergecols=['stationcode', 'sampledate', 'fieldreplicate']),
             'stationcode, sampledate, fieldreplicate',
             'Logic Error',
             'Each Taxonomy Result record must have a corresponding Taxonomy SampleInfo record. Records are matched on StationCode,SampleDate, and FieldReplicate.'
