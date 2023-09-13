@@ -1,5 +1,7 @@
 import pandas_access as mdb
 import pandas as pd
+import re
+from inspect import currentframe
 
 def checkData(tablename, badrows, badcolumn, error_type, error_message = "Error", is_core_error = False, errors_list = [], q = None, **kwargs):
     
@@ -349,7 +351,7 @@ def multivalue_lookup_check(df, field, listname, listfield, dbconnection, displa
     assert displayfieldname.lower() in df.columns, f"the displayfieldname {displayfieldname} was not found in the columns of the dataframe, even when it was lowercased"
 
     assert field in df.columns, f"In {str(currentframe().f_code.co_name)} (value against multiple values check) - {field} not in the columns of the dataframe"
-    lookupvals = set(read_sql(f'''SELECT DISTINCT "{listfield}" FROM "{listname}";''', dbconnection)[listfield].tolist())
+    lookupvals = set(pd.read_sql(f'''SELECT DISTINCT "{listfield}" FROM "{listname}";''', dbconnection)[listfield].tolist())
 
     if not 'tmp_row' in df.columns:
         df['tmp_row'] = df.index
@@ -434,9 +436,9 @@ def mismatch(df1, df2, mergecols = None, left_mergecols = None, right_mergecols 
         raise Exception("In mismatch function - improper use of function - No merging columns are defined")
 
     if not tmp.empty:
-        badrows = tmp[isnull(tmp._present_)][row_identifier].tolist() \
+        badrows = tmp[pd.isnull(tmp._present_)][row_identifier].tolist() \
             if row_identifier not in (None, 'index') \
-            else tmp[isnull(tmp._present_)].index.tolist()
+            else tmp[pd.isnull(tmp._present_)].index.tolist()
     else:
         badrows = []
 
