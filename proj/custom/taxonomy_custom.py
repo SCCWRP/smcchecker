@@ -145,12 +145,6 @@ def taxonomy(all_dfs):
 	    AND STATIONCODE in ('{"','".join(info_sites)}')
         ;"""
     phab_data = pd.read_sql(sql_query, g.eng)
-    print('phab_data')
-    print(phab_data)
-    # end logic check
-
-    test_phab = pd.DataFrame({'stationcode' : ['410M01628', 'SMC01972'], 'sampledate': ['2018-06-28 00:00:00', '2010-06-07 00:00:00']})
-    test_phab['sampledate'] = pd.to_datetime(test_phab['sampledate'])
 
     # Check - missing phab records for taxonomysampleinfo submission
 
@@ -334,15 +328,11 @@ def taxonomy(all_dfs):
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     # NOTE (09/13/23): Nick changed to use the mismatch function instead
     lu_organisms = pd.read_sql("SELECT finalid, lifestagecode FROM vw_organism_lifestage_lookup;", g.eng)
-    # sql_combos = lu_organisms['combinations'].tolist()
-    # taxonomyresults['tmp_comb'] = taxonomyresults['finalid'].astype(str) + '_' + taxonomyresults['lifestagecode'].astype(str)
-    # badrows = taxonomyresults[~taxonomyresults['tmp_comb'].isin(sql_combos)].tmp_row.tolist()
 
     errs.append(
         checkData(
             'tbl_taxonomyresults',
             mismatch(taxonomyresults, lu_organisms, mergecols=['finalid', 'lifestagecode']),
-            #taxonomyresults[~pd.Series(taxonomyresults.finalid + '_' + taxonomyresults.lifestagecode).isin(valid_pairs_list)].tmp_row.tolist(),
             'finalid, lifestagecode',
             'Undefined Error',
             'FinalID/LifeStageCode combination must match the combination found in vw_organism_lifestage_lookup'
@@ -365,9 +355,6 @@ def taxonomy(all_dfs):
     # Last Edited Coder: Nick Lombardo
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     # NOTE (09/13/23): Changed to use the mismatch function
-
-    # taxonomysampleinfo['temp_key'] = taxonomysampleinfo['stationcode'].astype(str) + taxonomysampleinfo['sampledate'].astype(str) + taxonomysampleinfo['fieldreplicate'].astype(str)
-    # taxonomyresults['temp_key'] = taxonomyresults['stationcode'].astype(str) + taxonomyresults['sampledate'].astype(str) + taxonomyresults['fieldreplicate'].astype(str)
 
     # For sampleinfo in results
     errs.append(
