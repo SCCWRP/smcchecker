@@ -11,7 +11,8 @@ from .utils.exceptions import default_exception_handler
 from .utils.convert_projection import convert_projection
 from .core.core_api_call import core_api_call
 from .custom.shapefile_custom import shapefile
-
+from .core.core import core
+from .core.functions import fetch_meta
 
 
 
@@ -148,10 +149,10 @@ def process_sf():
                 return jsonify(**returnvals)
 
             # Save shapefile data as json so we can map them
-            if key == 'gissites':
-                export_sdf_to_json(os.path.join(parent_zipfile_path, "sites.json"), all_dfs[key]['data'], ["stationcode"])
-            else:
-                export_sdf_to_json(os.path.join(parent_zipfile_path, "catchments.json"), all_dfs[key]['data'], ["stationcode"])
+            # if key == 'gissites':
+            #     export_sdf_to_json(os.path.join(parent_zipfile_path, "sites.json"), all_dfs[key]['data'], ["stationcode"])
+            # else:
+            #     export_sdf_to_json(os.path.join(parent_zipfile_path, "catchments.json"), all_dfs[key]['data'], ["stationcode"])
 
 
     
@@ -164,7 +165,15 @@ def process_sf():
             k: all_dfs.get(k).get('data').drop(columns=['shape'])
             for k in all_dfs.keys()
         }
-        core_output = core_api_call(all_dfs_data)
+        print("Before Core")
+        # meta data is needed for the core checks to run, to check precision, length, datatypes, etc
+        dbmetadata = {
+            tblname: fetch_meta(tblname, g.eng)
+            for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
+        }
+        core_output = core(all_dfs_data, g.eng, dbmetadata, debug = True)
+        #core_output = core_api_call(all_dfs)
+        print("After Core")
 
         errs.extend(core_output['core_errors'])
         warnings.extend(core_output['core_warnings'])

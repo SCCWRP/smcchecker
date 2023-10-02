@@ -94,7 +94,7 @@ document.getElementById("download-button-sf").addEventListener("click", async fu
 
 document.getElementById("show-map-sf").addEventListener("click", async function(e){
     document.getElementById('loading-spinner').classList.remove("hidden")
-    document.getElementById('visual-map-container').classList.remove("hidden")
-    document.getElementById('visual-map').setAttribute('src',`/smcchecker/map`)
+    // document.getElementById('visual-map-container').classList.remove("hidden")
+    // document.getElementById('visual-map').setAttribute('src',`/smcchecker/map`)
     document.getElementById('loading-spinner').classList.add("hidden")
 })

@@ -37,6 +37,9 @@ def build_all_dfs_from_sf(path_to_shapefiles):
         if all(df['shape'].geom.geometry_type == 'point'):
             
             df['snapdist_m'] = -88
+            df['new_lat'] = round(df['new_lat'], 8)
+            df['new_long'] = round(df['new_long'], 8)
+
             info = {
                 'shp_path': shp_path,
                 'geom_type':'point',
