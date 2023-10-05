@@ -29,7 +29,11 @@ def main():
 
     # routine to grab the uploaded file
     print("uploading files")
+    print("request.content_length")
+    print(request.content_length)
+    print("request.files.getlist('files[]')")
     files = request.files.getlist('files[]')
+    print("DONE exectuing request.files.getlist('files[]')")
     if len(files) > 0:
         
         # if sum(['xls' in secure_filename(x.filename).rsplit('.',1)[-1] for x in files]) > 1:
@@ -411,7 +415,7 @@ def main():
     # These are the values we are returning to the browser as a json
     returnvals = {
         "filename" : filename,
-        "marked_filename" : f"{filename.rsplit('.',1)[0]}-marked.{filename.rsplit('.',1)[-1]}",
+        "marked_filename" : f"{filename.rsplit('.',1)[0]}-marked.{session.get('excel_path').rsplit('.',1)[-1]}",
         "match_report" : match_report,
         "matched_all_tables" : True,
         "match_dataset" : match_dataset,

@@ -90,6 +90,24 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
             wb[sheet][f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{coord.get('row_index')}"].comment = Comment(coord.get('message'), "Checker")
         
 
+        
+        # AutoFit columns, freeze panes, add autofilters and stylize table as previously mentioned
+        for column in wb[sheet].columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(cell.value)
+                except:
+                    pass
+            adjusted_width = (max_length + 8)
+            wb[sheet].column_dimensions[column[0].column_letter].width = adjusted_width
+
+        wb[sheet].freeze_panes = "A2"
+        wb[sheet].auto_filter.ref = wb[sheet].dimensions
+
+
     wb.save(marked_path)
 
     return marked_path
