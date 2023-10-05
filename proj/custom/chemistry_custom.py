@@ -83,7 +83,7 @@ def chemistry(all_dfs):
     ######################################################################################################################
 
     print("# CHECK - 1")
-    # Description:  Within chemistry data, return a warning if a submission contains multiple dates within a single site (🛑 ERROR 🛑)
+    # Description:  Within chemistry data, return a warning if a submission contains multiple dates within a single site (warning )
     # Created Coder: Zaib
     # Created Date: 2023
     # Last Edited Date: 2/6/2023
@@ -100,7 +100,7 @@ def chemistry(all_dfs):
             f'Warning! You are submitting chemistry data with multiple dates for the same site. {multiple_dates_within_site_results[1]} unique sample dates were submitted. Is this correct?'
         )
     )  
-    # END OF CHECK 1 - Within chemistry data, return a warning if a submission contains multiple dates within a single site. (🛑 ERROR 🛑)
+    # END OF CHECK 1 - Within chemistry data, return a warning if a submission contains multiple dates within a single site. (warning )
     print("# END OF CHECK - 1")
 
     # phab data that will be used in checks 2 and 3 below
@@ -121,7 +121,7 @@ def chemistry(all_dfs):
 
     
     print("# CHECK - 2")
-    # Description:  Return warnings on missing phab data (🛑 ERROR 🛑)
+    # Description:  Return warnings on missing phab data (warning )
     # Created Coder: Zaib
     # Created Date: 2023
     # Last Edited Date: 6/6/2023
@@ -142,11 +142,11 @@ def chemistry(all_dfs):
             f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting chemistry data.'
         )
     )  
-    # END OF CHECK 2 - Return warnings on missing phab data (🛑 ERROR 🛑)
+    # END OF CHECK 2 - Return warnings on missing phab data (warning )
     print("# END OF CHECK - 2")
 
     print("# CHECK - 3")
-    # Description:  Return warnings on submission dates mismatching with phab dates. (🛑 ERROR 🛑)
+    # Description:  Return warnings on submission dates mismatching with phab dates. (warning )
     # Created Coder: Zaib
     # Created Date: 2023
     # Last Edited Date: 6/6/2023
@@ -163,7 +163,7 @@ def chemistry(all_dfs):
             f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
         )
     )  
-    # END OF CHECK 3 - Return warnings on submission dates mismatching with phab dates. (🛑 ERROR 🛑)
+    # END OF CHECK 3 - Return warnings on submission dates mismatching with phab dates. (warning )
     print("# END OF CHECK - 3")
 
     # LOGIC CHECK -- using logic check routine instead of zipping dataframes
