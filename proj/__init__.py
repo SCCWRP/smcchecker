@@ -44,7 +44,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 app.config['MAIL_SERVER'] = os.environ.get('FLASK_APP_MAIL_SERVER')
 
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 200MB limit
+app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
 
 app.secret_key = os.environ.get("FLASK_APP_SECRET_KEY")
 
