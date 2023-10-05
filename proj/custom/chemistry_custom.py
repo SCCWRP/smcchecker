@@ -301,122 +301,155 @@ def chemistry(all_dfs):
     # END OF CHECK 9 - If MatrixName is samplewater, blankwater, or labwater then the following must hold true: if AnalyteName = Chlorophyll a then Unit must be ug/cm2. (🛑 ERROR 🛑)
     print("# END OF CHECK - 9")
 
+
+
     # # Check 10: Result column in results table must be numeric. (Check 11 nested) 
+    # 10/5/2023 NOTE (Robert) - This check needs to be written
+    # If all rows pass check 10, then let checks 11 through 15 run. For now, i have the if block set, to always run (if True)
+    # I put the basic starting code for check 10 below - Robert
 
-    print("# CHECK - 11a")
-    # Description: Warning if ResQualCode is NR or ND then (a) result must be negative. (Warning )
-    # Created Coder: Aria
-    # Created Date: 2023
-    # Last Edited Date: 6/6/2023
-    # Last Edited Coder: Aria
-    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.   
-    warnings.append(
-        checkData(
-            'tbl_chemistryresults',
-            chemistryresults[((chemistryresults.resqualcode == 'ND') | (chemistryresults.resqualcode == 'NR')) & (chemistryresults.result > 0)].tmp_row.tolist(),
-            'result',
-            'Undefined Error',
-            'If ResQualCode is NR or ND then result must be negative value'
-        )
-    )
-    # END OF CHECK 11a - Warning if ResQualCode is NR or ND then (a) result must be negative. (Warning )
-    print("# END OF CHECK - 11a")
+    print("# CHECK - 10")
+    # Description: Result column in results table must be numeric. (🛑 ERROR 🛑)
+    # Created Coder: 
+    # Created Date: 
+    # Last Edited Date: 
+    # Last Edited Coder: 
 
-    print("# CHECK - 11b")
-    # Description: Warning if ResQualCode is NR or ND then (b) comment is required. (Warning )
-    # Created Coder: Aria
-    # Created Date: 2023
-    # Last Edited Date: 6/6/2023
-    # Last Edited Coder: Aria
-    # NOTE # Jeff requested to remove this one. 5/21/2019
-    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.  
-    warnings.append(
-        checkData(
-            'tbl_chemistryresults',
-            chemistryresults[((chemistryresults.resqualcode == 'ND') | (chemistryresults.resqualcode == 'NR')) & ((chemistryresults.labresultcomments == '') | (chemistryresults.labresultcomments.isna()))].tmp_row.tolist(),
-            'labresultcomments',
-            'Undefined Error',
-            'If ResQualCode is NR or ND then comment is required'
-        )
-    )
-    # END OF CHECK 11b -Warning if ResQualCode is NR or ND then (b) comment is required. (Warning )
-    print("# END OF CHECK - 11b")
-    
-    print("# CHECK - 12")
-    # Description:  If result is less than RL but NOT negative then ResQualCode should be DNQ. (🛑 ERROR 🛑)
-    # Created Coder: Zaib
-    # Created Date: 2023
-    # Last Edited Date: 5/2/2023
-    # Last Edited Coder: Zaib
-    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
-    errs.append(
-        checkData(
-            'tbl_chemistryresults',
-            chemistryresults[(chemistryresults.result.astype(float) < chemistryresults.rl.astype(float)) & (chemistryresults.result.astype(float) > 0) & (chemistryresults.resqualcode.astype(str) != 'DNQ')].tmp_row.tolist(),
-            'resqualcode',
-            'Undefined Error',
-            'If Result is less than RL, but not -88, then ResQualCode should be DNQ.'
-        )
-    )
-    # END OF CHECK 12 - If result is less than RL but NOT negative then ResQualCode should be DNQ. (🛑 ERROR 🛑)
-    print("# END OF CHECK - 12")
+    # errs.append(
+    #     checkData(
+    #         'tbl_chemistryresults',
+    #         # chemistryresults[chemistryresults.result.apply(lambda x: x.is_numeric_string() (not a real method))]
+    #         'result',
+    #         'Value Error',
+    #         'Result column must be numeric'
+    #     )
+    # )
 
-    print("# CHECK - 13")
-    # Description:  If result is negative (or zero) then ResQualCode need to be ND. (🛑 ERROR 🛑)
-    # Created Coder: Zaib
-    # Created Date: 2023
-    # Last Edited Date: 5/2/2023
-    # Last Edited Coder: Zaib
-    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
-    errs.append(
-        checkData(
-            'tbl_chemistryresults',
-            chemistryresults[(chemistryresults.result.astype(float) <= 0) & (chemistryresults.resqualcode != 'ND')].tmp_row.tolist(),
-            'resqualcode',
-            'Undefined Error',
-            'If Result is less than or equal to zero, then the ResQualCode should be ND.'
-        )
-    )
-    # END OF CHECK 13 - If result is negative (or zero) then ResQualCode need to be ND. (🛑 ERROR 🛑)
-    print("# END OF CHECK - 13")
+    # END OF CHECK 10 - Result column in results table must be numeric. (🛑 ERROR 🛑)
+    print("# END OF CHECK - 10")
 
-    print("# CHECK - 14")
-    # Description:   RL and MDL cannot both be -88. - WARNING
-    # Created Coder: Zaib
-    # Created Date: 2023
-    # Last Edited Date: 5/2/2023
-    # Last Edited Coder: Zaib
-    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
-    warnings.append(
-        checkData(
-            'tbl_chemistryresults',
-            chemistryresults[(chemistryresults.rl == -88) & (chemistryresults.mdl == -88)].tmp_row.tolist(),
-            'rl',
-            'Undefined Warning',
-            'The MDL and RL cannot both be -88.'
-        )
-    )
-    # END OF CHECK 14 - RL and MDL cannot both be -88. ( Warning )
-    print("# END OF CHECK - 14")
 
-    print("# CHECK - 15")
-    # Description:   RL cannot be less than MDL. - WARNING 
-    # Created Coder: Zaib
-    # Created Date: 2023
-    # Last Edited Date: 5/2/2023
-    # Last Edited Coder: Zaib
-    # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
-    warnings.append(
-        checkData(
-            'tbl_chemistryresults',
-            chemistryresults[chemistryresults.rl < chemistryresults.mdl].tmp_row.tolist(),
-            'rl',
-            'Undefined Warning',
-            'The RL cannot be less than MDL.'
+
+
+
+    if True:
+        print("# CHECK - 11a")
+        # Description: Warning if ResQualCode is NR or ND then (a) result must be negative. (Warning )
+        # Created Coder: Aria
+        # Created Date: 2023
+        # Last Edited Date: 6/6/2023
+        # Last Edited Coder: Aria
+        # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.   
+        warnings.append(
+            checkData(
+                'tbl_chemistryresults',
+                chemistryresults[((chemistryresults.resqualcode == 'ND') | (chemistryresults.resqualcode == 'NR')) & (chemistryresults.result > 0)].tmp_row.tolist(),
+                'result',
+                'Undefined Error',
+                'If ResQualCode is NR or ND then result must be negative value'
+            )
         )
-    )
-    # END OF CHECK 15 - RL cannot be less than MDL. - WARNING 
-    print("# END OF CHECK - 15")
+        # END OF CHECK 11a - Warning if ResQualCode is NR or ND then (a) result must be negative. (Warning )
+        print("# END OF CHECK - 11a")
+
+        print("# CHECK - 11b")
+        # Description: Warning if ResQualCode is NR or ND then (b) comment is required. (Warning )
+        # Created Coder: Aria
+        # Created Date: 2023
+        # Last Edited Date: 6/6/2023
+        # Last Edited Coder: Aria
+        # NOTE # Jeff requested to remove this one. 5/21/2019
+        # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.  
+        warnings.append(
+            checkData(
+                'tbl_chemistryresults',
+                chemistryresults[((chemistryresults.resqualcode == 'ND') | (chemistryresults.resqualcode == 'NR')) & ((chemistryresults.labresultcomments == '') | (chemistryresults.labresultcomments.isna()))].tmp_row.tolist(),
+                'labresultcomments',
+                'Undefined Error',
+                'If ResQualCode is NR or ND then comment is required'
+            )
+        )
+        # END OF CHECK 11b -Warning if ResQualCode is NR or ND then (b) comment is required. (Warning )
+        print("# END OF CHECK - 11b")
+        
+        print("# CHECK - 12")
+        # Description:  If result is less than RL but NOT negative then ResQualCode should be DNQ. (🛑 ERROR 🛑)
+        # Created Coder: Zaib
+        # Created Date: 2023
+        # Last Edited Date: 5/2/2023
+        # Last Edited Coder: Zaib
+        # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
+        errs.append(
+            checkData(
+                'tbl_chemistryresults',
+                chemistryresults[(chemistryresults.result.astype(float) < chemistryresults.rl.astype(float)) & (chemistryresults.result.astype(float) > 0) & (chemistryresults.resqualcode.astype(str) != 'DNQ')].tmp_row.tolist(),
+                'resqualcode',
+                'Undefined Error',
+                'If Result is less than RL, but not -88, then ResQualCode should be DNQ.'
+            )
+        )
+        # END OF CHECK 12 - If result is less than RL but NOT negative then ResQualCode should be DNQ. (🛑 ERROR 🛑)
+        print("# END OF CHECK - 12")
+
+        print("# CHECK - 13")
+        # Description:  If result is negative (or zero) then ResQualCode need to be ND. (🛑 ERROR 🛑)
+        # Created Coder: Zaib
+        # Created Date: 2023
+        # Last Edited Date: 5/2/2023
+        # Last Edited Coder: Zaib
+        # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
+        errs.append(
+            checkData(
+                'tbl_chemistryresults',
+                chemistryresults[(chemistryresults.result.astype(float) <= 0) & (chemistryresults.resqualcode != 'ND')].tmp_row.tolist(),
+                'resqualcode',
+                'Undefined Error',
+                'If Result is less than or equal to zero, then the ResQualCode should be ND.'
+            )
+        )
+        # END OF CHECK 13 - If result is negative (or zero) then ResQualCode need to be ND. (🛑 ERROR 🛑)
+        print("# END OF CHECK - 13")
+
+        print("# CHECK - 14")
+        # Description:   RL and MDL cannot both be -88. - WARNING
+        # Created Coder: Zaib
+        # Created Date: 2023
+        # Last Edited Date: 5/2/2023
+        # Last Edited Coder: Zaib
+        # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
+        warnings.append(
+            checkData(
+                'tbl_chemistryresults',
+                chemistryresults[(chemistryresults.rl == -88) & (chemistryresults.mdl == -88)].tmp_row.tolist(),
+                'rl',
+                'Undefined Warning',
+                'The MDL and RL cannot both be -88.'
+            )
+        )
+        # END OF CHECK 14 - RL and MDL cannot both be -88. ( Warning )
+        print("# END OF CHECK - 14")
+
+        print("# CHECK - 15")
+        # Description:   RL cannot be less than MDL. - WARNING 
+        # Created Coder: Zaib
+        # Created Date: 2023
+        # Last Edited Date: 5/2/2023
+        # Last Edited Coder: Zaib
+        # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
+        warnings.append(
+            checkData(
+                'tbl_chemistryresults',
+                chemistryresults[chemistryresults.rl < chemistryresults.mdl].tmp_row.tolist(),
+                'rl',
+                'Undefined Warning',
+                'The RL cannot be less than MDL.'
+            )
+        )
+        # END OF CHECK 15 - RL cannot be less than MDL. - WARNING 
+        print("# END OF CHECK - 15")
+
+
+
 
     print("# CHECK - 16")
     # Description:  If SampleTypeCode is in the set MS1, MS2, LCS, CRM, MSBLDup, BlankSp and the Unit is NOT % then Expected Value cannot be 0. --- <=0 gives warning - WARNING
