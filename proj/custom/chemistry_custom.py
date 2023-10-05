@@ -310,29 +310,28 @@ def chemistry(all_dfs):
 
     print("# CHECK - 10")
     # Description: Result column in results table must be numeric. (🛑 ERROR 🛑)
-    # Created Coder: 
-    # Created Date: 
-    # Last Edited Date: 
-    # Last Edited Coder: 
+    # Created Coder: Robert and ChatGPT 
+    # Created Date: 10/5/2023
+    # Last Edited Date: NA
+    # Last Edited Coder: NA
 
-    # errs.append(
-    #     checkData(
-    #         'tbl_chemistryresults',
-    #         # chemistryresults[chemistryresults.result.apply(lambda x: x.is_numeric_string() (not a real method))]
-    #         'result',
-    #         'Value Error',
-    #         'Result column must be numeric'
-    #     )
-    # )
+    non_numeric_result_rows = chemistryresults[~chemistryresults['result'].apply(lambda x: pd.to_numeric(x, errors='coerce')).notna()].tmp_row.tolist()
+    errs.append(
+        checkData(
+            'tbl_chemistryresults',
+            non_numeric_result_rows,
+            'result',
+            'Value Error',
+            'Result column must be numeric'
+        )
+    )
 
     # END OF CHECK 10 - Result column in results table must be numeric. (🛑 ERROR 🛑)
     print("# END OF CHECK - 10")
 
 
 
-
-
-    if True:
+    if len(non_numeric_result_rows) == 0:
         print("# CHECK - 11a")
         # Description: Warning if ResQualCode is NR or ND then (a) result must be negative. (Warning )
         # Created Coder: Aria
@@ -478,19 +477,23 @@ def chemistry(all_dfs):
     # Last Edited Coder: Zaib
     # NOTE # For Check 17, see line 421 in ChemistryChecks.py.
     # NOTE (08/24/23): Aria - adjusts the format so it follows the coding standard.
-    groups = chemistryresults.groupby(['labbatch','analytename','dilfactor'])['mdl'].apply(
-        lambda x: True if len(set(x)) > 1 else False
-        ).reset_index(name = 'multiple mdl values')
+    groups = chemistryresults.groupby(['labbatch','analytename','dilfactor']).agg({
+        'tmp_row': list,
+        'mdl': (lambda x: len(set(x)) > 1)
+    }).reset_index().rename(columns = {'mdl':'multiple_mdls'})
     
-    bad_groups = groups.where(
-        groups['multiple mdl values']
-    ).dropna()
+    bad_groups = groups[groups.multiple_mdls]
 
-    for i in bad_groups.index:
-        lb = bad_groups.labbatch[i]
-        an = bad_groups.analytename[i]
-        df = bad_groups.dilfactor[i]
-        # this is where the checkData function runs...
+    for _, row in bad_groups.iterrows():
+        warnings.append(
+            checkData(
+                'tbl_chemistryresults',
+                row.tmp_row,
+                'mdl',
+                'Undefined Warning',
+                'For each grouping of LabBatch, Analytename, and DilFactor, there shouldnt be more than one MDL value'
+            )
+        )
 
     # END OF CHECK 17 -  If multiple records have equal LabBatch, AnalyteName, DilFactor then MDL values for those records must also be equivalent. -- WARNING
     print("# END OF CHECK - 17")
@@ -568,7 +571,7 @@ def chemistry(all_dfs):
             chemistryresults[(chemistryresults['labbatch'].duplicated()) & (chemistryresults['analytename'].duplicated()) & (~chemistryresults[['unit']].duplicated())].tmp_row.tolist(),
             'unit',
             'Undefined Warning',
-            'If multiple records have equal LabBatch, AnalyteName then Unit should also be equivalent. Check methodname.'
+            'If multiple records have equal LabBatch, AnalyteName then Unit should also be equivalent. Check units.'
         )
     )
     # END OF CHECK 20 -  If multiple records have equal LabBatch, AnalyeName then Unit should also be equivalent  - WARNING
