@@ -7,6 +7,8 @@ import re
 import pandas as pd
 import datetime as dt
 import time
+import numpy as np
+
 
 def trash(all_dfs):
     
@@ -144,19 +146,37 @@ def trash(all_dfs):
     # Description: StartTime needs to be in HH:MM format in 24hour range (0-24:0-59) (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/31/2023
-    # Last Edited Coder: Nick Lombardo
+    # Last Edited Date: 10/05/2023
+    # Last Edited Coder: Duy
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     # NOTE (08/31/23): Nick adjusted regex to account for optional seconds characters in time format
+    # NOTE (10/5/23): If a user enters military time (0831), pandas thinks endtime is a numeric field, and re.match will break since it expects a string
+    # so str(x) would fix it.
     correct_time_format = r'^(0?[0-9]|1\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$' 
+    
+    
+    print(list(trashsiteinfo['starttime']))
+    print(trashsiteinfo['starttime'].apply(
+                lambda x: not bool(re.match(correct_time_format, str(x)))
+                if str(x) != 'nan'
+                else 
+                False
+            ))
+
 
     errs.append(
         checkData(
             'tbl_trashsiteinfo',
-            trashsiteinfo[trashsiteinfo['starttime'].apply(lambda x: not bool(re.match(correct_time_format, x)))].tmp_row.tolist(),
+            trashsiteinfo[trashsiteinfo['starttime'].apply(
+                lambda x: not bool(re.match(correct_time_format, str(x)))
+                if str(x) != 'nan'
+                else 
+                False
+            )
+            ].tmp_row.tolist(),
             'starttime',
             'Time Formatting Error ',
-            'StartTime needs to be in HH:MM format in 24hour range (0-24:0-59)'
+            'StartTime needs to be in HH:MM format in 24hour range (0-24:0-59). If the value is missing, please leave it blank.'
         )
     )
     print("# END OF CHECK - 2a")  
@@ -168,13 +188,22 @@ def trash(all_dfs):
     # Last Edited Date: 08/22/2023
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (10/5/23): If a user enters military time (0831), pandas thinks endtime is a numeric field, and re.match will break since it expects a string
+    # so str(x) would fix it.
     errs.append(
         checkData(
             'tbl_trashsiteinfo',
-            trashsiteinfo[trashsiteinfo['endtime'].apply(lambda x: not bool(re.match(correct_time_format, x)))].tmp_row.tolist(),
+            trashsiteinfo[
+                trashsiteinfo['endtime'].apply(
+                    lambda x: not bool(re.match(correct_time_format, str(x)))
+                    if str(x) != 'nan'
+                    else 
+                    False
+                )
+            ].tmp_row.tolist(),
             'endtime',
             'Undefined Error',
-            'EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range'
+            'EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range. If the value is missing, please enter NR.'
         )
     )  
     print("# END OF CHECK - 2b")    
@@ -205,16 +234,18 @@ def trash(all_dfs):
     # Description: StartTime must be before EndTime (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/31/2023
-    # Last Edited Coder: Nick Lombardo
+    # Last Edited Date: 10/5/2023
+    # Last Edited Coder: Duy
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
     # NOTE (08/31/23): Nick Fixed time format for to_datetime functions. pandas parses the time correctly
     #                   either way (HH:MM, or HH:MM:SS) without the "format" argument
+    # NOTE (10/5/23): If a user enters military time (0831), pandas thinks endtime is a numeric field, and re.match will break since it expects a string
+    # so str(x) would fix it.
     if (
         all(
             [
-                trashsiteinfo['starttime'].apply(lambda x: bool(re.match(correct_time_format, x))).all(), 
-                trashsiteinfo['endtime'].apply(lambda x: bool(re.match(correct_time_format, x))).all()
+                trashsiteinfo['starttime'].apply(lambda x: bool(re.match(correct_time_format, str(x)))).all(), 
+                trashsiteinfo['endtime'].apply(lambda x: bool(re.match(correct_time_format, str(x)))).all()
             ]
         )
     ):
