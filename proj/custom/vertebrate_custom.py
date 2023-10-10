@@ -24,7 +24,7 @@ def vertebrate(all_dfs):
     warnings = []
 
     eng = create_engine(os.environ.get('DB_CONNECTION_STRING'))
-    lu_station = pd.read_sql("select * from lu_station",eng)
+    lu_station = pd.read_sql("select * from lu_stations",eng)
 
     # since often times checks are done by merging tables (Paul calls those logic checks)
     # we assign dataframes of all_dfs to variables and go from there
@@ -131,7 +131,8 @@ def vertebrate(all_dfs):
             vertebrateobservation[(vertebrateobservation['sitetype'] == 'exists') & ~vertebrateobservation['stationcode'].isin(lu_station['stationid'])].tmp_row.tolist(),
             "sitetype, stationcode",
             'undefined error',
-            " If SiteType = 'exists' then the stationid must come from lu_station  "
+            "If SiteType = 'exists' then the stationid must come from "+\
+            "<a href=scraper?action=help&layer=lu_stations>lu_stations</a>"
             )
     )
 
