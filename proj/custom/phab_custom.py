@@ -147,43 +147,26 @@ def phab(all_dfs):
     # END OF CHECK - If ResQualCode is NR, ND, or NA then VariableResult should be Not Recorded or NULL (🛑 Warning 🛑)
     print("# END OF CHECK - 5")
     
-    print("# CHECK - 6")
-    # Description: For QACode flagged as None, Result should not be reported (meaning Result must be -88 or NULL) (🛑 Warning 🛑)
-    # Created Coder: Aria Askaryar
-    # Created Date: 04/03/2023
-    # Last Edited Date: 08/29/23
-    # Last Edited Coder: Aria Askaryar
-    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
-    warnings.append(
-        checkData(
-            'tbl_phab',
-            phab[(phab.qacode != 'None') & ((phab.result != 'NR') & (~phab.result.isnull()) & (phab.result != '') ) ].tmp_row.tolist(),
-            'result',
-            'Undefined Warning',
-            "The QA Flag is not None here, but there appears to be a value reported in the Result column.",            
-        )
-    )
-    # END OF CHECK -  For QACode flagged as None, Result should not be reported (meaning Result must be -88 or NULL)(🛑 Warning 🛑)
-    print("# END OF CHECK - 6")
-
+    
+    
     print("# CHECK - 7")
-    # Description: For QACode flagged as None, VariableResult should not be reported (meaning VariableResult must be NR, NULL, or empty)(🛑 Warning 🛑)
-    # Created Coder: Aria Askaryar
-    # Created Date: 04/03/2023
-    # Last Edited Date: 08/29/23
-    # Last Edited Coder: Aria Askaryar
-    # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works    
+    # Description: For QACode flagged as None, VariableResult or Result should be reported (meaning both cannot be NR,NULL, or empty)(🛑 Warning 🛑)
+    # Created Coder: Ayah Halabi
+    # Created Date: 10/10/2023
+    # Last Edited Date: 
+    # Last Edited Coder: 
+    # NOTE (10/10/2023):Ayah rewrote Phab checks    
     warnings.append(
         checkData(
             'tbl_phab',
-            phab[(phab.qacode != 'None') & ((phab.variableresult != 'NR') & (~phab.variableresult.isnull()) & (phab.variableresult != '') ) ].tmp_row.tolist(),
-            'variableresult',
+            phab[(phab['qacode'] == 'None') & ((phab['variableresult'].isnull()) & (phab['result'].isnull())) ].tmp_row.tolist(),
+            'variableresult,result',
             'Undefined Warning',
-            "The QA Flag is not None here, but there appears to be a value reported in the VaraibleResult column."            
+            "For QAcode flagged as None, VariableResult or Result should be reported (meaning both can't be empty)"            
         )
     )
     # END OF CHECK - For QACode flagged as None, VariableResult should not be reported (meaning VariableResult must be NR, NULL, or empty) (🛑 Warning 🛑)
-    print("# END OF CHECK - 7")
+    print("# END OF CHECK - 7")   
 
     print("# CHECK - 8")
     # Description: Warn for Analyte SpecifcConductivity if Result value is less than 50 (🛑 Warning 🛑)
