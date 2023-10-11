@@ -144,7 +144,9 @@ def process_sf():
             except Exception as e:
                 returnvals = {
                     "critical_error": False,
-                    "user_error_msg": "Failed to auto-convert projection to EPSG Projection 4326 - WGS 84. Please use a GIS Program to convert your shapefile's projection to EPSG Projection 4326 - WGS 84",
+                    "user_error_msg": 
+                        "Failed to auto-convert projection to EPSG:4326 (WGS 84). \n"+\
+                        "Please check your Projected Coordinate System and use a GIS Program to convert it to EPSG:4326 (WGS 84)",
                 }
                 return jsonify(**returnvals)
 
