@@ -267,7 +267,7 @@ def channelengineering(all_dfs):
                 EngineeredChannelChecks(channelengineering, field),
                 field,
                 'Undefined Warning',
-                f'The channeltype is Engineered, but the {field} field is NR'
+                f"""The channeltype is Engineered, but the {field} field is NR {'or Other' if str(field).endswith('sideofstructure') else ''}"""
             )
             for field in fields_to_check
         ]
