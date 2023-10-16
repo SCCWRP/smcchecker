@@ -122,10 +122,11 @@ def vertebrate(all_dfs):
     print("# CHECK - 2")
     # Description: If SiteType == 'exists' then the stationid must come from lu_station  (not lu_stations)(🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
-    # Created Date: 5/11/2023
+    # Created Date: 10/5/2023
     # Last Edited Date: 08/29/23
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works   
+    # NOTE (10/5/2023): Aria edited the code to work properly, was referencing lu_stations instead of lu_station
     errs.append(
         checkData(
             'tbl_vertebrateobservation',
