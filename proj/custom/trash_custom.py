@@ -298,9 +298,10 @@ def trash(all_dfs):
     # Description: If debriscategory is Plastic then debrisitem is in lu_trashplastic(🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/22/2023
+    # Last Edited Date: 10/16/2023
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (10/16/2023): Aria fixed the hyperlink to open in new tab
     lu_plastic = pd.read_sql("SELECT plastic FROM lu_trashplastic",g.eng).plastic.tolist()
     # https://checker.sccwrp.org/smcchecker/scraper?action=help&layer=lu_trashmetal
     errs.append(
@@ -309,7 +310,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory == 'Plastic') & (~trashtally.debrisitem.isin(lu_plastic))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashplastic>lu_trashplastic</a>'
+            'The value you entered does not match the lookup list <a href="scraper?action=help&layer=lu_trashplastic" target="_blank">lu_trashplastic</a>'
             )          
     )
     print("# END OF CHECK - 5")
@@ -318,9 +319,10 @@ def trash(all_dfs):
     # Description: If debriscategory is Fabric_Cloth then debrisitem is lu_trashfabricandcloth (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/22/2023
+    # Last Edited Date: 10/16/2023
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (10/16/2023): Aria fixed the hyperlink to open in new tab
     lu_fabricandcloth = pd.read_sql("SELECT fabricandcloth FROM lu_trashfabricandcloth",g.eng).fabricandcloth.tolist()
 
     errs.append(
@@ -329,7 +331,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'fabric_cloth') & (~trashtally.debrisitem.isin(lu_fabricandcloth))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashfabricandcloth>lu_trashfabricandcloth</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashfabricandcloth  target="_blank">lu_trashfabricandcloth</a>'
             )
     )
     print("# END OF CHECK - 6")
@@ -338,9 +340,10 @@ def trash(all_dfs):
     # Description: If debriscategory is Large then debrisitem is in lu_trashlarge (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/22/2023
+    # Last Edited Date: 10/16/2023
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (10/16/2023): Aria fixed the hyperlink to open in new tab
     lu_large = pd.read_sql("SELECT large FROM lu_trashlarge",g.eng).large.tolist()
 
     errs.append(
@@ -349,7 +352,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'large') & (~trashtally.debrisitem.isin(lu_large))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashlarge>lu_trashlarge</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashlarge target="_blank">lu_trashlarge</a>'
             )
     )
     print("# END OF CHECK - 7")
@@ -358,9 +361,10 @@ def trash(all_dfs):
     # Description: If debriscategory is Biodegradable then debrisitem is in lu_trashbiodegradable (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/22/2023
+    # Last Edited Date: 10/16/2023
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (10/16/2023): Aria fixed the hyperlink to open in new tab
     lu_biodegradable = pd.read_sql("SELECT biodegradable FROM lu_trashbiodegradable",g.eng).biodegradable.tolist()
 
     errs.append(
@@ -369,7 +373,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'biodegradable') & (~trashtally.debrisitem.isin(lu_biodegradable))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashbiodegradable>lu_trashbiodegradable</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashbiodegradable target="_blank">lu_trashbiodegradable</a>'
             )
     )
     print("# END OF CHECK - 8")
@@ -378,9 +382,10 @@ def trash(all_dfs):
     # Description: If debriscategory is Biohazard then debrisitem is in lu_trashbiohazard (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/22/2023
+    # Last Edited Date: 10/16/2023
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (10/16/2023): Aria fixed the hyperlink to open in new tab
     lu_biohazard = pd.read_sql("SELECT biohazard FROM lu_trashbiohazard",g.eng).biohazard.tolist()
     errs.append(
         checkData(
@@ -388,7 +393,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'biohazard') & (~trashtally.debrisitem.isin(lu_biohazard))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashbiohazard>lu_trashbiohazard</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashbiohazard target="_blank">lu_trashbiohazard</a>'
             )
     )
     print("# END OF CHECK - 9")
@@ -397,9 +402,10 @@ def trash(all_dfs):
     # Description: If debriscategory is Construction then debrisitem is in lu_trashconstruction (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/22/2023
+    # Last Edited Date: 10/16/2023
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (10/16/2023): Aria fixed the hyperlink to open in new tab
     lu_construction = pd.read_sql("SELECT construction FROM lu_trashconstruction",g.eng).construction.tolist()
     errs.append(
         checkData(
@@ -407,7 +413,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'construction') & (~trashtally.debrisitem.isin(lu_construction))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashconstruction>lu_trashconstruction</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashconstruction target="_blank">lu_trashconstruction</a>'
             )
     )
     print("# END OF CHECK - 10")
@@ -416,10 +422,11 @@ def trash(all_dfs):
     # Description: If debriscategory is Glass then debrisitem is in lu_trashglass (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/22/2023
+    # Last Edited Date: 10/16/2023
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. 
-    # NOTE (08/22/23): Aria - this has a issue it flaggs Glass Pieces even though its in the lookup list not sure why this is happening??
+    # NOTE (08/22/23): Aria - this has a issue it flaggs Glass Pieces even though its in the lookup list not sure why this is happening?? Aria- The reason why this is happening is because "Glass Pieces*" has a * at the end of the word
+    # NOTE (10/16/2023): Aria fixed the hyperlink to open in new tab
     lu_glass = pd.read_sql("SELECT glass FROM lu_trashglass",g.eng).glass.tolist()
     errs.append(
         checkData(
@@ -427,7 +434,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'glass') & (~trashtally.debrisitem.isin(lu_glass))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashglass>lu_trashglass</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashglass target="_blank">lu_trashglass</a>'
             )
     )
     print("# END OF CHECK - 11")
@@ -436,9 +443,10 @@ def trash(all_dfs):
     # Description: If debriscategory is Metal then debrisitem is in lu_trashmetal (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/22/2023
+    # Last Edited Date: 10/16/2023
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (10/16/2023): Aria fixed the hyperlink to open in new tab
     lu_metal = pd.read_sql("SELECT metal FROM lu_trashmetal",g.eng).metal.tolist()
     errs.append(
         checkData(
@@ -446,7 +454,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'metal') & (~trashtally.debrisitem.isin(lu_metal))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashmetal>lu_trashmetal</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashmetal target="_blank">lu_trashmetal</a>'
             )
     )
     print("# END OF CHECK - 12")
@@ -455,9 +463,10 @@ def trash(all_dfs):
     # Description: If debriscategory is Miscellaneous then debrisitem is in lu_trashmiscellaneous (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: NA
-    # Last Edited Date: 08/23/2023
+    # Last Edited Date: 10/16/2023
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria adjusts the format so it follows the coding standard. works
+    # NOTE (10/16/2023): Aria fixed the hyperlink to open in new tab
     lu_miscellaneous = pd.read_sql("SELECT miscellaneous FROM lu_trashmiscellaneous",g.eng).miscellaneous.tolist()
     errs.append(
         checkData(
@@ -465,7 +474,7 @@ def trash(all_dfs):
             trashtally[(trashtally.debriscategory.str.lower() == 'miscellaneous') & (~trashtally.debrisitem.isin(lu_miscellaneous))].tmp_row.tolist(),
             'debrisitem',
             'Undefined Error',
-            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashmiscellaneous>lu_trashmiscellaneous</a>'
+            'The value you entered does not match the lookup list <a href=scraper?action=help&layer=lu_trashmiscellaneous target="_blank">lu_trashmiscellaneous</a>'
             )
     )
     print("# END OF CHECK - 13")
