@@ -24,7 +24,7 @@ def vertebrate(all_dfs):
     warnings = []
 
     eng = create_engine(os.environ.get('DB_CONNECTION_STRING'))
-    lu_station = pd.read_sql("select * from lu_stations",eng)
+    lu_station = pd.read_sql("select * from lu_station",eng)
 
     # since often times checks are done by merging tables (Paul calls those logic checks)
     # we assign dataframes of all_dfs to variables and go from there
@@ -78,11 +78,12 @@ def vertebrate(all_dfs):
     print("# CHECK - 1")
     # Description: Check If no_observation == F (false) then taxon, lifestage, abundance fields are required and cant be 'Not Recorded', and they must come from lu_vertebratetaxon, lu_vertebratelifestage, and lu_vertebrateabundance respectively (🛑 ERROR 🛑)
     # Created Coder: Aria Askaryar
-    # Created Date: 10/2/2023
-    # Last Edited Date: 10/5/2023
-    # Last Edited Coder: Ayah Halabi
+    # Created Date: 08/29/23
+    # Last Edited Date: 10/16/2023
+    # Last Edited Coder: Aria Askaryar
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works   
     # NOTE (10/5/2023): Ayah added links for lu_lists
+    # NOTE (10/5/2023): Aria fixed the hyperlink to open in new tab
     #Taxon
     errs.append(
         checkData(
@@ -90,7 +91,7 @@ def vertebrate(all_dfs):
             vertebrateobservation[((vertebrateobservation['no_observation'] == "F") & (vertebrateobservation['taxon'] == 'Not Recorded'))].tmp_row.tolist(),
             'taxon',
             'undefined error',
-            'If no_observation = F then taxon fields is required, taxon cant be Not Recorded. For more information, you may refer to the  <a href=scraper?action=help&layer=lu_vertebratetaxon>lu_vertebratetaxon</a>">lu_vertebratetaxon</a> '
+            'If no_observation = F then taxon fields is required, taxon cant be Not Recorded. For more information, you may refer to the <a href="scraper?action=help&layer=lu_vertebratetaxon" target="_blank">lu_vertebratetaxon</a>.'
             )
     )
 
@@ -101,7 +102,7 @@ def vertebrate(all_dfs):
             vertebrateobservation[((vertebrateobservation['no_observation'] == "F") & (vertebrateobservation['lifestage'] == 'Not Recorded'))].tmp_row.tolist(),
             'lifestage',
             'undefined error',
-            'If no_observation = F then lifestage fields is required, lifestage cant be Not Recorded.For more information, you may refer to the  <a href=scraper?action=help&layer=lu_vertebratetaxon>lu_vertebratelifestage</a>">lu_vertebratelifestage</a> '
+            'If no_observation = F then lifestage fields is required, lifestage cant be Not Recorded.For more information, you may refer to the  <a href="scraper?action=help&layer=lu_vertebratetaxon" target="_blank">lu_vertebratelifestage</a> '
             )
     )
 
@@ -112,7 +113,7 @@ def vertebrate(all_dfs):
             vertebrateobservation[((vertebrateobservation['no_observation'] == "F") & (vertebrateobservation['abundance'] == 'Not Recorded'))].tmp_row.tolist(),
             'abundance',
             'undefined error',
-            'If no_observation = F then abundance fields is required, abundance cant be Not Recorded.For more information, you may refer to the  <a href=scraper?action=help&layer=lu_vertebrabundance>lu_vertebrateabundance</a>">lu_vertebrateabundance</a> '
+            'If no_observation = F then abundance fields is required, abundance cant be Not Recorded.For more information, you may refer to the  <a href="scraper?action=help&layer=lu_vertebrabundance" target="_blank">lu_vertebrateabundance</a> '
             )
     )
    # END OF CHECK - If No_Observation is False, then Taxon is required with value from lu_vertebratetaxon. (🛑 ERROR 🛑)
@@ -129,10 +130,10 @@ def vertebrate(all_dfs):
         checkData(
             'tbl_vertebrateobservation',
             vertebrateobservation[(vertebrateobservation['sitetype'] == 'exists') & ~vertebrateobservation['stationcode'].isin(lu_station['stationid'])].tmp_row.tolist(),
-            "sitetype, stationcode",
+            "stationcode",
             'undefined error',
             "If SiteType = 'exists' then the stationid must come from "+\
-            "<a href=scraper?action=help&layer=lu_stations>lu_stations</a>"
+            "<a href=scraper?action=help&layer=lu_station target='_blank'>lu_station</a>"
             )
     )
 
