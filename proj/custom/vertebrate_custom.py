@@ -24,7 +24,10 @@ def vertebrate(all_dfs):
     warnings = []
 
     eng = create_engine(os.environ.get('DB_CONNECTION_STRING'))
-    lu_station = pd.read_sql("select * from lu_station",eng)
+
+    # NOTE - this is incorrect 10/10/2023 - Robert
+    # This is pulling from lu_stations when it needs to pull from lu_station - there are two lists each having their own purpose
+    lu_station = pd.read_sql("select * from lu_stations",eng)
 
     # since often times checks are done by merging tables (Paul calls those logic checks)
     # we assign dataframes of all_dfs to variables and go from there
@@ -91,7 +94,11 @@ def vertebrate(all_dfs):
             vertebrateobservation[((vertebrateobservation['no_observation'] == "F") & (vertebrateobservation['taxon'] == 'Not Recorded'))].tmp_row.tolist(),
             'taxon',
             'undefined error',
+<<<<<<< HEAD
             'If no_observation = F then taxon fields is required, taxon cant be Not Recorded. For more information, you may refer to the <a href="scraper?action=help&layer=lu_vertebratetaxon" target="_blank">lu_vertebratetaxon</a>.'
+=======
+            'If no_observation = F then taxon fields is required, taxon cant be Not Recorded. For more information, you may refer to the  <a href=scraper?action=help&layer=lu_vertebratetaxon>lu_vertebratetaxon</a> '
+>>>>>>> 296641c1f05baa1ae04ac4d3cfd8e6d4799f5100
             )
     )
 
@@ -102,7 +109,11 @@ def vertebrate(all_dfs):
             vertebrateobservation[((vertebrateobservation['no_observation'] == "F") & (vertebrateobservation['lifestage'] == 'Not Recorded'))].tmp_row.tolist(),
             'lifestage',
             'undefined error',
+<<<<<<< HEAD
             'If no_observation = F then lifestage fields is required, lifestage cant be Not Recorded.For more information, you may refer to the  <a href="scraper?action=help&layer=lu_vertebratetaxon" target="_blank">lu_vertebratelifestage</a> '
+=======
+            'If no_observation = F then lifestage fields is required, lifestage cant be Not Recorded.For more information, you may refer to the  <a href=scraper?action=help&layer=lu_vertebratetaxon>lu_vertebratelifestage</a> '
+>>>>>>> 296641c1f05baa1ae04ac4d3cfd8e6d4799f5100
             )
     )
 
@@ -113,7 +124,11 @@ def vertebrate(all_dfs):
             vertebrateobservation[((vertebrateobservation['no_observation'] == "F") & (vertebrateobservation['abundance'] == 'Not Recorded'))].tmp_row.tolist(),
             'abundance',
             'undefined error',
+<<<<<<< HEAD
             'If no_observation = F then abundance fields is required, abundance cant be Not Recorded.For more information, you may refer to the  <a href="scraper?action=help&layer=lu_vertebrabundance" target="_blank">lu_vertebrateabundance</a> '
+=======
+            'If no_observation = F then abundance fields is required, abundance cant be Not Recorded.For more information, you may refer to the  <a href=scraper?action=help&layer=lu_vertebrabundance>lu_vertebrateabundance</a> '
+>>>>>>> 296641c1f05baa1ae04ac4d3cfd8e6d4799f5100
             )
     )
    # END OF CHECK - If No_Observation is False, then Taxon is required with value from lu_vertebratetaxon. (🛑 ERROR 🛑)
