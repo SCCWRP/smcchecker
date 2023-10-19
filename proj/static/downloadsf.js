@@ -9,8 +9,8 @@ async function(e){
     document.getElementsByClassName("download-button-container")[0].classList.add("hidden")
     document.getElementById('loading-spinner').classList.remove("hidden")
 
-    let inputStations = document.getElementById("input-station-sf").value.trim().replace(/["';]/g, '').replace(/;/g, '').replace(/\s+/g, '')
-
+    let inputStations = document.getElementById("input-station-sf").value.split(',').map(item => item.trim()).join(',');
+    console.log(inputStations)
     if (inputStations == ''){
         document.getElementById('loading-spinner').classList.add("hidden")
         return alert('Station inputs are empty')
