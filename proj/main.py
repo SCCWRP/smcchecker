@@ -109,8 +109,9 @@ def main():
                 session.get('excel_path'), 
                 sheet_name = sheet,
                 skiprows = current_app.excel_offset,
-                dtype = {"no_observation": str}
-                #na_values = ['']
+                dtype = {"no_observation": str},
+                na_values = [''], 
+                keep_default_na=False
             )
             
             for sheet in pd.ExcelFile(session.get('excel_path')).sheet_names
@@ -226,7 +227,9 @@ def main():
             session.get('excel_path'), 
             sheet_name = sheet,
             skiprows = current_app.excel_offset,
-            na_values = ['']
+            dtype = {"no_observation": str},
+            na_values = [''], 
+            keep_default_na=False
         )
         for sheet in pd.ExcelFile(session.get('excel_path')).sheet_names
         if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))

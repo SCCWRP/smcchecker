@@ -37,7 +37,14 @@ def load():
         # For projects that do not set up their data templates in this way, that arg should be removed
 
         # Note also that only empty cells will be regarded as missing values
-        sheet: pd.read_excel(excel_path, sheet_name = sheet, skiprows = current_app.excel_offset, na_values = [''])
+        sheet: pd.read_excel(
+            excel_path, 
+            sheet_name = sheet,
+            skiprows = current_app.excel_offset,
+            dtype = {"no_observation": str},
+            na_values = [''], 
+            keep_default_na=False
+        )
         
         for sheet in pd.ExcelFile(excel_path).sheet_names
         
