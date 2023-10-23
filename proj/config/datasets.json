@@ -2,7 +2,7 @@
     "algae": {
         "label": "Algae Taxonomy",
         "tables": [
-            "smc_algae"
+            "tbl_algae"
         ],
         "login_fields": [
             {
@@ -72,8 +72,8 @@
     "taxonomy": {
         "label": "BMI Taxonomy",
         "tables": [
-            "smc_taxonomysampleinfo",
-            "smc_taxonomyresults"
+            "tbl_taxonomysampleinfo",
+            "tbl_taxonomyresults"
         ],
         "login_fields": [
             {
@@ -144,8 +144,8 @@
     "chemistry": {
         "label": "Chemistry",
         "tables": [
-            "smc_chemistrybatch",
-            "smc_chemistryresults"
+            "tbl_chemistrybatch",
+            "tbl_chemistryresults"
         ],
         "login_fields": [
             {
@@ -215,7 +215,7 @@
     "phab": {
         "label": "PHAB",
         "tables": [
-            "smc_phab"
+            "tbl_phab"
         ],
         "login_fields": [
             {
