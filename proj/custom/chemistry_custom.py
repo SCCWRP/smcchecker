@@ -610,7 +610,13 @@ def chemistry(all_dfs):
     errs.append(
         checkData(
             'tbl_chemistryresults',
-            chemistryresults[(chemistryresults['sampletypecode'].isin(required_sampletypecodes)) & ((chemistryresults['expectedvalue'] != -88) & (chemistryresults['unit'] != '%') )].tmp_row.tolist(),
+            chemistryresults[
+                (chemistryresults['unit'] != '% recovery') & 
+                (
+                    (chemistryresults['sampletypecode'].isin(required_sampletypecodes)) &
+                    (chemistryresults['expectedvalue'] != -88) 
+                )
+            ].tmp_row.tolist(),
             'expectedvalue',
             'Undefined Warning',
             'If SampleTypeCode is in the set Grab, LabBlank, Integrated then ExpectedValue must be -88 (unless the unit is recovery)'
@@ -650,7 +656,10 @@ def chemistry(all_dfs):
     errs.append(
         checkData(
             'tbl_chemistryresults',
-            chemistryresults[(chemistryresults['unit'] == '%') & ((chemistryresults['expectedvalue'] == -88))].tmp_row.tolist(),
+            chemistryresults[
+                (chemistryresults['unit'] == '% recovery') & 
+                (chemistryresults['expectedvalue'] == -88)
+            ].tmp_row.tolist(),
             'expectedvalue',
             'Undefined Warning',
             "If Unit is '%' recovery then ExpectedValue cannot have -88."
