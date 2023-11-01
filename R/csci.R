@@ -21,6 +21,7 @@ print('Created database connection')
 
 bugs <-  readxl::read_excel(file.path(dir, filename))
 
+# This view does not limit the stations to the ones that are in unified_taxonomy, for some reason
 gis <- dbGetQuery(con, 'SELECT * FROM vw_csci_gispredictors') %>% filter(StationCode %in% bugs$stationcode)
 
 bugs <- bugs %>%

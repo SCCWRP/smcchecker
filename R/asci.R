@@ -21,7 +21,9 @@ print('Created database connection')
 
 alg <- readxl::read_excel(file.path(dir, filename))
 
-gis <- dbGetQuery(con, 'SELECT * FROM vw_asci_gispredictors') %>% filter(StationCode %in% alg$stationcode)
+# Select from vw_asci_checker_gispredictors since the other view vw_asci_gispredictors only grabs records for stations in unified algae
+# That view is for the sync script
+gis <- dbGetQuery(con, 'SELECT * FROM vw_asci_checker_gispredictors') %>% filter(StationCode %in% alg$stationcode)
 
 alg <- alg %>% 
   select(c('stationcode','sampledate','replicate','sampletypecode','baresult','result','finalid')) %>% 
