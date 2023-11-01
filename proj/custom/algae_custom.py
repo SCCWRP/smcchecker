@@ -163,7 +163,7 @@ def algae(all_dfs):
             merged[(merged['sampletypecode'] != "Integrated") & (merged['phylum'] == "Bacillariophyta")].tmp_row.tolist(),
             'sampletypecode',
             'Undefined Warning', 
-            'This organism is a diatom (of the Bacillariophyta phylum), but the SampleTypeCode does not say Integrated. For more information, you may refer to the <a target=\\\"blank\\\" href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_algae_ste\\\">STE Lookup List</a>'
+            'This organism is a diatom (of the Bacillariophyta phylum), but the SampleTypeCode does not say Integrated. For more information, you may refer to the <a target=_blank href=scraper?action=help&layer=lu_algae_ste>STE Lookup List</a>'
         )
     )
     # END OF CHECK - Warning if organism is a diatom (phylum is Bacillariophyta), but sampletypecode does not say Integrated. (🛑 WARNING 🛑)
