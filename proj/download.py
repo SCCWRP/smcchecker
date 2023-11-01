@@ -171,49 +171,50 @@ def get_masterid():
 
     matched_masterids = list(set(matched_masterids))
 
-    if len(matched_masterids) > 0:
+    # if len(matched_masterids) > 0:
         
-        if len(matched_masterids) == 1:
-            masterid = f"('{matched_masterids[0]}')"
-        elif len(matched_masterids) > 1:
-            masterid = tuple(matched_masterids)
+    #     if len(matched_masterids) == 1:
+    #         masterid = f"('{matched_masterids[0]}')"
+    #     elif len(matched_masterids) > 1:
+    #         masterid = tuple(matched_masterids)
 
-        sites_content = gis.content.search(query="title: SMCGISSites", item_type="Feature Layer Collection")[0]
-        sites_fl = gis.content.get(sites_content.id)
-        sites_sdf = sites_fl.layers[0].query(where=f"masterid in {masterid}").sdf
-        sites_sdf = sites_sdf.rename(columns={'stationcode':'stationcod'})
-        sites_sdf = sites_sdf.filter(
-            items=[
-                *['masterid'],
-                #*[col for col in sites_sdf.columns if col not in current_app.system_fields]
-                *['SHAPE']
-            ] 
-        )
-        # write data to shapefiles for downloading
-        sites_sdf.spatial.to_featureclass(
-            location=os.path.join(os.getcwd(), "export", "shapefiles_for_download", "sites.shp"), 
-            overwrite=True
-        )
-        export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","sites.json"), sites_sdf, ['masterid'])
+    #     sites_content = gis.content.search(query="title: SMCGISSites", item_type="Feature Layer Collection")[0]
+    #     sites_fl = gis.content.get("9545fa86ccf14f62b3f178f215cb7a99")
+    #     sites_sdf = sites_fl.layers[0].query(where=f"masterid in {masterid}").sdf
+    #     sites_sdf = sites_sdf.rename(columns={'stationcode':'stationcod'})
+    #     sites_sdf = sites_sdf.filter(
+    #         items=[
+    #             *['masterid'],
+    #             #*[col for col in sites_sdf.columns if col not in current_app.system_fields]
+    #             *['SHAPE']
+    #         ] 
+    #     )
+    #     # write data to shapefiles for downloading
+    #     sites_sdf.spatial.to_featureclass(
+    #         location=os.path.join(os.getcwd(), "export", "shapefiles_for_download", "sites.shp"), 
+    #         overwrite=True
+    #     )
+    #     export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","sites.json"), sites_sdf, ['masterid'])
 
-        catchments_content = gis.content.search(query="title: SMCGISCatchments", item_type="Feature Layer Collection")[0]
-        catchments_fl = gis.content.get(catchments_content.id)
-        catchments_sdf = catchments_fl.layers[0].query(where=f"masterid in {masterid}").sdf
-        catchments_sdf = catchments_sdf.rename(columns={'stationcode':'stationcod'})
-        catchments_sdf = catchments_sdf.filter(
-            items=[
-                *['masterid'],
-                #*[col for col in catchments_sdf.columns if col not in current_app.system_fields]
-                *['SHAPE']
-            ] 
-        )
+    #     catchments_content = gis.content.search(query="title: SMCGISCatchments", item_type="Feature Layer Collection")[0]
+    #     catchments_fl = gis.content.get("2e38b58631b64b56800209696050ea4e")
+    #     print(masterid)
+    #     catchments_sdf = catchments_fl.layers[0].query(where=f"masterid in {masterid}").sdf
+    #     catchments_sdf = catchments_sdf.rename(columns={'stationcode':'stationcod'})
+    #     catchments_sdf = catchments_sdf.filter(
+    #         items=[
+    #             *['masterid'],
+    #             #*[col for col in catchments_sdf.columns if col not in current_app.system_fields]
+    #             *['SHAPE']
+    #         ] 
+    #     )
 
-        # write data to shapefiles for downloading
-        catchments_sdf.spatial.to_featureclass(
-            location=os.path.join(os.getcwd(), "export", "shapefiles_for_download","catchments.shp"), 
-            overwrite=True
-        )
-        export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","catchments.json"), catchments_sdf, ['masterid'])
+    #     # write data to shapefiles for downloading
+    #     catchments_sdf.spatial.to_featureclass(
+    #         location=os.path.join(os.getcwd(), "export", "shapefiles_for_download","catchments.shp"), 
+    #         overwrite=True
+    #     )
+    #     export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","catchments.json"), catchments_sdf, ['masterid'])
     
     if len(matched_aliases) > 0:
         alias_report = ", ".join([f"StationCode: {v} is an alias of MasterID: {k}" for x in matched_aliases for k,v in x.items()])  
