@@ -18,7 +18,7 @@ def export_sdf_to_json(path, sdf, cols_to_display):
     df = deepcopy(sdf)
     df.columns = [x.lower() for x in df.columns]
     
-    if "paths" in df['shape'].iloc[0].keys():
+    if "paths" in df['SHAPE'].iloc[0].keys():
         data = {
             **{col: df[col].tolist() for col in cols_to_display},
             **{
@@ -28,11 +28,11 @@ def export_sdf_to_json(path, sdf, cols_to_display):
                         "type":"polyline",
                         "paths" : item.get('paths')[0]
                     }
-                    for item in df['shape']
+                    for item in df['SHAPE']
                 ]  
             }
         }
-    elif "rings" in df['shape'].iloc[0].keys():
+    elif "rings" in df['SHAPE'].iloc[0].keys():
         data = {
             **{col: df[col].tolist() for col in cols_to_display},
             **{
@@ -41,7 +41,7 @@ def export_sdf_to_json(path, sdf, cols_to_display):
                         "type":"polygon",
                         "rings" : item.get('rings')[0]
                     }
-                    for item in df['shape']
+                    for item in df['SHAPE']
                 ]    
             }
         }
@@ -55,7 +55,7 @@ def export_sdf_to_json(path, sdf, cols_to_display):
                         "longitude": item["x"],
                         "latitude": item["y"]
                     }
-                for item in df.get("shape").tolist()
+                for item in df.get("SHAPE").tolist()
                 ]
             }
         }

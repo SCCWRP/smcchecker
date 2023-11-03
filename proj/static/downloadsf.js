@@ -5,6 +5,8 @@ var delineatedNo
 document.getElementById("check-station-sf").addEventListener("click",
 async function(e){
     
+    alert("Please wait until the spinner stops spinning. If it takes more than 5 minutes, please take a screenshot and send it to duyn@sccwrp.org.\n Thank you, click OK to continue")
+
     document.getElementById('visual-map-container').classList.add("hidden")
     document.getElementsByClassName("download-button-container")[0].classList.add("hidden")
     document.getElementById('loading-spinner').classList.remove("hidden")
@@ -43,9 +45,9 @@ async function(e){
     }
 
     if (delineatedYes.length > 0){
-        messageSlot.innerHTML += `<b>Delineation Check</b>: Stations (${delineatedYes.join(", ")}) have been delineated and submitted to the database. 
+        messageSlot.innerHTML += `<b>Delineation Check</b>: Stations (${delineatedYes.join(", ")}) have been delineated and submitted to the database. You can download the shapefiles for these sites or view the map.
         If you believe there is an error with these shapefiles, contact Jeff Brown jeffb@sccwrp.org. <br><br>`
-        //document.getElementsByClassName("download-button-container")[0].classList.remove("hidden")
+        document.getElementsByClassName("download-button-container")[0].classList.remove("hidden")
         sessionStorage.setItem('stationIds', delineatedYes.map(item => `'${item}'`).join(', '));
         
     }
@@ -91,7 +93,7 @@ document.getElementById("download-button-sf").addEventListener("click", async fu
 
 document.getElementById("show-map-sf").addEventListener("click", async function(e){
     document.getElementById('loading-spinner').classList.remove("hidden")
-    //document.getElementById('visual-map-container').classList.remove("hidden")
+    document.getElementById('visual-map-container').classList.remove("hidden")
     document.getElementById('visual-map').setAttribute('src',`/smcchecker/map`)
     document.getElementById('loading-spinner').classList.add("hidden")
 })

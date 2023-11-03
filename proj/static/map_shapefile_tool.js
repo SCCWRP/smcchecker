@@ -40,10 +40,10 @@ require([
         {return response.json()
     }).then(function (data) {
 
-        const sitesData = data['sites']
-        const catchmentsData = data['catchments']
-        
+        const sitesData = data['sites']['features']
+        const catchmentsData = data['catchments']['features']
         const arcGISAPIKey = data['arcgis_api_key']
+        
         esriConfig.apiKey = arcGISAPIKey
         
         const map = new Map({
@@ -52,8 +52,8 @@ require([
     
         const view = new MapView({
             map: map,
-            center: [-118.193741, 33.770050], //California
-            zoom: 3,
+            center: [-119.6638, 37.2153], //California
+            zoom: 5,
             container: "viewDiv"
         });
         
@@ -71,15 +71,16 @@ require([
                 width: 2
             }
         };
-        for (let i = 0; i < sitesData['coordinates'].length; i++){
-            
-            let coord = sitesData['coordinates'][i]
-            let stationid = sitesData['masterid'][i]
-            
+        for (let i = 0; i < sitesData.length; i++){
+            let coord = {
+                type: 'point',
+                longitude: sitesData[i]['geometry']['coordinates'][0],
+                latitude: sitesData[i]['geometry']['coordinates'][1]
+            }
+            let stationcode = sitesData[i]['properties']['stationcode']
             let attr = {
-                stationid: stationid
+                stationcode: stationcode
             };
-
             let popUp = {
                 title: "Sites",
                 content: [
@@ -87,20 +88,18 @@ require([
                         type: "fields",
                         fieldInfos: [
                             {
-                                fieldName: "stationid"
+                                fieldName: "stationcode"
                             }
                         ]
                     }
                 ]
             }
-
             let pointGraphic = new Graphic({
                 geometry: coord,
                 symbol: simpleMarkerSymbol,
                 attributes: attr,
                 popupTemplate: popUp
             });
-
             graphicsLayer.add(pointGraphic);
         }
 
@@ -117,13 +116,14 @@ require([
             }
         };
         
-        for (let i = 0; i < catchmentsData['coordinates'].length; i++){
-
-            let coord = catchmentsData['coordinates'][i]
-            let stationid = catchmentsData['masterid'][i]
-            
+        for (let i = 0; i < catchmentsData.length; i++){
+            let coord = {
+                type: 'polygon',
+                rings: catchmentsData[i]['geometry']['coordinates'][0]
+            }
+            let stationcode = catchmentsData[i]['properties']['stationcode']
             let attr = {
-                stationid: stationid
+                stationcode: stationcode
             };
             let popUp = {
                 title: "Catchments",
@@ -132,7 +132,7 @@ require([
                         type: "fields",
                         fieldInfos: [
                             {
-                                fieldName: "stationid"
+                                fieldName: "stationcode"
                             }
                         ]
                     }
@@ -145,19 +145,7 @@ require([
                 popupTemplate: popUp
             });
             graphicsLayer.add(polygonGraphic);
-
         }
         ////////////////////////////////////////////////////////////
-        // const measurement = new Measurement({
-        //     view: view,
-        //     activeTool: "distance"
-        //   });
-        //   view.ui.add(measurement, "top-right");
-          
-        //   // Switch between area and distance measurement
-        //   function switchTool() {
-        //    const tool = measurement.activeTool === "distance" ? "area" : "distance";
-        //    measurement.activeTool = tool;
-        // }
     })
 });
