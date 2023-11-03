@@ -97,3 +97,8 @@ document.getElementById("show-map-sf").addEventListener("click", async function(
     document.getElementById('visual-map').setAttribute('src',`/smcchecker/map`)
     document.getElementById('loading-spinner').classList.add("hidden")
 })
+
+document.getElementById("reset-all").addEventListener("click", async function(e){
+    window.location.reload();
+})
+
