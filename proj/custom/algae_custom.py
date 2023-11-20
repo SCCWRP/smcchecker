@@ -189,12 +189,10 @@ def algae(all_dfs):
             'The SampleTypeCode is Integrated, but this organism is not a diatom (not of the Bacillariophyta phylum). For more information, you may refer to the <a target=\\\"blank\\\" href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer=lu_algae_ste\\\">STE Lookup List</a>'
         )
     )
-    print("merged df subset")
     # empty dataframe, inner join gives no record to be checked on finalid with lu_algae_ste when finalid exists 
     # record not checked
-    print(merged[['sampletypecode', 'finalid', 'phylum']])
-    print("dropped data")
-    print(algae[['sampletypecode','finalid']])
+ 
+
 
     # END OF CHECK - Check if sampletypecode is Integrated but phylum is not Bacillariophyta.  (🛑 ERROR 🛑)
     print("# END OF CHECK - 4")
