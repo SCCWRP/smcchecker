@@ -7,7 +7,13 @@ import glob
 import geopandas as gpd
 
 def get_sdf_projection(path):
-    return gpd.read_file(path).crs.to_epsg()
+    df =  gpd.read_file(path)
+
+    if df.crs is not None:
+        return df.crs.to_epsg()
+    else:
+        df.set_crs("EPSG:4326", inplace=True)
+        return 4326
 
 def read_shapefile(path):
     path = Path(path)
