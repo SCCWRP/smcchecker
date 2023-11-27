@@ -97,7 +97,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.waterbodystatuscode != 'U')].tmp_row.tolist(),
+            siteeval[(siteeval.evalstatuscode.str.upper() == 'NE') & (siteeval.waterbodystatuscode.str.upper() != 'U')].tmp_row.tolist(),
             "waterbodystatuscode",
             "Incorrect Input",
             "If evalstatuscode is NE, then waterbodystatuscode should be U"
@@ -108,7 +108,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.flowstatuscode != 'U')].tmp_row.tolist(),
+            siteeval[(siteeval.evalstatuscode.str.upper() == 'NE') & (siteeval.flowstatuscode.str.upper() != 'U')].tmp_row.tolist(),
             "flowstatuscode",
             "Undefined Error",
             "If evalstatuscode is NE, then flowstatuscode should be U"
@@ -119,7 +119,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.wadeablestatuscode != 'U')].tmp_row.tolist(),
+            siteeval[(siteeval.evalstatuscode.str.upper() == 'NE') & (siteeval.wadeablestatuscode.str.upper() != 'U')].tmp_row.tolist(),
             "wadeablestatuscode",
             "Undefined Error",
             "If evalstatuscode is NE, evawadeablestatuscode should be U"
@@ -130,7 +130,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.physicalaccessstatuscode != 'U')].tmp_row.tolist(),
+            siteeval[(siteeval.evalstatuscode.str.upper() == 'NE') & (siteeval.physicalaccessstatuscode.str.upper() != 'U')].tmp_row.tolist(),
             "physicalaccessstatuscode",
             "Undefined Error",
             "If evalstatuscode is NE, physicalaccessstatuscode should be U"
@@ -141,7 +141,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.landpermissionstatuscode != 'U')].tmp_row.tolist(),
+            siteeval[(siteeval.evalstatuscode.str.upper() == 'NE') & (siteeval.landpermissionstatuscode.str.upper() != 'U')].tmp_row.tolist(),
             "landpermissionstatuscode",
             "Undefined Error",
             "If evalstatuscode is NE, landpermissionstatuscode should be U"
@@ -152,7 +152,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.fieldreconcode != 'N')].tmp_row.tolist(),
+            siteeval[(siteeval.evalstatuscode.str.upper() == 'NE') & (siteeval.fieldreconcode.str.upper() != 'N')].tmp_row.tolist(),
             "fieldreconcode",
             "Undefined Error",
             "If evalstatuscode is NE, then fieldreconcode should be N"
@@ -163,7 +163,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.evalstatuscode == 'NE') & (siteeval.samplestatuscode != 'NS')].tmp_row.tolist(),
+            siteeval[(siteeval.evalstatuscode.str.upper() == 'NE') & (siteeval.samplestatuscode.str.upper() != 'NS')].tmp_row.tolist(),
             "samplestatuscode",
             "Undefined Error",
             "If evalstatuscode is NE, then samplestatuscode should be NS"
@@ -191,7 +191,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.evalstatuscode != 'E')].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'S') & (siteeval.evalstatuscode.str.upper() != 'E')].tmp_row.tolist(),
             "evalstatuscode",
             "Incorrect Input",
             "If samplestatuscode is S then evalstatuscode should be E "
@@ -200,7 +200,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.fieldreconcode != "Y")].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'S') & (siteeval.fieldreconcode.str.upper() != "Y")].tmp_row.tolist(),
             "fieldreconcode",
             "Incorrect Input",
             "If samplestatuscode is S then fieldreconcode should be Y "
@@ -209,7 +209,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.waterbodystatuscode != "S")].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'S') & (siteeval.waterbodystatuscode.str.upper() != "S")].tmp_row.tolist(),
             "waterbodystatuscode",
             "Incorrect Input",
             "If samplestatuscode is S then waterbodystatuscode should be S "
@@ -218,7 +218,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'S') & (~siteeval.flowstatuscode.isin(['P', 'SP','NPF']))].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'S') & (~siteeval.flowstatuscode.str.upper().isin(['P', 'SP','NPF']))].tmp_row.tolist(),
             "flowstatuscode",
             "Incorrect Input",
             "If samplestatuscode is S then flowstatuscode should either be 'P' or 'SP' or 'NPF' "
@@ -227,7 +227,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.wadeablestatuscode  != 'W')].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'S') & (siteeval.wadeablestatuscode.str.upper()  != 'W')].tmp_row.tolist(),
             "wadeablestatuscode",
             "Incorrect Input",
             "If samplestatuscode is S then wadeablestatuscode should be W "
@@ -236,7 +236,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.physicalaccessstatuscode != 'A')].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'S') & (siteeval.physicalaccessstatuscode.str.upper() != 'A')].tmp_row.tolist(),
             "physicalaccessstatuscode",
             "Incorrect Input",
             "If samplestatuscode is S then physicalaccessstatuscode should be S "
@@ -245,7 +245,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'S') & (siteeval.landpermissionstatuscode != 'G')].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'S') & (siteeval.landpermissionstatuscode.str.upper() != 'G')].tmp_row.tolist(),
             "landpermissionstatuscode ",
             "Incorrect Input",
             "If samplestatuscode is S then landpermissionstatuscode should be G "
@@ -271,25 +271,25 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'NS') & (siteeval.evalstatuscode != 'E')].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'NS') & (siteeval.evalstatuscode.str.upper() != 'E')].tmp_row.tolist(),
             "evalstatuscode ",
             "Incorrect Input",
             "If samplestatuscode is NS then evalstatuscode should be E "
         )
     )  
+    # warnings.append(
+    #     checkData(
+    #         'tbl_siteeval',
+    #         siteeval[(siteeval.samplestatuscode == 'NS') & (siteeval.fieldreconcode != 'Y')].tmp_row.tolist(),
+    #         "fieldreconcode ",
+    #         "Incorrect Input",
+    #         "If samplestatuscode is NS then fieldreconcode should be Y "
+    #     )
+    # )   
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'NS') & (siteeval.fieldreconcode != 'Y')].tmp_row.tolist(),
-            "fieldreconcode ",
-            "Incorrect Input",
-            "If samplestatuscode is NS then fieldreconcode should be Y "
-        )
-    )   
-    warnings.append(
-        checkData(
-            'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'NS') & (~siteeval.waterbodystatuscode.isin(['S', 'U']))].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'NS') & (~siteeval.waterbodystatuscode.str.upper().isin(['S', 'U']))].tmp_row.tolist(),
             "waterbodystatuscode ",
             "Incorrect Input",
             "If samplestatuscode is NS then waterbodystatuscode should be S or U "
@@ -308,7 +308,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'NS') & (~siteeval.wadeablestatuscode.isin(['W']))].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'NS') & (~siteeval.wadeablestatuscode.str.upper().isin(['W']))].tmp_row.tolist(),
             "wadeablestatuscode ",
             "Incorrect Input",
             "If samplestatuscode is NS then wadeablestatuscode should be W "
@@ -317,7 +317,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'NS') & (~siteeval.physicalaccessstatuscode.isin(['A']))].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'NS') & (~siteeval.physicalaccessstatuscode.str.upper().isin(['A']))].tmp_row.tolist(),
             "physicalaccessstatuscode  ",
             "Incorrect Input",
             "If samplestatuscode is NS then physicalaccessstatuscode should be A "
@@ -326,7 +326,7 @@ def siteevaluation(all_dfs):
     warnings.append(
         checkData(
             'tbl_siteeval',
-            siteeval[(siteeval.samplestatuscode == 'NS') & (~siteeval.landpermissionstatuscode.isin(['G']))].tmp_row.tolist(),
+            siteeval[(siteeval.samplestatuscode.str.upper() == 'NS') & (~siteeval.landpermissionstatuscode.str.upper().isin(['G']))].tmp_row.tolist(),
             "landpermissionstatuscode   ",
             "Incorrect Input",
             "If samplestatuscode is NS then landpermissionstatuscode should be G "
