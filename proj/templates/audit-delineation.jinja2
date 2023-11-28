@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <meta charset="utf-8" />
+   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+   <title>
+      Delineation Auditting Tool
+   </title>
+   <link rel="shortcut icon" href="#" />
+   <link rel="stylesheet" href="https://js.arcgis.com/4.22/esri/themes/light/main.css" />
+   <link rel="stylesheet" type="text/css" href="https://unpkg.com/@esri/calcite-components@1.0.0-beta.79/dist/calcite/calcite.css" />
+   <link rel="stylesheet" href="static/audit-delineation.css">
+   <!-- Load the Chart.js library -->
+   <script src="https://js.arcgis.com/4.23/"></script>
+   <script type="module" src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.79/dist/calcite/calcite.esm.js"></script>
+
+<body>
+
+<div>
+<calcite-modal id="loginModal" aria-labelledby="modal-title" active disable-close-button disable-escape disable-outside-close>
+    <h3 slot="header" id="modal-title">Login Required</h3>
+    <div slot="content" id="modal-content">
+        <p>Please log in to continue.</p>
+        <!-- Login form -->
+        <form id="loginForm">
+            <calcite-input type="password" id="passwordInput" placeholder="Password" required></calcite-input>
+            <calcite-button type="submit">Login</calcite-button>
+        </form>
+    </div>
+</calcite-modal>
+</div>
+
+
+   <calcite-shell class="calcite-theme-light">
+      <div class="container">
+         <!-- Left side content -->
+         <div class="left-side">
+            
+         </div>
+         <!-- Right side content -->
+         <div class="right-side"> 
+         <div id="viewDiv"></div>           
+         </div>
+      </div>
+   </calcite-shell>
+</body>
+<script type="module" src="static/audit-delineation.js"></script>
+
+<script>
+
+    function checkPassword() {
+        var password = document.getElementById('passwordInput').value;
+        return password === "3535$Harbor"; // I will replace this with a fetch to adminauth route later - Duy
+    }
+
+    document.getElementById('loginForm').onsubmit = function(event) {
+        event.preventDefault();
+        if (checkPassword()) {
+            document.getElementById('loginModal').style.display = "none";
+        } else {
+            alert('Incorrect password, please try again.');
+        }
+    }
+    
+</script>
+
+</html>
