@@ -130,7 +130,7 @@ def download_sf_submission_guide():
     )
 
 
-@download.route('/downloadsf', methods = ['GET'])
+@download.route('/check-delineation', methods = ['GET'])
 def download_shapefile():
     print("download shapefile route")
     

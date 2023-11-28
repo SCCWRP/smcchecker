@@ -5,8 +5,6 @@ var delineatedNo
 document.getElementById("check-station-sf").addEventListener("click",
 async function(e){
     
-    alert("Please wait until the spinner stops spinning. If it takes more than 5 minutes, please take a screenshot and send it to duyn@sccwrp.org.\n Thank you, click OK to continue")
-
     document.getElementById('visual-map-container').classList.add("hidden")
     document.getElementsByClassName("download-button-container")[0].classList.add("hidden")
     document.getElementById('loading-spinner').classList.remove("hidden")
@@ -20,11 +18,26 @@ async function(e){
     formData = new FormData()
     formData.append('input_stations', inputStations)
     
-    let resp = await fetch(`/smcchecker/checkstationsf`,{
-        method: 'post',
-        body: formData
-    });
-        
+    let resp;
+    try {
+        resp = await fetch(`/smcchecker/checkstationsf`, {
+            method: 'post',
+            body: formData
+        });
+    
+        if (!resp.ok) {
+            // If the response status code is not OK, throw an error
+            throw new Error(`HTTP error! status: ${resp.status}`);
+        }
+    
+        // ... (rest of your code to handle the response)
+    
+    } catch (error) {
+        // Display an alert with the error message
+        alert(`There was an unexpected error: ${error.message}. Please take a screenshot of this message and contact Duy Nguyen (duyn@sccwrp.org) for assistance. Thank you!`);
+        window.location.reload();
+    }
+    
     let data = await resp.json()
 
     notInLookUp = data['not_in_lookup']
@@ -96,6 +109,7 @@ document.getElementById("show-map-sf").addEventListener("click", async function(
     document.getElementById('visual-map-container').classList.remove("hidden")
     document.getElementById('visual-map').setAttribute('src',`/smcchecker/map`)
     document.getElementById('loading-spinner').classList.add("hidden")
+    document.getElementById('toggle-fullscreen').classList.remove("hidden")
 })
 
 document.getElementById("reset-all").addEventListener("click", async function(e){
