@@ -39,29 +39,41 @@ def build_all_dfs_from_sf(path_to_shapefiles):
         df.columns = list(map(str.lower, df.columns))
         df.drop(columns=['index','objectid','level_0',"shape_leng","shape_area"], inplace=True, errors='ignore')
         df.rename(columns={'stationcod': 'stationcode'}, inplace=True)
+        print("df:")
         print(df)
         if all(df['shape'].geom.geometry_type == 'point'):
-            
+
+            df['new_lat'] = df['new_lat'].astype(float)
+            df['new_long'] = df['new_long'].astype(float)
+
             df['snapdist_m'] = -88
             df['new_lat'] = round(df['new_lat'], 8)
             df['new_long'] = round(df['new_long'], 8)
 
+            print("Before getting sdf projection for the point")
             info = {
                 'shp_path': shp_path,
                 'geom_type':'point',
                 'data': df,
                 'projection': get_sdf_projection(shp_path)
             }
+            print("After getting sdf projection for the point")
             all_dfs['gissites'] = info
+            print("After assigning gissites in all_dfs")
 
         elif all(df['shape'].geom.geometry_type == 'polygon'):
             
+            print("Before getting sdf projection for the polygon")
             info = {
                 'shp_path': shp_path,
                 'geom_type':'polygon',
                 'data': df,
                 'projection': get_sdf_projection(shp_path)
             }
+            print("After getting sdf projection for the polygon")
+
             all_dfs['giscatchments'] = info
+            print("After assigning giscatchments in all_dfs")
+
     print("done building shapefile sdf")
     return all_dfs
