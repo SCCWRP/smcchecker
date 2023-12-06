@@ -38,17 +38,22 @@ def build_all_dfs_from_sf(path_to_shapefiles):
         df, shp_path = read_shapefile(zipfile)
         df.columns = list(map(str.lower, df.columns))
         df.drop(columns=['index','objectid','level_0',"shape_leng","shape_area"], inplace=True, errors='ignore')
-        df.rename(columns={'stationcod': 'stationcode'}, inplace=True)
+        df.rename(columns={'stationcod': 'stationcode', 'new_lon': 'new_long'}, inplace=True)
+        
         print("df:")
         print(df)
+
         if all(df['shape'].geom.geometry_type == 'point'):
 
-            df['new_lat'] = df['new_lat'].astype(float)
-            df['new_long'] = df['new_long'].astype(float)
-
             df['snapdist_m'] = -88
-            df['new_lat'] = round(df['new_lat'], 8)
-            df['new_long'] = round(df['new_long'], 8)
+            
+            # If these columns are not found, it should fail the match tables routine
+            if set(['new_lat','new_long']).issubset(set(df.columns)):
+                df['new_lat'] = df['new_lat'].astype(float)
+                df['new_long'] = df['new_long'].astype(float)
+
+                df['new_lat'] = round(df['new_lat'], 8)
+                df['new_long'] = round(df['new_long'], 8)
 
             print("Before getting sdf projection for the point")
             info = {
@@ -58,6 +63,7 @@ def build_all_dfs_from_sf(path_to_shapefiles):
                 'projection': get_sdf_projection(shp_path)
             }
             print("After getting sdf projection for the point")
+
             all_dfs['gissites'] = info
             print("After assigning gissites in all_dfs")
 
