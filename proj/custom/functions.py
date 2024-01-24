@@ -94,28 +94,37 @@ def check_missing_phab_data(submission, phab_data):
     assert 'stationcode' in phab_data.columns, "'stationcode' is not a column in phab dataframe"
     assert 'sampledate' in phab_data.columns, "'sampledate' is not a column in phab dataframe"
     assert not submission.empty, "submission dataframe is empty"
-
-    # group by stationcode and sampledate, grab first row in each group, reset back to dataframe from pandas groupby object 
-    submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
-
-    # join submission df on phab_data on the stationcode in order to compare sampledates from both dfs
-    # note that the 2 distinct sampledate columns get _sub and _phab added to differentiate them
-    # left join in case there is no record in the phab table for a particular stationcode 
-    merge_sub_with_phab = pd.merge(submission_groupby, phab_data, how = 'left', on = 'stationcode', suffixes=("_sub", "_phab"))
-
-    merge_sub_with_phab['sampledate_sub'] = pd.to_datetime(merge_sub_with_phab['sampledate_sub'])
-    merge_sub_with_phab['sampledate_phab'] = pd.to_datetime(merge_sub_with_phab['sampledate_phab'])
-    # boolean mask that checks if the years in the sampledate columns are the same
-    is_same_year = merge_sub_with_phab['sampledate_sub'].dt.year == merge_sub_with_phab['sampledate_phab'].dt.year
+    submission['year'] = pd.to_datetime(submission['sampledate']).dt.year
+    phab_data['year'] = pd.to_datetime(phab_data['sampledate']).dt.year
+    submission_tmp = submission[['stationcode','year']].drop_duplicates(keep='first')
+    phab_data_tmp = phab_data[['stationcode','year']].drop_duplicates(keep='first')
     
-    # get all rows that do not have matching years
-    mismatched_years = merge_sub_with_phab[~is_same_year]
-
-    # get sorted lists of indices and stationcodes of rows with mismatched years 
-    # used in the warning message later
-    badrows = sorted(list(set(mismatched_years['tmp_row'])))
-    badsites = list(set(mismatched_years['stationcode']))
+    merged = submission_tmp.merge(phab_data_tmp, on=['stationcode', 'year'], how='left', indicator=True)
+    result = merged[merged['_merge'] == 'left_only'][['stationcode', 'year']]
+    badrows = submission[submission['stationcode'].isin(result['stationcode'])].tmp_row.tolist()
+    badsites = list(set(result['stationcode']))
     return (badrows, badsites)
+    # # group by stationcode and sampledate, grab first row in each group, reset back to dataframe from pandas groupby object 
+    # submission_groupby = submission.groupby(['stationcode','sampledate'])['tmp_row'].first().reset_index()
+
+    # # join submission df on phab_data on the stationcode in order to compare sampledates from both dfs
+    # # note that the 2 distinct sampledate columns get _sub and _phab added to differentiate them
+    # # left join in case there is no record in the phab table for a particular stationcode 
+    # merge_sub_with_phab = pd.merge(submission_groupby, phab_data, how = 'left', on = 'stationcode', suffixes=("_sub", "_phab"))
+
+    # merge_sub_with_phab['sampledate_sub'] = pd.to_datetime(merge_sub_with_phab['sampledate_sub'])
+    # merge_sub_with_phab['sampledate_phab'] = pd.to_datetime(merge_sub_with_phab['sampledate_phab'])
+    # # boolean mask that checks if the years in the sampledate columns are the same
+    # is_same_year = merge_sub_with_phab['sampledate_sub'].dt.year == merge_sub_with_phab['sampledate_phab'].dt.year
+    
+    # # get all rows that do not have matching years
+    # mismatched_years = merge_sub_with_phab[~is_same_year]
+
+    # # get sorted lists of indices and stationcodes of rows with mismatched years 
+    # # used in the warning message later
+    # badrows = sorted(list(set(mismatched_years['tmp_row'])))
+    # badsites = list(set(mismatched_years['stationcode']))
+    # return (badrows, badsites)
 
 def check_mismatched_phab_date(submission, phab_data):
     assert 'stationcode' in submission.columns, "'stationcode' is not a column in submission dataframe"

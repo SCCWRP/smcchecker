@@ -135,20 +135,31 @@ def process_sf():
         
         ## Preprocess
         for key in all_dfs:
-
-            # Convert all projections to 4326
-            print("Convert all projections to 4326")
-            # In case the code fails to convert, ask a user to do it
-            try:
-                all_dfs[key]['data'] = convert_projection(all_dfs[key]['data'], all_dfs[key]['projection'])
-            except Exception as e:
+            print(key)
+            print(all_dfs[key]['projection'])
+            proj = all_dfs[key]['projection']
+            if proj != 4326:
                 returnvals = {
                     "critical_error": False,
                     "user_error_msg": 
-                        "Failed to auto-convert projection to EPSG:4326 (WGS 84). \n"+\
+                        f"Invalid projection in submitted shapefile: {proj}. \n"+\
                         "Please check your Projected Coordinate System and use a GIS Program to convert it to EPSG:4326 (WGS 84)",
                 }
                 return jsonify(**returnvals)
+
+            # Convert all projections to 4326
+            # print("Convert all projections to 4326")
+            # # In case the code fails to convert, ask a user to do it
+            # try:
+            #     all_dfs[key]['data'] = convert_projection(all_dfs[key]['data'], all_dfs[key]['projection'])
+            # except Exception as e:
+            #     returnvals = {
+            #         "critical_error": False,
+            #         "user_error_msg": 
+            #             "Failed to auto-convert projection to EPSG:4326 (WGS 84). \n"+\
+            #             "Please check your Projected Coordinate System and use a GIS Program to convert it to EPSG:4326 (WGS 84)",
+            #     }
+            #     return jsonify(**returnvals)
 
             # Save shapefile data as json so we can map them
             # if key == 'gissites':

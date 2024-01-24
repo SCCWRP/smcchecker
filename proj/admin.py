@@ -323,3 +323,9 @@ def adminauth():
 
 
     return jsonify(message=str(session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS")).lower())
+
+
+@admin.route('/audit-delineation')
+def audit_delineation():
+
+    return render_template('audit-delineation.jinja2')

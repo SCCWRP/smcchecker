@@ -1,4 +1,4 @@
-import os
+import os, binascii
 from flask import send_file, Blueprint, jsonify, request, g, current_app, render_template
 from pandas import read_sql
 import pandas as pd
@@ -9,6 +9,10 @@ import json
 import time
 import re
 from sqlalchemy import text
+from shapely import wkb
+from arcgis.geometry import Geometry, Polyline
+from shapely.geometry import shape
+import geopandas as gpd
 
 download = Blueprint('download', __name__)
 @download.route('/download/<submissionid>/<filename>', methods = ['GET','POST'])
@@ -126,7 +130,7 @@ def download_sf_submission_guide():
     )
 
 
-@download.route('/downloadsf', methods = ['GET'])
+@download.route('/check-delineation', methods = ['GET'])
 def download_shapefile():
     print("download shapefile route")
     
@@ -145,7 +149,12 @@ def get_masterid():
     lu_stations = pd.read_sql("SELECT masterid, stationid FROM lu_stations", con=g.eng)
     gissites_masterid = pd.read_sql(f"SELECT DISTINCT masterid FROM gissites", con=g.eng).masterid.tolist()
     
-    in_db = {gp: subdf['stationid'].tolist() for gp, subdf in lu_stations.groupby('masterid') if gp in gissites_masterid}
+    in_db = {
+        gp: 
+        subdf['stationid'].tolist() 
+        for gp, subdf in lu_stations.groupby('masterid') 
+        if gp in gissites_masterid
+    }
     
     not_in_lookup = [x for x in stationids_to_check if x not in list(set(lu_stations.stationid))]
     stationids_to_check = [x for x in stationids_to_check if x not in not_in_lookup]
@@ -178,42 +187,34 @@ def get_masterid():
         elif len(matched_masterids) > 1:
             masterid = tuple(matched_masterids)
 
-        sites_content = gis.content.search(query="title: SMCGISSites", item_type="Feature Layer Collection")[0]
-        sites_fl = gis.content.get(sites_content.id)
-        sites_sdf = sites_fl.layers[0].query(where=f"masterid in {masterid}").sdf
-        sites_sdf = sites_sdf.rename(columns={'stationcode':'stationcod'})
-        sites_sdf = sites_sdf.filter(
-            items=[
-                *['masterid'],
-                #*[col for col in sites_sdf.columns if col not in current_app.system_fields]
-                *['SHAPE']
-            ] 
-        )
-        # write data to shapefiles for downloading
-        sites_sdf.spatial.to_featureclass(
-            location=os.path.join(os.getcwd(), "export", "shapefiles_for_download", "sites.shp"), 
-            overwrite=True
-        )
-        export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","sites.json"), sites_sdf, ['masterid'])
+        sites_df = pd.read_sql(f"SELECT * FROM gissites WHERE masterid in {masterid}", g.eng)
+        sites_df.drop(columns=current_app.system_fields, errors='ignore', inplace=True)
+        
+        catchments_df = pd.read_sql(f"SELECT * FROM giscatchments WHERE masterid in {masterid}", g.eng)
+        catchments_df.drop(columns=current_app.system_fields, errors='ignore',inplace=True)
 
-        catchments_content = gis.content.search(query="title: SMCGISCatchments", item_type="Feature Layer Collection")[0]
-        catchments_fl = gis.content.get(catchments_content.id)
-        catchments_sdf = catchments_fl.layers[0].query(where=f"masterid in {masterid}").sdf
-        catchments_sdf = catchments_sdf.rename(columns={'stationcode':'stationcod'})
-        catchments_sdf = catchments_sdf.filter(
-            items=[
-                *['masterid'],
-                #*[col for col in catchments_sdf.columns if col not in current_app.system_fields]
-                *['SHAPE']
-            ] 
+        sites_df['geometry'] = sites_df['shape'].apply(
+            lambda x: shape(wkb.loads(binascii.unhexlify(x)))
         )
+        catchments_df['geometry'] = catchments_df['shape'].apply(
+            lambda x: shape(wkb.loads(binascii.unhexlify(x)))
+        )
+                    
+        # Write sites to shapefile and geojson
+        sites_gdf = gpd.GeoDataFrame(sites_df, geometry='geometry')
+        sites_gdf.crs = "EPSG:4326"
+        for column in sites_gdf.select_dtypes(include=['datetime']):
+            sites_gdf[column] = sites_gdf[column].astype(str)
+        sites_gdf.drop(columns=['shape']).to_file(os.path.join(os.getcwd(), "export", "shapefiles_for_download", "sites.shp"))
+        sites_gdf.to_file(os.path.join(os.getcwd(), "export", "shapefiles_geojson", "sites.json"), driver='GeoJSON')
 
-        # write data to shapefiles for downloading
-        catchments_sdf.spatial.to_featureclass(
-            location=os.path.join(os.getcwd(), "export", "shapefiles_for_download","catchments.shp"), 
-            overwrite=True
-        )
-        export_sdf_to_json(os.path.join(os.getcwd(),"export","shapefiles_geojson","catchments.json"), catchments_sdf, ['masterid'])
+        # Write catchments to shapefile and geojson
+        catchments_gdf = gpd.GeoDataFrame(catchments_df, geometry='geometry')
+        catchments_gdf.crs = "EPSG:4326"
+        for column in catchments_gdf.select_dtypes(include=['datetime']):
+            catchments_gdf[column] = catchments_gdf[column].astype(str)
+        catchments_gdf.drop(columns=['shape']).to_file(os.path.join(os.getcwd(), "export", "shapefiles_for_download", "catchments.shp"))
+        catchments_gdf.to_file(os.path.join(os.getcwd(), "export", "shapefiles_geojson", "catchments.json"), driver='GeoJSON')
     
     if len(matched_aliases) > 0:
         alias_report = ", ".join([f"StationCode: {v} is an alias of MasterID: {k}" for x in matched_aliases for k,v in x.items()])  
@@ -243,3 +244,10 @@ def get_download_link():
     
     os.chdir(main_dir)
     return send_file(zip_path, as_attachment=True)
+
+
+@download.route('/sqi_rawdata')
+def send_sqi():
+    export_path = os.path.join(os.getcwd(), "export", "sqi.csv")
+    pd.read_sql("SELECT * FROM vw_sqi_dat", g.eng).to_csv(export_path, index = False)
+    return send_file(export_path, as_attachment=True)

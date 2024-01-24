@@ -9,53 +9,38 @@
     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
     <div class="container" id="main-outer-container">
         <div class="card inner-container">
-            <div class="card-body">
-                
+            <div class="card-body">    
                 <div class="card-header">
-                    Shapefile Database Checking
+                    Delineation Checking Tool
                   </div>
-
-                <!-- <div>
-                    <label for="agency-sf">Choose an agency: </label>
-                    <select name="agency-sf" id="agency-sf">
-                        <option value="" disabled selected></option>
-                        {% for login_agency in login_agencies %}
-                        <option value="{{login_agency}}">{{login_agency}}</option>
-                        {% endfor %}
-                    </select>
-                </div> -->
-                
                 <br>
-
                 <div>
                     <calcite-label>
-                        To check to see if a delineation has already been submitted, enter it below (separate them by commas if there are multiple stations):
-                        <calcite-input placeholder="Example input: SMC06356,SMC06926" id="input-station-sf"></calcite-input>
+                        Instruction: To check to see if a station has already been delineated, enter it below:<b>(If you would like to check multiple stations, please separate them by commas - see example input below)</b>
+                        <calcite-input placeholder="Example input: SMC06356, SMC06926" id="input-station-sf"></calcite-input>
                     </calcite-label>
                     <calcite-button id="check-station-sf">Check</calcite-button>
+                    <calcite-button id="reset-all">Reset All</calcite-button>
                     <calcite-notice open icon="layers-reference" class="notice-station-sf hidden" id="notice-station-sf">
                         <div slot="title">Result</div>
                         <div slot="message" name="message">test</div>
                     </calcite-notice>
                 </div>
-                
                 <br>
-                
                 <div class="download-button-container hidden">
                     <calcite-button id="download-button-sf">
                         Download shapefiles
                     </calcite-button>
                     <calcite-button id="show-map-sf">
-                        Generate Map
+                        View Map for Delineated Sites
                     </calcite-button>
+                    <calcite-button id="toggle-fullscreen" class="toggle-fullscreen hidden">Full Screen Map</calcite-button>
                 </div>
                 
                 <div>
                     <calcite-loader id="loading-spinner" class="loading-spinner hidden"></calcite-loader>
                 </div>
-                
                 <br>
-                
                 <div label="Visual Map" class="visual-map-container hidden" id="visual-map-container">
                     <iframe id="visual-map" width="700" height="350" src="" ></iframe>
                 </div>
@@ -64,6 +49,27 @@
         </div>
     </div>
 </body>
-<script src="{{url_for('static', filename='downloadsf.js')}}"></script>
+<script>
+    document.getElementById('toggle-fullscreen').addEventListener('click', function() {
+        const iframeElement = document.getElementById('visual-map');
+        if (!document.fullscreenElement) {
+            iframeElement.requestFullscreen().catch(err => {
+                alert(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    });
+    document.getElementById('input-station-sf').addEventListener('input', function(event) {
+    const value = event.target.value;
+    const regex = /^[A-Za-z0-9,\- ]*$/;  // Allow letters, numbers, commas, and spaces
 
+    if (!regex.test(value)) {
+        // If the value contains characters other than allowed, show an alert and clear the input
+        alert('Only letters, numbers, commas, hyphens, and spaces are allowed.');
+        event.target.value = value.replace(/[^A-Za-z0-9, ]/g, ''); // Remove invalid characters
+    }
+});
+</script>
+<script src="{{url_for('static', filename='downloadsf.js')}}"></script>
 </html>

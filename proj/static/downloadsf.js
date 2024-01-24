@@ -9,8 +9,7 @@ async function(e){
     document.getElementsByClassName("download-button-container")[0].classList.add("hidden")
     document.getElementById('loading-spinner').classList.remove("hidden")
 
-    let inputStations = document.getElementById("input-station-sf").value.trim().replace(/["';]/g, '').replace(/;/g, '').replace(/\s+/g, '')
-
+    let inputStations = document.getElementById("input-station-sf").value.split(',').map(item => item.trim()).join(',');
     if (inputStations == ''){
         document.getElementById('loading-spinner').classList.add("hidden")
         return alert('Station inputs are empty')
@@ -19,11 +18,26 @@ async function(e){
     formData = new FormData()
     formData.append('input_stations', inputStations)
     
-    let resp = await fetch(`/smcchecker/checkstationsf`,{
-        method: 'post',
-        body: formData
-    });
-        
+    let resp;
+    try {
+        resp = await fetch(`/smcchecker/checkstationsf`, {
+            method: 'post',
+            body: formData
+        });
+    
+        if (!resp.ok) {
+            // If the response status code is not OK, throw an error
+            throw new Error(`HTTP error! status: ${resp.status}`);
+        }
+    
+        // ... (rest of your code to handle the response)
+    
+    } catch (error) {
+        // Display an alert with the error message
+        alert(`There was an unexpected error: ${error.message}. Please take a screenshot of this message and contact Duy Nguyen (duyn@sccwrp.org) for assistance. Thank you!`);
+        window.location.reload();
+    }
+    
     let data = await resp.json()
 
     notInLookUp = data['not_in_lookup']
@@ -44,9 +58,7 @@ async function(e){
     }
 
     if (delineatedYes.length > 0){
-        messageSlot.innerHTML += `<b>Delineation Check</b>: Stations (${delineatedYes.join(", ")}) have been delineated and submitted to the database. 
-        You can view and download the shapefiles for these stations by clicking on the Generate Map button below.
-        When the map is generated, you can click on the points/polygon to view the stationid. 
+        messageSlot.innerHTML += `<b>Delineation Check</b>: Stations (${delineatedYes.join(", ")}) have been delineated and submitted to the database. You can download the shapefiles for these sites or view the map.
         If you believe there is an error with these shapefiles, contact Jeff Brown jeffb@sccwrp.org. <br><br>`
         document.getElementsByClassName("download-button-container")[0].classList.remove("hidden")
         sessionStorage.setItem('stationIds', delineatedYes.map(item => `'${item}'`).join(', '));
@@ -97,4 +109,10 @@ document.getElementById("show-map-sf").addEventListener("click", async function(
     document.getElementById('visual-map-container').classList.remove("hidden")
     document.getElementById('visual-map').setAttribute('src',`/smcchecker/map`)
     document.getElementById('loading-spinner').classList.add("hidden")
+    document.getElementById('toggle-fullscreen').classList.remove("hidden")
 })
+
+document.getElementById("reset-all").addEventListener("click", async function(e){
+    window.location.reload();
+})
+

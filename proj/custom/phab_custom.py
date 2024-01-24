@@ -75,36 +75,21 @@ def phab(all_dfs):
     # ------------------------------------------------ PHAB Checks ----------------------------------------------------- #
     # ------------------------------------------------------------------------------------------------------------------ #
     ######################################################################################################################
-    #this is calling lu_stations from database into lu_stations df
-    eng = create_engine(os.environ.get('DB_CONNECTION_STRING'))
-    lu_stations = pd.read_sql("select stationid, latitude, longitude from lu_stations",eng)
+    eng = g.eng
+    lu_stations = pd.read_sql("select stationid, latitude, longitude from lu_stations", eng)
     print("lu_stations: \n")
     print(lu_stations)
 
-    ## this custom function will check the total distance meaning both latitude and longitude combined
-    # def calculate_distance(row):
-    #     # Calculate distance using geopy considering both latitude and longitude
-    #     coords_db = (row['latitude'], row['longitude'])  # from database
-    #     coords_df = (row['actual_latitude'], row['actual_longitude'])  # from excel
-    #     return geopy.distance.distance(coords_db, coords_df).m
-
-    def calculate_latitude_distance(row):
-        # Calculate distance using geopy considering only latitude
-        coords_db = (row['latitude'], 0)  # from database 
-        coords_df = (row['actual_latitude'], 0)  # from excel 
-        return geopy.distance.distance(coords_db, coords_df).m
-
-    def calculate_longitude_distance(row):
-        # Calculate distance using geopy considering only longitude
-        coords_db = (0, row['longitude'])  # from database 
-        coords_df = (0, row['actual_longitude'])  # from excel
+    def calculate_distance(row):
+        # Calculate distance using geopy considering both latitude and longitude
+        coords_db = (row['latitude'], row['longitude'])  # from database
+        coords_df = (row['actual_latitude'], row['actual_longitude'])  # from excel
         return geopy.distance.distance(coords_db, coords_df).m
     
     # Merge based on stationid from lu_stations and stationcode from phab
     merged_df = pd.merge(lu_stations, phab, left_on='stationid', right_on='stationcode', how='inner')
-    merged_df['latitude_difference'] = merged_df.apply(calculate_latitude_distance, axis=1)
-    merged_df['longitude_difference'] = merged_df.apply(calculate_longitude_distance, axis=1)
-    distance_threshold = 300  # 300 meters
+    merged_df['distance'] = merged_df.apply(calculate_distance, axis=1)
+    print(merged_df)
     
     print("# CHECK - 1")
     # Description: Actual latitude should not be 300m away from target latitude.(🛑 Warning 🛑)
@@ -112,15 +97,15 @@ def phab(all_dfs):
     # Created Date: 10/16/2023
     # Last Edited Date: 10/17/2023
     # Last Edited Coder: Aria Askaryar
-    # NOTE (10/16/2023): Aria created the check
-    # NOTE (10/17/2023): Aria ran it through the QA process
+    # NOTE (08/22/23): Aria created the check and ran it through the QA process
+    distance_threshold = 300  # 300 meters
     errs.append(
         checkData(
             'tbl_phab',
-            merged_df[merged_df['latitude_difference'] > distance_threshold].index.tolist(),
+            merged_df[merged_df['distance'] > distance_threshold].index.tolist(),
             'actual_latitude',
             'Undefined Error',
-            'Actual latitude should not be more than 300 meters away from target latitude coordinates.'                  
+            'Actual latitude should not be more than 300m away from target latitude coordinates.'                  
         )
     )
     # END OF CHECK - Actual latitude should not be 300m away from target latitude. (🛑 Warning 🛑)
@@ -146,19 +131,6 @@ def phab(all_dfs):
     # END OF CHECK - Actual longitude should not be 300m away from target longitude (🛑 Warning 🛑)
     print("# END OF CHECK - 2")
 
-    # errs.append(
-    #     checkData(
-    #         'tbl_algae', 
-    #         algae[(algae.sampletypecode == 'Epiphyte') & (algae.baresult == -88)].tmp_row.tolist(),
-    #         'BAResult',
-    #         'Undefined Error', 
-    #         'SampleTypeCode is Epiphyte. BAResult is a required field.'
-    #     )
-    # ) 
-    
-    #Check 3: SampleDate cannot be from the future
-    # This was given to us by Rafi and posted to Teams website
-    #    checkData(phabphab[phab.sampledate > datetime.today()].tmp_row.tolist(), 'SampleDate', 'Undefined Error', 'error', 'It appears that this sample came from the future', phab)
 
     print("# CHECK - 3")
     # Description: SampleDate cannot be from the future (🛑 ERROR 🛑)

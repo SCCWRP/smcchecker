@@ -94,6 +94,23 @@ def shapefile(all_dfs):
         axis=1
     )
 
+    # 0. Check if a user submit the same station with different aliases
+    for _, subdf in sites.groupby('masterid'):
+        tmp_df = subdf[subdf.duplicated('masterid',keep=False)]
+        if not tmp_df.empty:
+            args = {
+                "dataframe": 'gissites',
+                "tablename": 'gissites',
+                "badrows": tmp_df.tmp_row.tolist(),
+                "badcolumn": "stationcode",
+                "error_type": "Duplicated Submission",
+                "is_core_error": False,
+                "error_message": 
+                    f"These station codes ({','.join(tmp_df['stationcode'])}) function as aliases for the same station. Please contact Jeff Brown (jeffb@sccwrp.org) for more information."
+            }
+            errs = [*errs, checkData(**args)]
+
+
 
     # 1. Check if the masterid already exists in the database
     print("Check if the masterid already exists in the database") 

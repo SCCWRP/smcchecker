@@ -1,0 +1,36 @@
+/* General styling for the container */
+.container {
+    display: flex;
+    height: 100vh; /* Full height of the viewport */
+}
+
+/* Styling for the left side */
+.right-side {
+    width: 70%; /* 30% of the viewport width */
+    background-color: #f0f0f0; /* Just an example color */
+    overflow-y: auto; /* Allows scrolling if content overflows */
+}
+
+/* Styling for the right side */
+.left-side {
+    width: 30%; /* Remaining 70% of the viewport width */
+    background-color: #ffffff; /* Just an example color */
+    overflow-y: auto; /* Allows scrolling if content overflows */
+    padding: 10px; /* Padding for aesthetics */
+}
+
+/* Ensuring the entire body fills the viewport */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+#viewDiv {
+    flex-grow: 1; 
+    overflow: auto; 
+    min-height: 100%;  /* Ensuring it has some minimum height */
+}
+
+
+

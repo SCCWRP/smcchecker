@@ -147,6 +147,7 @@ def check_precision(x, precision):
 
 @lru_cache(maxsize=128, typed=True)
 def check_scale(x, scale):
+    
     try:
         int(x)
     except Exception as e:
@@ -188,7 +189,13 @@ def check_scale(x, scale):
                 frac_part = int(frac_part / 10)
 
         right = len(str(frac_part)) if frac_part > 0 else 0
-    return True if right <= scale else False
+    returnbool = True if right <= scale else False
+    if not returnbool:
+        print("x")
+        print(str(x))
+        print("right")
+        print(right)
+    return returnbool
 
 @lru_cache(maxsize=128, typed=True)
 def check_length(x, maxlength):
