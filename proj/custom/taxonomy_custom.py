@@ -341,13 +341,57 @@ def taxonomy(all_dfs):
     # END OF CHECK - FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup     
     print("# END OF CHECK - 9")
     
+    
+    print("# CHECK - 10a")
+    # Description:  Field Replicate must be Greater than 1 in results
+    # Created Coder: Ayah Halabi
+    # Created Date: 01/25/2025
+    # Last Edited Date: 
+    # Last Edited Coder: 
+    
+    errs.append(
+        checkData(
+            'tbl_taxonomyresults',
+           taxonomyresults[
+               taxonomyresults['fieldreplicate']<1
+            ].tmp_row.tolist(),
+            'fieldreplicate',
+            'Undefined Error',
+            'Fieldreplicate must greater or equal to 1'
+            )
+    )
+    # END OF CHECK 10a Field Replicate must be Greater than 1 in results
+    print("# END OF CHECK - 10a")
+    
+    print("# CHECK - 10b")
+    # Description:  Field Replicate must be Greater than 1 in sampleinfo
+    # Created Coder: Ayah Halabi
+    # Created Date: 01/25/2025
+    # Last Edited Date: 
+    # Last Edited Coder: 
+    
+    errs.append(
+        checkData(
+            'tbl_taxonomysampleinfo',
+           taxonomysampleinfo[
+               taxonomysampleinfo['fieldreplicate']<1
+            ].tmp_row.tolist(),
+            'fieldreplicate',
+            'Undefined Error',
+            'Fieldreplicate must greater or equal to 1'
+            )
+    )
+    #END OF CHECK 10b Fieldreplicate must be greater than 1 in sampleinfo
+    print("# END OF CHECK - 10b") 
+
+    
     #############end of custom checks########################################################################################
 
     ##################
 	## LOGIC CHECK  ##
     ##################
     
-    print("# CHECK - 10")
+    print("# CHECK - 11")
     # Description:  Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate. (🛑 Warning 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: 06/21/2023
@@ -378,7 +422,7 @@ def taxonomy(all_dfs):
             )
     )
     # END OF CHECK - Each sampleinfo information record must have a corresponding result record. records are matched on stationcode, sampledate, fieldreplicate.     
-    print("# END OF CHECK - 10")
+    print("# END OF CHECK - 11")
 
     ######################
 	## End LOGIC CHECK  ##

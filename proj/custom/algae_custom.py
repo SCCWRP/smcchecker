@@ -355,6 +355,26 @@ def algae(all_dfs):
     )  
     # END OF CHECK -Check if collectiontime is in in HH:MM format in 24hour range (0-24:0-59). (🛑 ERROR 🛑)
     print("# END OF CHECK - 9")
+    
+    print("# CHECK - 10")
+    # Description: Replicate must be greater than or equal to 1 (🛑 WARNING 🛑)
+    # Created Coder: Ayah H
+    # Created Date: 1/25/2024
+    # Last Edited Date: 
+    # Last Edited Coder:
+
+    
+    errs.append(
+        checkData(
+            'tbl_algae', 
+            algae[algae['replicate']<1].tmp_row.tolist(),
+            'replicate',
+            'Undefined Error', 
+            'Replicate must be greater than or equal to one'
+        )
+    )  
+    # END OF CHECK -Replicate must be greater than or equal to 1 (🛑 ERROR 🛑)
+    print("# END OF CHECK - 10")
 
     print("END of all Algae checks")
     ######################################################################################################################

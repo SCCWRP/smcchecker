@@ -99,11 +99,16 @@
                       field.options_display_field %} data-option-display-field="{{field.options_display_field}}" {%
                       endif %} {% if field.options_values_field %}
                       data-option-values-field="{{field.options_values_field}}" {% endif %}>
-                      {% if field.static_options %}
+                      <!-- {% if field.static_options %}
                       {% for opt in field.static_options %}
                       <option value="{{opt}}">{{opt}}</option>
                       {% endfor %}
-                      {%endif%}
+                      {%endif%} -->
+                      <!--
+
+                        Code for these options was moved to javascript. See main.js:200
+
+                      -->
                     </select>
                     {% endif %}
 

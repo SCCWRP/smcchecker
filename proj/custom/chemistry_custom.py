@@ -667,6 +667,48 @@ def chemistry(all_dfs):
     )
     # END OF CHECK 24 - If Unit is % recovery then ExpectedValue cannot have -88. (🛑 ERROR 🛑)
     print("# END OF CHECK - 24")    
+    
+    print("# CHECK - 25a")
+    # Description:  FieldReplicate must be greater than or equal to one (🛑 ERROR 🛑)
+    # Created Coder: Ayah halabi
+    # Created Date: 
+    # Last Edited Date: 01/25/2024
+    # Last Edited Coder: 
+    # NOTE Ayah Wrote check           
+    errs.append(
+        checkData(
+            'tbl_chemistryresults',
+            chemistryresults[
+                (chemistryresults['fieldreplicate'] <1)
+            ].tmp_row.tolist(),
+            'fieldreplicate',
+            'Undefined Error',
+            "fieldreplicate must be greater than or equal to one."
+        )
+    )
+    # END OF CHECK 25 - Fieldreplicate must be greater than or equal to one (🛑 ERROR 🛑)
+    print("# END OF CHECK - 25a")    
+    
+    print("# CHECK - 25b")
+    # Description:  Labreplicate must be greater than or equal to one (🛑 ERROR 🛑)
+    # Created Coder: Ayah halabi
+    # Created Date: 
+    # Last Edited Date: 01/25/2024
+    # Last Edited Coder: 
+    # NOTE Ayah Wrote check           
+    errs.append(
+        checkData(
+            'tbl_chemistryresults',
+            chemistryresults[
+                (chemistryresults['labreplicate'] <1)
+            ].tmp_row.tolist(),
+            'labreplicate',
+            'Undefined Error',
+            "fieldreplicate must be greater than or equal to one."
+        )
+    )
+    # END OF CHECK 25b - labreplicate must be greater than or equal to one (🛑 ERROR 🛑)
+    print("# END OF CHECK - 25b")    
     ######################################################################################################################
     # ------------------------------------------------------------------------------------------------------------------ #
     # ------------------------------------------------End of Chemistry Checks ------------------------------------------ #
