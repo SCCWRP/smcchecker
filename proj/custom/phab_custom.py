@@ -99,7 +99,7 @@ def phab(all_dfs):
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/22/23): Aria created the check and ran it through the QA process
     distance_threshold = 300  # 300 meters
-    errs.append(
+    warnings.append(
         checkData(
             'tbl_phab',
             merged_df[merged_df['distance'] > distance_threshold].index.tolist(),
