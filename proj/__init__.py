@@ -15,6 +15,7 @@ from .process_shapefile import sfprocessing
 from .load_shapefile import sfloading 
 from .map_check import map_check, get_map_info
 from .admin import admin
+from .query import query
 
 CUSTOM_CONFIG_PATH = os.path.join(os.getcwd(), 'proj', 'config')
 
@@ -46,7 +47,10 @@ app.config['MAIL_SERVER'] = os.environ.get('FLASK_APP_MAIL_SERVER')
 
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
 
+app.config['BACKGROUND_IMAGE'] = BASIC_CONFIG.get("BACKGROUND_IMAGE")
+
 app.secret_key = os.environ.get("FLASK_APP_SECRET_KEY")
+
 
 # set the database connection string, database, and type of database we are going to point our application at
 #app.eng = create_engine(os.environ.get("DB_CONNECTION_STRING"))
@@ -159,5 +163,6 @@ app.register_blueprint(scraper)
 app.register_blueprint(templater)
 app.register_blueprint(map_check)
 app.register_blueprint(admin)
+app.register_blueprint(query)
 
 
