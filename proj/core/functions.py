@@ -177,9 +177,10 @@ def check_scale(x, scale):
     else:
         # frac part is zero if there is no decimal place, or if it came in with scientific notation
         # because this else block represents the case where the power was positive
-        #print('HERE')
-        #print(x)
-        #print(str(x))
+        print('HERE')
+        print(x)
+        x = round(x, 10)
+        print(str(x))
         frac_part = abs(int(re.sub("\d*\.","",str(x)))) if ( '.' in str(x) ) and ('e' not in str(x)) else 0
         #print('NO')
         
@@ -189,6 +190,7 @@ def check_scale(x, scale):
                 frac_part = int(frac_part / 10)
 
         right = len(str(frac_part)) if frac_part > 0 else 0
+
     returnbool = True if right <= scale else False
     if not returnbool:
         print("x")
