@@ -26,7 +26,7 @@ def load_sf():
     lu_stations = pd.read_sql("SELECT DISTINCT stationid, masterid FROM lu_stations", con=g.eng)
     path_to_shapefiles = Path(session['shapefile_path']).parent
 
-    url_list_dict = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")
+    #url_list_dict = upload_and_retrieve(s3Client, path_to_shapefiles, bucket="shapefilesmc2022")
     
     # Now start the process to load data
     # At this point, the data being submitted should be clean, we go and grab it
@@ -37,8 +37,8 @@ def load_sf():
         df = all_dfs[tbl].get('data')
 
         # Convert whatever projection user submitted to 4326
-        print("Convert whatever projection user submitted to 4326")
-        df = convert_projection(df, all_dfs[tbl].get('projection'))
+        # print("Convert whatever projection user submitted to 4326")
+        # df = convert_projection(df, all_dfs[tbl].get('projection'))
 
         # Append masterid column
         print("Append masterid column")
@@ -80,7 +80,7 @@ def load_sf():
             submissionid = session['submissionid'],
             approve = 'not_reviewed',
             filename = all_dfs[tbl].get('filename'),
-            download_url = url_list_dict.get(all_dfs[tbl].get('filename'))
+            download_url = 'none'
         )
         df = GeoDBDataFrame(df)
         df.to_geodb(tbl, g.eng)
