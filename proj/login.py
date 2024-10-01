@@ -9,7 +9,6 @@ homepage = Blueprint('homepage', __name__)
 @homepage.route('/', methods = ['GET', 'POST', 'DELETE'])
 def index():
     eng = g.eng
-
     # upon new request clear session, reset submission ID, reset submission directory
     # Hold off for now, trying new login system - 8/8/2022
     if request.method == 'DELETE':

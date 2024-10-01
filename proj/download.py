@@ -249,5 +249,5 @@ def get_download_link():
 @download.route('/sqi_rawdata')
 def send_sqi():
     export_path = os.path.join(os.getcwd(), "export", "sqi.csv")
-    pd.read_sql("SELECT * FROM vw_sqi_dat", g.eng).to_csv(export_path, index = False)
+    pd.read_sql("SELECT * FROM mvw_sqi_dat", g.eng).to_csv(export_path, index = False)
     return send_file(export_path, as_attachment=True)
