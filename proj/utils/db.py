@@ -8,6 +8,18 @@ def check_dtype(t, x):
         return True
     except Exception as e:
         return False
+    
+def is_number(val):
+    """ Function to check if a value is a number, but excludes values with an 'E' in scientific notation format """
+    # Check if it's an actual number or a string that looks like a number
+    try:
+        float(val)
+        # If it's scientific notation (e.g., 4E20026), we need to ensure it's not treated as a number
+        if 'E' in str(val) or 'e' in str(val):
+            return False
+        return True
+    except (ValueError, TypeError):
+        return False
 
 class GeoDBDataFrame(DataFrame):
     def __init__(self, *args, **kwargs):
@@ -52,7 +64,7 @@ class GeoDBDataFrame(DataFrame):
                                     # If it is, we do not want to wrap it in single quotes
                                     # If its an arc function, we also dont want to wrap it in quotes in that case
                                     else str(val).strip()
-                                    if ( (check_dtype(float, val)) or (check_dtype(int, val)) or ("sde.next_" in str(val)) )
+                                    if ( (is_number(val)) or ("sde.next_" in str(val)) )
 
                                     # If all else fails its basically either a character or a time
                                     # in which case we wrap in single quotes
