@@ -129,42 +129,42 @@ def chemistry(all_dfs):
     # NOTE  (6feb2023): this check is not working as expected - zaib 
     # NOTE (08/24/23): Aria adjusts the format so it follows the coding standard. Did not touch the code.
 
-    missing_phab_data_results = check_missing_phab_data(chemistryresults, phab_data)
-    print("missing_phab_data_results:")
-    print(missing_phab_data_results)
+    # missing_phab_data_results = check_missing_phab_data(chemistryresults, phab_data)
+    # print("missing_phab_data_results:")
+    # print(missing_phab_data_results)
 
-    warnings.append(
-        checkData(
-            'tbl_chemistryresults', 
-                missing_phab_data_results[0],
-            'sampledate',
-            'Value Error', 
-            f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting chemistry data.'
-        )
-    )  
-    # END OF CHECK 2 - Return warnings on missing phab data (warning )
-    print("# END OF CHECK - 2")
+    # warnings.append(
+    #     checkData(
+    #         'tbl_chemistryresults', 
+    #             missing_phab_data_results[0],
+    #         'sampledate',
+    #         'Value Error', 
+    #         f'Warning! PHAB data has not been submitted for site(s) {", ".join(missing_phab_data_results[1])}. If PHAB data are available, please submit those data before submitting chemistry data.'
+    #     )
+    # )  
+    # # END OF CHECK 2 - Return warnings on missing phab data (warning )
+    # print("# END OF CHECK - 2")
 
-    print("# CHECK - 3")
-    # Description:  Return warnings on submission dates mismatching with phab dates. (warning )
-    # Created Coder: Zaib
-    # Created Date: 2023
-    # Last Edited Date: 6/6/2023
-    # Last Edited Coder: Aria
-    # NOTE (08/24/23): Aria adjusts the format so it follows the coding standard.
-    mismatched_phab_date_results = check_mismatched_phab_date(chemistryresults, phab_data)
+    # print("# CHECK - 3")
+    # # Description:  Return warnings on submission dates mismatching with phab dates. (warning )
+    # # Created Coder: Zaib
+    # # Created Date: 2023
+    # # Last Edited Date: 6/6/2023
+    # # Last Edited Coder: Aria
+    # # NOTE (08/24/23): Aria adjusts the format so it follows the coding standard.
+    # mismatched_phab_date_results = check_mismatched_phab_date(chemistryresults, phab_data)
 
-    warnings.append(
-        checkData(
-            'tbl_chemistryresults', 
-                mismatched_phab_date_results[0],
-            'sampledate',
-            'Value Error', 
-            f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
-        )
-    )  
-    # END OF CHECK 3 - Return warnings on submission dates mismatching with phab dates. (warning )
-    print("# END OF CHECK - 3")
+    # warnings.append(
+    #     checkData(
+    #         'tbl_chemistryresults', 
+    #             mismatched_phab_date_results[0],
+    #         'sampledate',
+    #         'Value Error', 
+    #         f'Warning! PHAB was sampled on {", ".join(mismatched_phab_date_results[1])}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+    #     )
+    # )  
+    # # END OF CHECK 3 - Return warnings on submission dates mismatching with phab dates. (warning )
+    # print("# END OF CHECK - 3")
 
     # LOGIC CHECK -- using logic check routine instead of zipping dataframes
     # # Check 4: Return error for logic check where (a) result not in batch and (b) batch not in result.
