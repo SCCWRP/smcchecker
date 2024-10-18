@@ -141,8 +141,6 @@ def download_shapefile():
 
 @download.route('/checkstationsf', methods = ['POST','GET'])
 def get_masterid():
-    
-    gis = GIS(url="https://gis.sccwrp.org/arcgis/", username=os.environ.get('GIS_USER'), password=os.environ.get('GIS_PASSWORD'))
 
     stationids_to_check = request.form.get('input_stations').split(",")
     
