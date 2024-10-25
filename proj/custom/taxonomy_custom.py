@@ -134,39 +134,39 @@ def taxonomy(all_dfs):
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
 
     #phab data that will be used in checks 2 and 3 below
-    info_sites = list(set(taxonomysampleinfo['stationcode'].unique()))
-    results_sites = list(set(taxonomyresults['stationcode'].unique()))
-    #assert info_sites == results_sites, "unique stationcodes do not match between sampleinfo and results dataframes"
-    sql_query = f"""
-        SELECT DISTINCT STATIONCODE,
-	    SAMPLEDATE
-        FROM UNIFIED_PHAB
-        WHERE RECORD_ORIGIN = 'SMC'
-	    AND STATIONCODE in ('{"','".join(info_sites)}')
-        ;"""
-    phab_data = pd.read_sql(sql_query, g.eng)
+    # info_sites = list(set(taxonomysampleinfo['stationcode'].unique()))
+    # results_sites = list(set(taxonomyresults['stationcode'].unique()))
+    # #assert info_sites == results_sites, "unique stationcodes do not match between sampleinfo and results dataframes"
+    # sql_query = f"""
+    #     SELECT DISTINCT STATIONCODE,
+	#     SAMPLEDATE
+    #     FROM UNIFIED_PHAB
+    #     WHERE RECORD_ORIGIN = 'SMC'
+	#     AND STATIONCODE in ('{"','".join(info_sites)}')
+    #     ;"""
+    # phab_data = pd.read_sql(sql_query, g.eng)
 
-    # Check - missing phab records for taxonomysampleinfo submission
+    # # Check - missing phab records for taxonomysampleinfo submission
 
-    ##not using check_missing_phab_data function since multiple sampledates for some stationcodes
-    ##instead, we will just write the check directly in custom file
+    # ##not using check_missing_phab_data function since multiple sampledates for some stationcodes
+    # ##instead, we will just write the check directly in custom file
 
-    #Merging to two tables on stationcode and sampledate. 
-    #Adding "indicator = True" adds a column called _merge that tells you whether the row is in both or one of the tables.
-    merge_tax_with_phab = taxonomysampleinfo.merge(phab_data, how = 'left', on = ['stationcode', 'sampledate'], indicator = True)
+    # #Merging to two tables on stationcode and sampledate. 
+    # #Adding "indicator = True" adds a column called _merge that tells you whether the row is in both or one of the tables.
+    # merge_tax_with_phab = taxonomysampleinfo.merge(phab_data, how = 'left', on = ['stationcode', 'sampledate'], indicator = True)
     
-    #Printing the rows that do not match Taxonomy and phab. 
-    badrows_sampleinfo = merge_tax_with_phab[merge_tax_with_phab['_merge'] == 'left_only'].tmp_row.tolist()
+    # #Printing the rows that do not match Taxonomy and phab. 
+    # badrows_sampleinfo = merge_tax_with_phab[merge_tax_with_phab['_merge'] == 'left_only'].tmp_row.tolist()
     
-    warnings.append(
-        checkData(
-            'tbl_taxonomysampleinfo', 
-            badrows_sampleinfo,
-            'stationcode',
-            'Value Error', 
-            f'Warning! PHAB data has not been submitted for site(s): {list(taxonomysampleinfo.stationcode[badrows_sampleinfo])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
-        )
-    )  
+    # warnings.append(
+    #     checkData(
+    #         'tbl_taxonomysampleinfo', 
+    #         badrows_sampleinfo,
+    #         'stationcode',
+    #         'Value Error', 
+    #         f'Warning! PHAB data has not been submitted for site(s): {list(taxonomysampleinfo.stationcode[badrows_sampleinfo])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
+    #     )
+    # )  
     # END OF CHECK - Warn if PHAB sampleinfo data has not been submitted for StationCode/SampleDate prior to Taxonomy submission    
     print("# END OF CHECK - 3")
 
@@ -179,22 +179,22 @@ def taxonomy(all_dfs):
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
 
     #Adding "indicator = True" adds a column called _merge that tells you whether the row is in both or one of the tables.
-    taxonomyresults['sampledate'] = pd.to_datetime(taxonomyresults['sampledate'])
-    phab_data['sampledate'] = pd.to_datetime(phab_data['sampledate'])
+    # taxonomyresults['sampledate'] = pd.to_datetime(taxonomyresults['sampledate'])
+    # phab_data['sampledate'] = pd.to_datetime(phab_data['sampledate'])
 
-    merge_tax_with_phab = taxonomyresults.merge(phab_data, how = 'left', on = ['stationcode', 'sampledate'], indicator = True)
-    #keeping record of the rows that are missing in phab but are present in taxonomy . 
-    badrows_results = merge_tax_with_phab[merge_tax_with_phab['_merge'] == 'left_only'].tmp_row.tolist()
+    # merge_tax_with_phab = taxonomyresults.merge(phab_data, how = 'left', on = ['stationcode', 'sampledate'], indicator = True)
+    # #keeping record of the rows that are missing in phab but are present in taxonomy . 
+    # badrows_results = merge_tax_with_phab[merge_tax_with_phab['_merge'] == 'left_only'].tmp_row.tolist()
 
-    warnings.append(
-        checkData(
-            'tbl_taxonomyresults', 
-            badrows_results,
-            'sampledate',
-            'Value Error', 
-            f'Warning! PHAB data has not been submitted for site(s): {list(taxonomyresults.stationcode[badrows_results])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
-        )
-    )  
+    # warnings.append(
+    #     checkData(
+    #         'tbl_taxonomyresults', 
+    #         badrows_results,
+    #         'sampledate',
+    #         'Value Error', 
+    #         f'Warning! PHAB data has not been submitted for site(s): {list(taxonomyresults.stationcode[badrows_results])}. If PHAB data are available, please submit those data before submitting taxonomy data.'
+    #     )
+    # )  
     # END OF CHECK - missing phab records for taxonomyresults submission    
     print("# END OF CHECK - 4")
 
@@ -207,38 +207,38 @@ def taxonomy(all_dfs):
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     # NOTE (09/07/23): Didn't want to figure out what old code was doing wrong so wrote some new code.
 
-    count = 1
-    sheets = [taxonomysampleinfo, taxonomyresults]
-    for sheet in sheets:
-        new_badrows = []
-        for label, row in taxonomysampleinfo.iterrows():
-            date_found = False
-            for _, row2 in phab_data.iterrows():
-                if row['sampledate'] == row2['sampledate']:
-                    date_found = True
-            if date_found == False:
-                new_badrows.append(label)
+    # count = 1
+    # sheets = [taxonomysampleinfo, taxonomyresults]
+    # for sheet in sheets:
+    #     new_badrows = []
+    #     for label, row in taxonomysampleinfo.iterrows():
+    #         date_found = False
+    #         for _, row2 in phab_data.iterrows():
+    #             if row['sampledate'] == row2['sampledate']:
+    #                 date_found = True
+    #         if date_found == False:
+    #             new_badrows.append(label)
 
-        phab_dates = ', '.join(map(str, phab_data['sampledate'].to_list()))
+    #     phab_dates = ', '.join(map(str, phab_data['sampledate'].to_list()))
 
-        # this makes me cringe but whatever -cas
-        table_name = ''
-        if count == 1:
-            table_name = 'tbl_taxonomysampleinfo'
-        elif count == 2:
-            table_name = 'tbl_taxonomyresults'
-        #
+    #     # this makes me cringe but whatever -cas
+    #     table_name = ''
+    #     if count == 1:
+    #         table_name = 'tbl_taxonomysampleinfo'
+    #     elif count == 2:
+    #         table_name = 'tbl_taxonomyresults'
+    #     #
 
-        warnings.append(
-            checkData(
-                table_name, 
-                new_badrows,
-                'sampledate',
-                'Value Error', 
-                f'Warning! PHAB was sampled on {phab_dates}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
-            )
-        )
-        count = count + 1
+    #     warnings.append(
+    #         checkData(
+    #             table_name, 
+    #             new_badrows,
+    #             'sampledate',
+    #             'Value Error', 
+    #             f'Warning! PHAB was sampled on {phab_dates}. Sample date for PHAB data for this site and year does not match the sample date in this submission. Please verify that both dates are correct. If submitted data requires correction, please contact Jeff Brown at jeffb@sccwrp.org.'
+    #         )
+    #     )
+    #     count = count + 1
 
     print("# END OF CHECK - 5")
 
