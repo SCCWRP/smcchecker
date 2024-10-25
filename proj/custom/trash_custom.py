@@ -196,14 +196,14 @@ def trash(all_dfs):
             trashsiteinfo[
                 trashsiteinfo['endtime'].apply(
                     lambda x: not bool(re.match(correct_time_format, str(x)))
-                    if str(x) != 'nan'
+                    if str(x) not in ['nan', 'NR']
                     else 
                     False
                 )
             ].tmp_row.tolist(),
             'endtime',
             'Undefined Error',
-            'EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range. If the value is missing, please enter NR.'
+            "EndTime needs to be in the format HH:MM, and they need to be in the 24-hour range. If the value is missing, please enter 'NR' "
         )
     )  
     print("# END OF CHECK - 2b")    
