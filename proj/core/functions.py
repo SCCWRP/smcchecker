@@ -69,6 +69,10 @@ def convert_dtype(t, x):
         if pd.isnull(x) and t == pd.Timestamp:
             return True
 
+        # For some reason, t(x) was not here. I just put it here now on 10/28/2024 
+        t(x)
+
+
         # if the type is an int, and it got this far, at least the literal matches that of a number
         # if it matches the float pattern though, we have a problem
         if (t == int):

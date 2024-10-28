@@ -18,7 +18,6 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
                 meta.columns.get_loc("dtype")
             ] \
             .values[0]
-
             human_dtype = meta.iloc[
                     meta[
                         meta.column_name == col
@@ -26,7 +25,6 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
                     meta.columns.get_loc("data_type")
                 ] \
                 .values[0]
-
             ret.append(
                 checkData(
                     dataframe = dataframe,
