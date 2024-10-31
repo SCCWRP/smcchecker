@@ -1,5 +1,5 @@
 import os, binascii
-from flask import send_file, Blueprint, jsonify, request, g, current_app, render_template
+from flask import send_file, Blueprint, jsonify, request, g, current_app, render_template, send_from_directory
 from pandas import read_sql
 import pandas as pd
 from arcgis.gis import GIS
@@ -249,3 +249,10 @@ def send_sqi():
     export_path = os.path.join(os.getcwd(), "export", "sqi.csv")
     pd.read_sql("SELECT * FROM mvw_sqi_dat", g.eng).to_csv(export_path, index = False)
     return send_file(export_path, as_attachment=True)
+
+@download.route('/download/icons-for-sqi/<filename>')
+def download_image(filename):
+    filepath = os.path.join(os.getcwd(), "export", "icons-for-sqi")
+    return send_from_directory( filepath, filename)
+
+
