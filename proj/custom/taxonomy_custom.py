@@ -320,14 +320,14 @@ def taxonomy(all_dfs):
     print("# END OF CHECK - 8")
 
     print("# CHECK - 9")
-    # Description:  FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup (🛑 Error 🛑)
+    # Description:  FinalID / LifeStageCode combination must match combination found in lu_organism_lifestage_lookup (🛑 Error 🛑)
     # Created Coder: Aria Askaryar
     # Created Date: 06/21/2023
     # Last Edited Date: 09/13/2023
     # Last Edited Coder: Nick Lombardo
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works
     # NOTE (09/13/23): Nick changed to use the mismatch function instead
-    lu_organisms = pd.read_sql("SELECT finalid, lifestagecode FROM vw_organism_lifestage_lookup;", g.eng)
+    lu_organisms = pd.read_sql("SELECT finalid, lifestagecode FROM lu_organism_lifestage_lookup;", g.eng)
 
     errs.append(
         checkData(
@@ -335,10 +335,10 @@ def taxonomy(all_dfs):
             mismatch(taxonomyresults, lu_organisms, mergecols=['finalid', 'lifestagecode']),
             'finalid, lifestagecode',
             'Undefined Error',
-            'FinalID/LifeStageCode combination must match the combination found in vw_organism_lifestage_lookup'
+            'FinalID/LifeStageCode combination must match the combination found in lu_organism_lifestage_lookup'
             )
     )
-    # END OF CHECK - FinalID / LifeStageCode combination must match combination found in vw_organism_lifestage_lookup     
+    # END OF CHECK - FinalID / LifeStageCode combination must match combination found in lu_organism_lifestage_lookup     
     print("# END OF CHECK - 9")
     
     
