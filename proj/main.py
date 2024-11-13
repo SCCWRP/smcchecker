@@ -46,6 +46,13 @@ def main():
         # i'd like to figure a way we can do it without writing the thing to an excel file
         f = files[0]
         filename = secure_filename(f.filename)
+        name, _ = os.path.splitext(filename)
+
+        # Check if there's a dot in the name and print the filename if so
+        if '.' in name:
+            print(filename)
+            return jsonify(user_error_msg='The filename cannot contain a period (.)')   
+
         extension = secure_filename(f.filename).rsplit('.',1)[-1]
         
         original_file_path = os.path.join( session['submission_dir'], str(filename) )
