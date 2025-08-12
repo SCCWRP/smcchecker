@@ -84,7 +84,7 @@ require([
         esriConfig.apiKey = arcGISAPIKey
         
         const map = new Map({
-            basemap: "arcgis-topographic" // Basemap layer service
+            basemap: "arcgis-imagery" // Basemap layer service (aerial imagery)
         });
     
         const view = new MapView({
@@ -105,10 +105,36 @@ require([
         defaultOption.textContent = 'Select a station to view:';
         siteSelect.appendChild(defaultOption);
 
+        // Create a basemap toggle button
+        const basemapToggleBtn = document.createElement('button');
+        basemapToggleBtn.id = 'basemapToggleBtn';
+        basemapToggleBtn.textContent = 'Switch to Topographic';
+        basemapToggleBtn.style.marginLeft = '8px';
+
+        // Track current basemap
+        let currentBasemap = 'arcgis-imagery';
+        basemapToggleBtn.addEventListener('click', function() {
+            if (currentBasemap === 'arcgis-imagery') {
+                map.basemap = 'arcgis-topographic';
+                basemapToggleBtn.textContent = 'Switch to Imagery';
+                currentBasemap = 'arcgis-topographic';
+            } else {
+                map.basemap = 'arcgis-imagery';
+                basemapToggleBtn.textContent = 'Switch to Topographic';
+                currentBasemap = 'arcgis-imagery';
+            }
+        });
+
         const fullScreen = document.createElement('caicite-button');
         fullScreen.id = 'toggle-fullscreen'
         // Append the select element to the view's UI, for example in the top-right corner
-        view.ui.add(siteSelect, 'top-right');
+    // Create a container for the select and button
+    const selectContainer = document.createElement('div');
+    selectContainer.style.display = 'flex';
+    selectContainer.style.alignItems = 'center';
+    selectContainer.appendChild(siteSelect);
+    selectContainer.appendChild(basemapToggleBtn);
+    view.ui.add(selectContainer, 'top-right');
         
         // Function to get a unique color for each index
         function getColorForIndex(index) {
