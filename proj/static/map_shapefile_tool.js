@@ -188,6 +188,19 @@ require([
             option.textContent = `StationCode: ${site['properties']['stationcode']}`; // Text to show in the dropdown
             siteSelect.appendChild(option);
         });
+
+        // Automatically zoom to the first station if available
+        if (sitesData.length > 0) {
+            const firstSite = sitesData[0];
+            view.goTo({
+                center: [
+                    firstSite['geometry']['coordinates'][0],
+                    firstSite['geometry']['coordinates'][1]
+                ],
+                zoom: 13 // Adjust zoom level as needed
+            });
+            siteSelect.selectedIndex = 1; // Select the first station in the dropdown
+        }
         
         // Add the change event listener to the select element
         siteSelect.addEventListener('change', function() {
