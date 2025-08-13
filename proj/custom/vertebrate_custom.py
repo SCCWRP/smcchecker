@@ -131,10 +131,12 @@ def vertebrate(all_dfs):
     # Last Edited Coder: Aria Askaryar
     # NOTE (08/29/23): Aria adjusts the format so it follows the coding standard. works   
     # NOTE (10/5/2023): Aria edited the code to work properly, was referencing lu_stations instead of lu_station
+    # NOTE (08/13/2025): Rafi said we should archive lu_station and use lu_stations, so I am chaning the code to use lu_stations
+
     errs.append(
         checkData(
             'tbl_vertebrateobservation',
-            vertebrateobservation[(vertebrateobservation['sitetype'] == 'exists') & ~vertebrateobservation['stationcode'].isin(lu_station['stationid'])].tmp_row.tolist(),
+            vertebrateobservation[(vertebrateobservation['sitetype'] == 'exists') & ~vertebrateobservation['stationcode'].isin(lu_stations['stationid'])].tmp_row.tolist(),
             "stationcode",
             'undefined error',
             "If SiteType = 'exists' then the stationid must come from "+\
