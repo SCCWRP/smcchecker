@@ -21,6 +21,7 @@ print('Created database connection')
 
 alg <- readxl::read_excel(file.path(dir, filename))
 
+
 # Select from vw_asci_checker_gispredictors since the other view vw_asci_gispredictors only grabs records for stations in unified algae
 # That view is for the sync script
 gis <- dbGetQuery(con, 'SELECT * FROM vw_asci_checker_gispredictors') %>% filter(StationCode %in% alg$stationcode)
@@ -35,7 +36,8 @@ alg <- alg %>%
     `BAResult` = baresult,
     `Result` = result,
     `FinalID` = finalid                
-  )
+  ) |>
+  mutate(Result = na_if(Result, "-88"))
 
 
 output <- ASCI(alg, gis) %>% smcify 
