@@ -65,12 +65,12 @@
     });
     document.getElementById('input-station-sf').addEventListener('input', function(event) {
     const value = event.target.value;
-    const regex = /^[A-Za-z0-9,\- ]*$/;  // Allow letters, numbers, commas, and spaces
+    const regex = /^[A-Za-z0-9_, \-]*$/;  // Allow letters, numbers, commas, spaces, underscores, and hyphens
 
     if (!regex.test(value)) {
         // If the value contains characters other than allowed, show an alert and clear the input
-        alert('Only letters, numbers, commas, hyphens, and spaces are allowed.');
-        event.target.value = value.replace(/[^A-Za-z0-9, ]/g, ''); // Remove invalid characters
+        alert('Only letters, numbers, commas, spaces, underscores, and hyphens are allowed.');
+        event.target.value = value.replace(/[^A-Za-z0-9_, \-]/g, ''); // Remove invalid characters
     }
 });
 </script>
