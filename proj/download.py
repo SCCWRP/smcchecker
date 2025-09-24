@@ -256,3 +256,25 @@ def download_image(filename):
     return send_from_directory( filepath, filename)
 
 
+@download.route('/download/refscreens_final')
+def download_refscreens_final():
+    """
+    Route to query vw_refscreens_final view and return as CSV file
+    """
+    try:
+        # Query the view
+        df = pd.read_sql("SELECT * FROM vw_refscreens_final", g.eng)
+        
+        # Create export path
+        export_path = os.path.join(os.getcwd(), "export", "refscreens_final.csv")
+        
+        # Save to CSV
+        df.to_csv(export_path, index=False)
+        
+        # Return the CSV file as attachment
+        return send_file(export_path, as_attachment=True, download_name="refscreens_final.csv")
+        
+    except Exception as e:
+        return jsonify({"error": f"Failed to export refscreens_final: {str(e)}"}), 500
+
+
