@@ -278,3 +278,39 @@ def download_refscreens_final():
         return jsonify({"error": f"Failed to export refscreens_final: {str(e)}"}), 500
 
 
+@download.route('/download/lu_stations')
+def download_lu_stations():
+    """
+    Route to query lu_stations table and return as CSV file
+    """
+    try:
+        # Query the table
+        df = pd.read_sql(
+            """
+            SELECT DISTINCT
+                masterid,
+                stationid 
+            FROM
+                lu_stations 
+            WHERE
+                masterid IS NOT NULL
+                OR masterid != '' 
+            ORDER BY
+            masterid
+            """,
+            g.eng
+        )
+        
+        # Create export path
+        export_path = os.path.join(os.getcwd(), "export", "lu_stations.csv")
+        
+        # Save to CSV
+        df.to_csv(export_path, index=False)
+        
+        # Return the CSV file as attachment
+        return send_file(export_path, as_attachment=True, download_name="lu_stations.csv")
+        
+    except Exception as e:
+        return jsonify({"error": f"Failed to export lu_stations: {str(e)}"}), 500
+
+
