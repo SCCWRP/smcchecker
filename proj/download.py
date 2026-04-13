@@ -203,6 +203,8 @@ def get_masterid():
         sites_gdf.crs = "EPSG:4326"
         for column in sites_gdf.select_dtypes(include=['datetime']):
             sites_gdf[column] = sites_gdf[column].astype(str)
+        sites_gdf.rename(columns={'stationcode': 'StationCod', 'new_lat': 'New_Lat', 'new_long': 'New_Long' }, inplace=True)
+        print(sites_gdf.columns)
         sites_gdf.drop(columns=['shape']).to_file(os.path.join(os.getcwd(), "export", "shapefiles_for_download", "sites.shp"))
         sites_gdf.to_file(os.path.join(os.getcwd(), "export", "shapefiles_geojson", "sites.json"), driver='GeoJSON')
 
@@ -211,6 +213,7 @@ def get_masterid():
         catchments_gdf.crs = "EPSG:4326"
         for column in catchments_gdf.select_dtypes(include=['datetime']):
             catchments_gdf[column] = catchments_gdf[column].astype(str)
+        print(catchments_gdf.columns)
         catchments_gdf.drop(columns=['shape']).to_file(os.path.join(os.getcwd(), "export", "shapefiles_for_download", "catchments.shp"))
         catchments_gdf.to_file(os.path.join(os.getcwd(), "export", "shapefiles_geojson", "catchments.json"), driver='GeoJSON')
     
