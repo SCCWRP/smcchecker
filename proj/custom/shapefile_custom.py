@@ -275,22 +275,72 @@ def shapefile(all_dfs):
         }
     )
 
-    if len(merged) > 0:
-        merged['distance_from_lu_reference_meters'] = merged.apply(
-            lambda row: geopy_distance.distance((row['new_lat'], row['new_long']), (row['lu_latitude'], row['lu_longitude'])).meters, 
-            axis=1
+    def _is_valid_wgs84(lat, lon):
+        return (
+            not pd.isna(lat) and not pd.isna(lon)
+            and -90 <= lat <= 90 and -180 <= lon <= 180
         )
-        badrows = merged[merged['distance_from_lu_reference_meters'] > 300]['tmp_row'].tolist()
-        args.update({
-            "dataframe": sites,
-            "tablename": "gissites",
-            "badrows": badrows, 
-            "badcolumn": "stationid",
-            "error_type": "Geometry Error",
-            "error_message": 
-                f"These stations ({','.join(merged[merged['distance_from_lu_reference_meters'] > 300]['stationid'].tolist())}) are more than 300 meters away from their lookup station references."
-        })
-        warnings = [*warnings, checkData(**args)]
+
+    def _describe_missing_lu_row(row):
+        return f"{row['stationid']} (no matching lu_station reference found)"
+
+    def _describe_bad_crs_row(row):
+        return f"{row['stationid']} (new_lat={row['new_lat']}, new_long={row['new_long']})"
+
+    if len(merged) > 0:
+        missing_lu_df = merged[merged['lu_latitude'].isna() | merged['lu_longitude'].isna()]
+        if len(missing_lu_df) > 0:
+            args.update({
+                "dataframe": sites,
+                "tablename": "gissites",
+                "badrows": missing_lu_df['tmp_row'].tolist(),
+                "badcolumn": "stationid",
+                "error_type": "Logic Error",
+                "error_message":
+                    f"Could not find a matching lu_station reference for these stations: {'; '.join(missing_lu_df.apply(_describe_missing_lu_row, axis=1))}"
+            })
+            warnings = [*warnings, checkData(**args)]
+
+        with_lu_df = merged[~merged['lu_latitude'].isna() & ~merged['lu_longitude'].isna()]
+        bad_crs_df = with_lu_df[
+            ~with_lu_df.apply(lambda row: _is_valid_wgs84(row['new_lat'], row['new_long']), axis=1)
+        ]
+        if len(bad_crs_df) > 0:
+            args.update({
+                "dataframe": sites,
+                "tablename": "gissites",
+                "badrows": bad_crs_df['tmp_row'].tolist(),
+                "badcolumn": "shape",
+                "error_type": "Coordinate System Error",
+                "error_message":
+                    f"These stations' new_lat/new_long values are not valid WGS84 decimal degrees, "
+                    f"suggesting the shapefile is in a different (likely projected) coordinate system: "
+                    f"{'; '.join(bad_crs_df.apply(_describe_bad_crs_row, axis=1))}"
+            })
+            errs = [*errs, checkData(**args)]
+
+        good_df = with_lu_df[
+            with_lu_df.apply(lambda row: _is_valid_wgs84(row['new_lat'], row['new_long']), axis=1)
+        ].copy()
+        if len(good_df) > 0:
+            good_df['distance_from_lu_reference_meters'] = good_df.apply(
+                lambda row: geopy_distance.distance(
+                    (row['new_lat'], row['new_long']), (row['lu_latitude'], row['lu_longitude'])
+                ).meters,
+                axis=1
+            )
+            toofar_df = good_df[good_df['distance_from_lu_reference_meters'] > 300]
+            if len(toofar_df) > 0:
+                args.update({
+                    "dataframe": sites,
+                    "tablename": "gissites",
+                    "badrows": toofar_df['tmp_row'].tolist(),
+                    "badcolumn": "stationid",
+                    "error_type": "Geometry Error",
+                    "error_message":
+                        f"These stations ({','.join(toofar_df['stationid'].tolist())}) are more than 300 meters away from their lookup station reference."
+                })
+                warnings = [*warnings, checkData(**args)]
     print("check ran - Error stationcode points should be no more than 300m from lu_station reference site")
 
 
