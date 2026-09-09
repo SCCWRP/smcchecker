@@ -5,7 +5,14 @@ const buildReport = (res) => {
     document.getElementById("submissionid").innerText = res.submissionid;
     document.getElementById("original-filename").innerText = res.filename;
     document.getElementById("submission-type").innerHTML = res.match_dataset ? res.match_dataset : "Undetermined (<strong>Unable to match submission with any data type</strong>)";
-    
+    // console.log(res.match_report)
+
+    // Rafi wants to change this so the notification makes sense
+    if (document.getElementById("submission-type").innerHTML == 'Shapefile Submission'){
+        excelOrSDF = 'submitted spatial dataframe'
+    } else {
+        excelOrSDF = 'Excel tab'
+    }
 
     document.getElementById("tab-table-comparison-list").innerHTML = res.match_report.map(
         r => {
@@ -14,17 +21,17 @@ const buildReport = (res) => {
             `<li class="list-group-item">
                 <div class="card">
                     <div class="card-header">
-                        <span class="table-not-matched">UNABLE TO MATCH</span> Excel sheet ${r.sheetname} with any table (<strong><u>most closely matched ${r.closest_tbl}</u></strong>)
+                        <span class="table-not-matched">UNABLE TO MATCH</span> ${excelOrSDF} ${r.sheetname} with any table (<strong><u>most closely matched ${r.closest_tbl}</u></strong>)
                     </div> 
                     <div class="card-body">
                         <!--<ul>-->
                             <!--<li class="list-group-item">-->
-                                <p>In database table ${r.closest_tbl} but <em><u>not</u></em> Excel tab ${r.sheetname}:</p>
+                                <p>In database table ${r.closest_tbl} but <em><u>not</u></em> ${excelOrSDF} ${r.sheetname}:</p>
                                 <p>${r.in_table_not_tab}</p>
                                 <hr>
                             <!--</li>-->
                             <!--<li class="list-group-item">-->
-                                <p>In Excel tab ${r.sheetname} but <em><u>not</u></em> database table ${r.closest_tbl}:</p>
+                                <p>In ${excelOrSDF} ${r.sheetname} but <em><u>not</u></em> database table ${r.closest_tbl}:</p>
                                 <p>${r.in_tab_not_table}</p>
                             <!--</li> -->
                         <!--</ul>-->
@@ -235,11 +242,29 @@ const buildReport = (res) => {
 
 
     // display the map if applicable
-    document.getElementById('visual-map').setAttribute('src',`/${script_root}/map/${res.submissionid}/${res.match_dataset}`)
+    // visual_map is an attribute of "res" which came from the "return jsonify" at the end of main.py
+    // you can access your stationids and latlongs here too
+    if (res.visual_map) {
+        document.getElementById("map-report-header").classList.remove("hidden");
+
+        // L will be accessible since leaflet is sourced at the top of the html file
+        const map = L.map('map').setView([37.2719, -119.2702], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // the data to plot on a map comes from "res.visual_map_stations" which was returned at the end of main.py
+        // The div where the map should go has an id of "viewDiv" and you can see it in index.html
+
+        // shouldnt need the .array part, but maybe we do
+        res.visual_map_stations.array.forEach(station => {
+            L.marker([station.latitude, station.longitude])
+                .addTo(map)
+                .bindPopup(`<b>Station:</b> ${station.stationcode}`);
+        });
 
 
-
-    
+    }
     
 
 }

@@ -74,26 +74,26 @@ def fix_case(all_dfs: dict):
         lu_info = pd.read_sql(lookup_sql, g.eng)
            
         # The keys of this dictionary are the column's names in the dataframe, values are their lookup values
-        foreignkeys_luvalues = {
-            x : y for x,y in zip(
+        foreignkeys_luvalues = dict(
+            zip(
                 lu_info.column_name,
                 [
                     pd.read_sql(f"SELECT {lu_col} FROM {lu_table}",  g.eng)[f'{lu_col}'].to_list() 
                     for lu_col,lu_table 
                     in zip (lu_info.foreign_column_name, lu_info.foreign_table_name) 
                 ]
-            ) 
-        }
+            )
+        ) 
         # Get their actual values in the dataframe
         foreignkeys_rawvalues = {
             x : [
                 item 
-                for item in table_df[x] 
+                for item in set(table_df[x])
                 if str(item).lower() in list(map(str.lower,foreignkeys_luvalues[x])) # bug: 'lower' for 'str' objects doesn't apply to 'int' object
-            ]  
+            ]
             for x in lu_info.column_name
         }
-        
+
         # Remove the empty lists in the dictionary's values. 
         # Empty lists indicate there are values that are not in the lu list for a certain column
         # This will be taken care of by core check.

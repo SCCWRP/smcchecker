@@ -7,6 +7,7 @@ import pandas as pd
 # custom imports, from local files
 from .preprocess import clean_data
 from .match import match
+from .core.core_api_call import core_api_call
 from .core.core import core
 from .core.functions import fetch_meta
 from .utils.generic import save_errors, correct_row_offset
@@ -28,7 +29,11 @@ def main():
 
     # routine to grab the uploaded file
     print("uploading files")
+    print("request.content_length")
+    print(request.content_length)
+    print("request.files.getlist('files[]')")
     files = request.files.getlist('files[]')
+    print("DONE exectuing request.files.getlist('files[]')")
     if len(files) > 0:
         
         # if sum(['xls' in secure_filename(x.filename).rsplit('.',1)[-1] for x in files]) > 1:
@@ -41,6 +46,13 @@ def main():
         # i'd like to figure a way we can do it without writing the thing to an excel file
         f = files[0]
         filename = secure_filename(f.filename)
+        name, _ = os.path.splitext(filename)
+
+        # Check if there's a dot in the name and print the filename if so
+        if '.' in name:
+            print(filename)
+            return jsonify(user_error_msg='The filename cannot contain a period (.)')   
+
         extension = secure_filename(f.filename).rsplit('.',1)[-1]
         
         original_file_path = os.path.join( session['submission_dir'], str(filename) )
@@ -80,7 +92,7 @@ def main():
         "Number of rows to offset in excel file must be an integer. Check__init__.py"
 
     
-    if extension not in ('xls','xlsx'):
+    if extension in ('mdb','accdb'):
         # 8/16/2022 - I think we will throw zip files at a separate route
         # This block should cover the case when PHAB data is submitted via access database
         # filename is defined above, and it is the original filename of the submission
@@ -103,8 +115,10 @@ def main():
             sheet: pd.read_excel(
                 session.get('excel_path'), 
                 sheet_name = sheet,
-                skiprows = current_app.excel_offset
-                #na_values = ['']
+                skiprows = current_app.excel_offset,
+                dtype = {"no_observation": str},
+                na_values = [''], 
+                keep_default_na=False
             )
             
             for sheet in pd.ExcelFile(session.get('excel_path')).sheet_names
@@ -112,10 +126,18 @@ def main():
             if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))
         }
         
-        assert len(all_dfs) > 0, f"submissionid - {session.get('submissionid')} all_dfs is empty"
+
+        
+        if len(all_dfs) == 0:
+            returnvals = {
+                "critical_error": False,
+                "user_error_msg": "You submitted a file with all empty tabs.",
+            }
+            return jsonify(**returnvals)
         
         for tblname in all_dfs.keys():
             all_dfs[tblname].columns = [x.lower() for x in all_dfs[tblname].columns]
+            all_dfs[tblname].drop(columns=[x for x in all_dfs[tblname].columns if x in current_app.system_fields], inplace=True)
 
         print("DONE - building 'all_dfs' dictionary")
 
@@ -129,6 +151,7 @@ def main():
     # keys of all_dfs should be no longer the original sheet names but rather the table names that got matched, if any
     # if the tab didnt match any table it will not alter that item in the all_dfs dictionary
     print("Running match tables routine")
+    print(all_dfs.keys)
     match_dataset, match_report, all_dfs = match(all_dfs)
     
     print("match(all_dfs)")
@@ -195,15 +218,14 @@ def main():
     #   With the way the code is structured, that should always be the case, but the assert statement will let us know if we messed up or need to fix something 
     #   Technically we could write it back with the original tab names, and use the tab_to_table_map in load.py,
     #   But for now, the tab_table_map is mainly used by the javascript in the front end, to display error messages to the user
-    writer = pd.ExcelWriter(session.get('excel_path'), engine = 'xlsxwriter', options = {"strings_to_formulas":False})
-    for tblname in all_dfs.keys():
-        all_dfs[tblname].to_excel(
-            writer, 
-            sheet_name = tblname, 
-            startrow = current_app.excel_offset, 
-            index=False
-        )
-    writer.save()
+    with pd.ExcelWriter(session.get('excel_path'), engine = 'xlsxwriter', engine_kwargs={'options': {'strings_to_formulas':False}}) as writer:
+        for tblname in all_dfs.keys():
+            all_dfs[tblname].to_excel(
+                writer, 
+                sheet_name = tblname, 
+                startrow = current_app.excel_offset, 
+                index=False
+            )
     
     # Yes this is weird but if we write the all_dfs back to the excel file, and read it back in,
     # this ensures 100% that the data is loaded exactly in the same state as it was in when it was checked
@@ -212,7 +234,9 @@ def main():
             session.get('excel_path'), 
             sheet_name = sheet,
             skiprows = current_app.excel_offset,
-            na_values = ['']
+            dtype = {"no_observation": str},
+            na_values = [''], 
+            keep_default_na=False
         )
         for sheet in pd.ExcelFile(session.get('excel_path')).sheet_names
         if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))
@@ -227,23 +251,17 @@ def main():
     errs = []
     warnings = []
 
-    print("Core Checks")
-
+    print("Before Core")
     # meta data is needed for the core checks to run, to check precision, length, datatypes, etc
     dbmetadata = {
         tblname: fetch_meta(tblname, g.eng)
         for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
     }
-
-   
-    # tack on core errors to errors list
-    
-    # debug = False will cause corechecks to run with multiprocessing, 
-    # but the logs will not show as much useful information
-    print("Right before core runs")
-    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
     core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
-    print("Right after core runs")
+    #core_output = core_api_call(all_dfs)
+    print("After Core")
+    ###
+
 
     errs.extend(core_output['core_errors'])
     warnings.extend(core_output['core_warnings'])
@@ -288,6 +306,8 @@ def main():
         try:
             custom_output = eval(match_dataset)(all_dfs)
         except NameError as err:
+            print("err")
+            print(err)
             raise Exception(f"""Error calling custom checks function "{match_dataset}" - may not be defined, or was not imported correctly.""")
         
         print("custom_output: ")
@@ -318,18 +338,6 @@ def main():
 
     # End Custom Checks section    
 
-    # Begin Visual Map Checks:
-
-    # Run only if they passed Core Checks
-    if errs == []:
-        # There are visual map checks for SAV, BRUV, Fish and Vegetation:
-
-        map_func = current_app.datasets.get(match_dataset).get('map_func')
-        if map_func is not None:
-            map_output = map_func(all_dfs, current_app.datasets.get(match_dataset).get('spatialtable'))
-            f = open(os.path.join(session.get('submission_dir'),f'{match_dataset}_map.html'),'w')
-            f.write(map_output._repr_html_())
-            f.close()
 
     # ---------------------------------------------------------------- #
 
@@ -382,11 +390,42 @@ def main():
     # -------------------------------------------------------------------------------- #
 
 
+
+
+    # @Aria here i set "has_visual_map" to False, but make it so it shows up as True if there are no core errors and False otherwise
+    # you can probably do this by doing something like:
+    # has_visual_map = all([e.get('is_core_error') == False for e in errs])
+    has_visual_map = True
+
+    # I set visual map stations to an empty list, but you will want to probably make it a list of dictionaries like this
+    # visual_map_stations = [
+    #   {
+    #       "stationcode" : "SMC0543453",
+    #       "latitude"    : 34.14123,
+    #       "longitude"   : -117.4576564
+    #   },
+    #   ...
+    # ]
+    visual_map_stations = [
+        {
+          "stationcode" : "SMC0543453",
+          "latitude"    : 34.14123,
+          "longitude"   : -117.456764
+        },
+        {
+          "stationcode" : "TESTSTATION",
+          "latitude"    : 34.24123,
+          "longitude"   : -117.48564
+        }
+    ]
+
+    # These are used at the end of report.js in the static folder
+
+
     # These are the values we are returning to the browser as a json
-    # https://pics.me.me/code-comments-be-like-68542608.png
     returnvals = {
         "filename" : filename,
-        "marked_filename" : f"{filename.rsplit('.',1)[0]}-marked.{filename.rsplit('.',1)[-1]}",
+        "marked_filename" : f"{filename.rsplit('.',1)[0]}-marked.{session.get('excel_path').rsplit('.',1)[-1]}",
         "match_report" : match_report,
         "matched_all_tables" : True,
         "match_dataset" : match_dataset,
@@ -395,7 +434,9 @@ def main():
         "submissionid": session.get("submissionid"),
         "critical_error": False,
         "all_datasets": list(current_app.datasets.keys()),
-        "table_to_tab_map" : session['table_to_tab_map']
+        "table_to_tab_map" : session['table_to_tab_map'],
+        "visual_map": has_visual_map,
+        "visual_map_stations": visual_map_stations
     }
     
     #print(returnvals)
