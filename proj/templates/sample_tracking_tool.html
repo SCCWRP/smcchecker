@@ -116,6 +116,19 @@
     padding: 0.65rem 1.4rem;
   }
   button.secondary:hover { background: #f1f3f4; box-shadow: none; }
+  a.btn-link {
+    display: inline-block;
+    background: #fff;
+    color: var(--blue);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.65rem 1.4rem;
+    font-family: "Google Sans", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  a.btn-link:hover { background: #f1f3f4; }
   .clear-link { font-size: 0.85rem; color: var(--ink-light); text-decoration: none; padding-bottom: 0.8rem; }
   .clear-link:hover { text-decoration: underline; }
 
@@ -170,10 +183,9 @@
     {% endif %}
   </form>
 
-  {% if checked %}
-  <div class="field" style="max-width: 260px; margin-bottom: 0.75rem;">
-    <label>Search StationCode</label>
-    <input type="text" id="stationSearch" placeholder="e.g. 401M02845" oninput="filterByStationCode(this.value)">
+  {% if checked and rows %}
+  <div style="display: flex; justify-content: flex-end; margin-bottom: 0.75rem;">
+    <a class="btn-link" href="{{ url_for('admin.sample_tracking_tool_export', f_participant=f_participant, f_year=f_year) }}">Download as CSV</a>
   </div>
   {% endif %}
 
@@ -263,19 +275,6 @@
     function syncYear(sourceSelect) {
       document.getElementById('entryYear').value = sourceSelect.value;
       document.getElementById('summaryYear').textContent = sourceSelect.value;
-    }
-
-    function filterByStationCode(query) {
-      query = query.trim().toLowerCase();
-      var table = document.getElementById('resultsTable');
-      var rows = table.querySelectorAll('tr');
-      for (var i = 1; i < rows.length; i++) {
-        var row = rows[i];
-        if (row.id === 'emptyRow') continue;
-        var stationCell = row.cells[0];
-        var matches = !query || stationCell.textContent.toLowerCase().indexOf(query) !== -1;
-        row.hidden = !matches;
-      }
     }
   </script>
 </body>

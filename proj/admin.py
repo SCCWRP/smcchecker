@@ -1,7 +1,8 @@
 import os
+import csv
 import pandas as pd
 from bs4 import BeautifulSoup
-from io import BytesIO
+from io import BytesIO, StringIO
 from flask import Blueprint, g, current_app, render_template, redirect, url_for, session, request, jsonify, send_file
 import psycopg2
 from psycopg2 import sql
@@ -24,7 +25,7 @@ SAMPLE_TRACKER_ERROR_SEP = "||"
 SAMPLE_TRACKER_PASSWORD = "sccwrp"  # temporary demo password, not a real secret - replace before this becomes a real feature
 
 
-def _sample_tracker_rows(eng, participant=None, year=None):
+def _sample_tracker_rows(eng, participant=None, year=None, limit=50):
     where = []
     params = {}
     if participant:
@@ -34,6 +35,9 @@ def _sample_tracker_rows(eng, participant=None, year=None):
         where.append("year = :year")
         params["year"] = year
     clause = f"WHERE {' AND '.join(where)}" if where else ""
+    limit_clause = "LIMIT :limit" if limit else ""
+    if limit:
+        params["limit"] = limit
     return eng.execute(
         text(
             f"""
@@ -42,7 +46,7 @@ def _sample_tracker_rows(eng, participant=None, year=None):
             FROM sde.sample_tracker
             {clause}
             ORDER BY id DESC
-            LIMIT 50
+            {limit_clause}
             """
         ),
         params,
@@ -95,6 +99,32 @@ def sample_tracking_tool():
         f_participant=f_participant,
         f_year=f_year,
         checked=checked,
+    )
+
+
+@admin.route('/sample-tracking-tool/export')
+def sample_tracking_tool_export():
+    if not session.get('SAMPLE_TRACKER_AUTHORIZED'):
+        return redirect(url_for('admin.sample_tracking_tool_login'))
+
+    eng = g.eng
+    f_participant = request.args.get("f_participant", "").strip()
+    f_year = request.args.get("f_year", "").strip()
+    year_filter = int(f_year) if f_year.isdigit() else None
+
+    rows = _sample_tracker_rows(eng, participant=f_participant or None, year=year_filter, limit=None)
+
+    buf = StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["StationCode", "Participant", "Year", "Purpose", "Workplan", "Effort", "Details", "Submitted"])
+    for r in rows:
+        writer.writerow([r.stationcode, r.participant, r.year, r.purpose, r.workplan, r.effortequivalent, r.details or "", r.created_date])
+
+    return send_file(
+        BytesIO(buf.getvalue().encode("utf-8")),
+        download_name="sample_tracker.csv",
+        as_attachment=True,
+        mimetype="text/csv",
     )
 
 
