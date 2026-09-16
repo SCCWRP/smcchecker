@@ -9,7 +9,6 @@ homepage = Blueprint('homepage', __name__)
 @homepage.route('/', methods = ['GET', 'POST', 'DELETE'])
 def index():
     eng = g.eng
-
     # upon new request clear session, reset submission ID, reset submission directory
     # Hold off for now, trying new login system - 8/8/2022
     if request.method == 'DELETE':
@@ -55,8 +54,11 @@ def index():
         );
         """
     )
-    
+
+    print(current_app.datasets)
+
     return render_template('index.html', projectname = current_app.project_name, dtypes = current_app.datasets, login_info = False )
+    #return render_template('index.html', projectname = current_app.project_name, dtypes = {k:current_app.datasets.get(k) for k in current_app.datasets.keys() if k == 'shapefile'}, login_info = False )
 
 
 @homepage.route('/login_values')

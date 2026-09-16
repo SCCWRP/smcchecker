@@ -71,7 +71,7 @@ def correct_row_offset(lst, offset):
         if len(e) > 0
         
     ]
-
+    print('coorect row offset done')
     return lst
 
 

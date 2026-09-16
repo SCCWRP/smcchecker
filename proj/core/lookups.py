@@ -51,7 +51,7 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
             error_message = (
                 f'This value you entered ({val}) did not match the lookup list '
                 '<a '
-                f'href="/{lu_list_script_root}/scraper?action=help&layer={fkeys[fkeys.column_name == col].foreign_table_name.values[0]}" '
+                f'href="scraper?action=help&layer={fkeys[fkeys.column_name == col].foreign_table_name.values[0]}" '
                 'target="_blank">'
                 f'{fkeys[fkeys.column_name == col].foreign_table_name.values[0]}'
                 '</a>'
