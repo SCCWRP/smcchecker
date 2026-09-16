@@ -16,10 +16,12 @@ admin = Blueprint('admin', __name__)
 # before submitting any other data type. Demo built 2026-09-16 - see
 # db/smc/sample-tracker-app/create_sample_tracker.sql in database-admin for
 # the sde.sample_tracker table DDL. Not gated behind AUTHORIZED_FOR_ADMIN_FUNCTIONS
-# (unlike /track, /column-order) - any checker user should be able to use it.
+# (unlike /track, /column-order) - has its own separate, temporary password
+# instead since this is still a demo, not the real gate design.
 SAMPLE_TRACKER_PURPOSES = ["Status and Trend", "Restoration", "Causal assessment", "Targeted"]
 SAMPLE_TRACKER_YEARS = list(range(2027, 2032))  # matches the SMC_2027_2031_v1 workplan cycle
 SAMPLE_TRACKER_ERROR_SEP = "||"
+SAMPLE_TRACKER_PASSWORD = "sccwrp"  # temporary demo password, not a real secret - replace before this becomes a real feature
 
 
 def _sample_tracker_rows(eng, participant=None, year=None):
@@ -47,8 +49,22 @@ def _sample_tracker_rows(eng, participant=None, year=None):
     ).fetchall()
 
 
+@admin.route('/sample-tracking-tool/login', methods=['GET', 'POST'])
+def sample_tracking_tool_login():
+    error = None
+    if request.method == 'POST':
+        if request.form.get('password') == SAMPLE_TRACKER_PASSWORD:
+            session['SAMPLE_TRACKER_AUTHORIZED'] = True
+            return redirect(url_for('admin.sample_tracking_tool'))
+        error = "Incorrect password."
+    return render_template('sample_tracker_login.html', error=error)
+
+
 @admin.route('/sample-tracking-tool')
 def sample_tracking_tool():
+    if not session.get('SAMPLE_TRACKER_AUTHORIZED'):
+        return redirect(url_for('admin.sample_tracking_tool_login'))
+
     eng = g.eng
     error = request.args.get("error")
     f_participant = request.args.get("f_participant", "").strip()
@@ -84,6 +100,9 @@ def sample_tracking_tool():
 
 @admin.route('/sample-tracking-tool/submit', methods=['POST'])
 def sample_tracking_tool_submit():
+    if not session.get('SAMPLE_TRACKER_AUTHORIZED'):
+        return redirect(url_for('admin.sample_tracking_tool_login'))
+
     eng = g.eng
     raw_stations = request.form.get("stationcode", "").strip()
     participant = request.form.get("participant", "").strip()
