@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SMC Sample Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1a73e8;
+    --blue-dark: #1765cc;
+    --red: #d93025;
+    --yellow: #f9ab00;
+    --green: #1e8e3e;
+    --ink: #202124;
+    --ink-light: #5f6368;
+    --border: #dadce0;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Roboto", "Google Sans", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .brand { font-family: "Google Sans", sans-serif; font-size: 1.9rem; font-weight: 500; color: var(--ink); margin-bottom: 0.1rem; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.08), 0 1px 3px 1px rgba(60,64,67,0.05);
+  }
+
+  .row { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+  .field { flex: 1; min-width: 180px; display: flex; flex-direction: column; position: relative; }
+  label { font-size: 0.8rem; font-weight: 500; color: var(--ink-light); margin-bottom: 0.4rem; letter-spacing: 0.01em; }
+  input[type=text], input[type=number], select {
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type=text]:focus, input[type=number]:focus, select:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(26,115,232,0.18);
+  }
+
+  .purpose-options { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .purpose-options label {
+    font-weight: 400;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.4rem 0.9rem 0.4rem 0.7rem;
+    cursor: pointer;
+    font-size: 0.88rem;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .purpose-options label:has(input:checked) {
+    background: #e8f0fe;
+    border-color: var(--blue);
+    color: var(--blue-dark);
+  }
+  .purpose-options input[type=checkbox] { accent-color: var(--blue); width: 16px; height: 16px; }
+
+  button {
+    background: var(--blue);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.6rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: "Google Sans", sans-serif;
+    letter-spacing: 0.015em;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  button:hover { background: var(--blue-dark); box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15); }
+
+  .error {
+    background: #fce8e6;
+    border: 1px solid #f6c6c1;
+    color: var(--red);
+    padding: 0.85rem 1.1rem;
+    border-radius: 8px;
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+  }
+  .error div + div { margin-top: 0.35rem; }
+
+  .filter-form { display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .filter-form .field { min-width: 160px; flex: 1; margin-bottom: 0; }
+  button.secondary {
+    background: #fff;
+    color: var(--blue);
+    border: 1px solid var(--border);
+    box-shadow: none;
+    padding: 0.65rem 1.4rem;
+  }
+  button.secondary:hover { background: #f1f3f4; box-shadow: none; }
+  .clear-link { font-size: 0.85rem; color: var(--ink-light); text-decoration: none; padding-bottom: 0.8rem; }
+  .clear-link:hover { text-decoration: underline; }
+
+  h2 { font-family: "Google Sans", sans-serif; font-size: 1.1rem; font-weight: 500; color: var(--ink); margin-bottom: 0.75rem; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.87rem; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+  th, td { text-align: left; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--ink-light); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; background: var(--bg); }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #f8f9fa; }
+
+  .required::after { content: " *"; color: var(--red); }
+  .hint { font-size: 0.8rem; color: var(--ink-light); margin: -0.6rem 0 1.4rem; }
+
+  .new-sample-btn { margin: 1.75rem 0 1.25rem; }
+  .summary-line { font-size: 0.9rem; color: var(--ink-light); margin: 0 0 1.25rem; }
+  .summary-line strong { color: var(--ink); font-weight: 500; }
+</style>
+</head>
+<body>
+  <div class="brand">Sample Tracker</div>
+  {% if error %}
+  <div class="error">
+    {% for e in error.split('||') %}
+    <div>{{ e }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <h2>Check submissions</h2>
+  <form method="get" action="{{ url_for('admin.sample_tracking_tool') }}" class="filter-form">
+    <div class="field">
+      <label>Participant</label>
+      <select name="f_participant" id="filterParticipant" onchange="syncParticipant(this)">
+        <option value="">None</option>
+        {% for o in owners %}
+        <option value="{{ o.agencycode }}" {% if o.agencycode == f_participant %}selected{% endif %}>{{ o.agencyname }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Year</label>
+      <select name="f_year" id="filterYear" onchange="syncYear(this)">
+        {% for y in years %}
+        <option value="{{ y }}" {% if (f_year and y|string == f_year) or (not f_year and y == 2027) %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="secondary">Check</button>
+    {% if f_participant or f_year %}
+    <a class="clear-link" href="{{ url_for('admin.sample_tracking_tool') }}">Clear</a>
+    {% endif %}
+  </form>
+
+  {% if checked %}
+  <div class="field" style="max-width: 260px; margin-bottom: 0.75rem;">
+    <label>Search StationCode</label>
+    <input type="text" id="stationSearch" placeholder="e.g. 401M02845" oninput="filterByStationCode(this.value)">
+  </div>
+  {% endif %}
+
+  <table id="resultsTable">
+    <tr>
+      <th>StationCode</th><th>Participant</th><th>Year</th><th>Purpose</th>
+      <th>Workplan</th><th>Effort</th><th>Details</th><th>Submitted</th>
+    </tr>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.stationcode }}</td>
+      <td>{{ r.participant }}</td>
+      <td>{{ r.year }}</td>
+      <td>{{ r.purpose }}</td>
+      <td>{{ r.workplan }}</td>
+      <td>{{ r.effortequivalent }}</td>
+      <td>{{ r.details or "" }}</td>
+      <td>{{ r.created_date }}</td>
+    </tr>
+    {% else %}
+    <tr id="emptyRow"><td colspan="8" style="color:#5f6368; padding: 1.25rem;">
+      {% if checked %}No matching submissions found.{% else %}Set a filter above and click Check to see submissions.{% endif %}
+    </td></tr>
+    {% endfor %}
+  </table>
+
+  <button id="newSampleBtn" class="secondary new-sample-btn" type="button" onclick="toggleForm()">+ Enter New Sample</button>
+
+  <div class="card" id="newSampleCard" {% if not error %}hidden{% endif %}>
+    <form method="post" action="{{ url_for('admin.sample_tracking_tool_submit') }}">
+      <input type="hidden" name="participant" id="entryParticipant" value="{{ f_participant }}">
+      <input type="hidden" name="year" id="entryYear" value="{{ f_year or 2027 }}">
+
+      {% set selected_owner = owners | selectattr('agencycode', 'equalto', f_participant) | list %}
+      <p class="summary-line">Adding for <strong id="summaryParticipant">{{ selected_owner[0].agencyname if selected_owner else "(select a Participant above)" }}</strong> - <strong id="summaryYear">{{ f_year or 2027 }}</strong></p>
+
+      <div class="row">
+        <div class="field">
+          <label class="required">StationCode(s)</label>
+          <input type="text" name="stationcode" placeholder="e.g. 401M02845, 402M00155" required>
+        </div>
+      </div>
+      <p class="hint">Enter one or more StationCodes separated by commas - each must be a unique code that exists in lu_stations. Participant and Year come from the "Check submissions" filter above.</p>
+
+      <div class="field" style="margin-bottom: 1.4rem;">
+        <label class="required">Purpose (select all that apply)</label>
+        <div class="purpose-options">
+          {% for p in purposes %}
+          <label><input type="checkbox" name="purpose" value="{{ p }}"> {{ p }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Workplan</label>
+          <input type="text" name="workplan" value="SMC_2027_2031_v1">
+        </div>
+        <div class="field">
+          <label>EffortEquivalent</label>
+          <input type="number" step="0.1" name="effortequivalent" value="1">
+        </div>
+        <div class="field" style="flex: 2;">
+          <label>Details</label>
+          <input type="text" name="details" placeholder="optional notes">
+        </div>
+      </div>
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <script>
+    function toggleForm() {
+      var card = document.getElementById('newSampleCard');
+      var btn = document.getElementById('newSampleBtn');
+      card.hidden = !card.hidden;
+      btn.textContent = card.hidden ? '+ Enter New Sample' : '- Hide Form';
+    }
+
+    function syncParticipant(sourceSelect) {
+      document.getElementById('entryParticipant').value = sourceSelect.value;
+      var text = sourceSelect.value ? sourceSelect.options[sourceSelect.selectedIndex].text : '(select a Participant above)';
+      document.getElementById('summaryParticipant').textContent = text;
+    }
+
+    function syncYear(sourceSelect) {
+      document.getElementById('entryYear').value = sourceSelect.value;
+      document.getElementById('summaryYear').textContent = sourceSelect.value;
+    }
+
+    function filterByStationCode(query) {
+      query = query.trim().toLowerCase();
+      var table = document.getElementById('resultsTable');
+      var rows = table.querySelectorAll('tr');
+      for (var i = 1; i < rows.length; i++) {
+        var row = rows[i];
+        if (row.id === 'emptyRow') continue;
+        var stationCell = row.cells[0];
+        var matches = !query || stationCell.textContent.toLowerCase().indexOf(query) !== -1;
+        row.hidden = !matches;
+      }
+    }
+  </script>
+</body>
+</html>

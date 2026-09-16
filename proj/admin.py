@@ -5,11 +5,174 @@ from io import BytesIO
 from flask import Blueprint, g, current_app, render_template, redirect, url_for, session, request, jsonify, send_file
 import psycopg2
 from psycopg2 import sql
+from sqlalchemy import bindparam, text
 
 
 from .utils.db import metadata_summary
 
 admin = Blueprint('admin', __name__)
+
+# Sample-tracking-tool: participants log every site+year they sampled and why,
+# before submitting any other data type. Demo built 2026-09-16 - see
+# db/smc/sample-tracker-app/create_sample_tracker.sql in database-admin for
+# the sde.sample_tracker table DDL. Not gated behind AUTHORIZED_FOR_ADMIN_FUNCTIONS
+# (unlike /track, /column-order) - any checker user should be able to use it.
+SAMPLE_TRACKER_PURPOSES = ["Status and Trend", "Restoration", "Causal assessment", "Targeted"]
+SAMPLE_TRACKER_YEARS = list(range(2027, 2032))  # matches the SMC_2027_2031_v1 workplan cycle
+SAMPLE_TRACKER_ERROR_SEP = "||"
+
+
+def _sample_tracker_rows(eng, participant=None, year=None):
+    where = []
+    params = {}
+    if participant:
+        where.append("participant = :participant")
+        params["participant"] = participant
+    if year:
+        where.append("year = :year")
+        params["year"] = year
+    clause = f"WHERE {' AND '.join(where)}" if where else ""
+    return eng.execute(
+        text(
+            f"""
+            SELECT id, stationcode, participant, year, purpose, workplan,
+                   effortequivalent, details, created_date
+            FROM sde.sample_tracker
+            {clause}
+            ORDER BY id DESC
+            LIMIT 50
+            """
+        ),
+        params,
+    ).fetchall()
+
+
+@admin.route('/sample-tracking-tool')
+def sample_tracking_tool():
+    eng = g.eng
+    error = request.args.get("error")
+    f_participant = request.args.get("f_participant", "").strip()
+    f_year = request.args.get("f_year", "").strip()
+
+    # Only run the query once the filter form has actually been submitted
+    # (any f_* key present) - not on the plain landing page, so the results
+    # table starts empty rather than dumping every row.
+    checked = any(k in request.args for k in ("f_participant", "f_year"))
+
+    year_filter = None
+    if f_year:
+        try:
+            year_filter = int(f_year)
+        except ValueError:
+            error = (error + SAMPLE_TRACKER_ERROR_SEP if error else "") + "Year filter must be an integer."
+
+    rows = _sample_tracker_rows(eng, participant=f_participant or None, year=year_filter) if checked else []
+    owners = eng.execute(text("SELECT agencycode, agencyname FROM sde.lu_dataowner ORDER BY agencyname")).fetchall()
+
+    return render_template(
+        'sample_tracking_tool.html',
+        purposes=SAMPLE_TRACKER_PURPOSES,
+        years=SAMPLE_TRACKER_YEARS,
+        rows=rows,
+        error=error,
+        owners=owners,
+        f_participant=f_participant,
+        f_year=f_year,
+        checked=checked,
+    )
+
+
+@admin.route('/sample-tracking-tool/submit', methods=['POST'])
+def sample_tracking_tool_submit():
+    eng = g.eng
+    raw_stations = request.form.get("stationcode", "").strip()
+    participant = request.form.get("participant", "").strip()
+    raw_year = request.form.get("year", "").strip()
+    purposes = request.form.getlist("purpose")
+    workplan = request.form.get("workplan", "").strip() or "SMC_2027_2031_v1"
+    raw_effort = request.form.get("effortequivalent", "").strip() or "1"
+    details = request.form.get("details", "").strip() or None
+
+    stationcodes = [s.strip() for s in raw_stations.split(",") if s.strip()]
+    errors = []
+
+    if not stationcodes:
+        errors.append("StationCode(s) is required.")
+    if not participant:
+        errors.append("Participant is required.")
+    if not raw_year:
+        errors.append("Year is required.")
+    if not purposes:
+        errors.append("At least one Purpose is required.")
+
+    if stationcodes and len(stationcodes) != len(set(stationcodes)):
+        dupes = sorted({s for s in stationcodes if stationcodes.count(s) > 1})
+        errors.append(f"Duplicate StationCode(s) in the list: {', '.join(dupes)}.")
+
+    year = None
+    if raw_year:
+        try:
+            year = int(raw_year)
+        except ValueError:
+            errors.append("Year must be an integer.")
+
+    effort = None
+    try:
+        effort = float(raw_effort)
+        if effort <= 0:
+            errors.append("EffortEquivalent must be greater than 0.")
+    except ValueError:
+        errors.append("EffortEquivalent must be numeric.")
+
+    if stationcodes:
+        found = eng.execute(
+            text("SELECT stationid FROM sde.lu_stations WHERE stationid IN :codes").bindparams(
+                bindparam("codes", expanding=True)
+            ),
+            {"codes": stationcodes},
+        ).fetchall()
+        found_codes = {r[0] for r in found}
+        missing = [s for s in stationcodes if s not in found_codes]
+        if missing:
+            errors.append(f"Unknown StationCode(s) - not found in lu_stations: {', '.join(missing)}.")
+
+    if participant:
+        owner_exists = eng.execute(
+            text("SELECT 1 FROM sde.lu_dataowner WHERE agencycode = :p"), {"p": participant}
+        ).fetchone()
+        if not owner_exists:
+            errors.append(f"Unknown Participant {participant!r} - not found in lu_dataowner.")
+
+    if errors:
+        return redirect(url_for('admin.sample_tracking_tool', error=SAMPLE_TRACKER_ERROR_SEP.join(errors)))
+
+    try:
+        with eng.begin() as conn:
+            for stationcode in stationcodes:
+                conn.execute(
+                    text(
+                        """
+                        INSERT INTO sde.sample_tracker
+                            (stationcode, participant, year, purpose, workplan, effortequivalent, details)
+                        VALUES
+                            (:stationcode, :participant, :year, :purpose, :workplan, :effort, :details)
+                        """
+                    ),
+                    {
+                        "stationcode": stationcode,
+                        "participant": participant,
+                        "year": year,
+                        "purpose": "; ".join(purposes),
+                        "workplan": workplan,
+                        "effort": effort,
+                        "details": details,
+                    },
+                )
+    except Exception as e:
+        print(f"sample_tracking_tool_submit error: {e}")
+        return redirect(url_for('admin.sample_tracking_tool', error="Could not save - see server log for details."))
+
+    return redirect(url_for('admin.sample_tracking_tool'))
 
 @admin.route('/track')
 def tracking():
