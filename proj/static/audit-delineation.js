@@ -73,6 +73,22 @@ require([
         outline: { color: [255, 255, 255], width: 1 }
     };
 
+    // Built by hand rather than with the Legend widget: that one reads renderers
+    // off FeatureLayers, and everything here is drawn as graphics. The swatches
+    // are styled in CSS to match the three symbols above, so if a symbol colour
+    // changes, change .legend-swatch-* with it.
+    const legend = document.createElement('div');
+    legend.className = 'map-legend';
+    legend.innerHTML = [
+        ['legend-swatch-site', 'Station'],
+        ['legend-swatch-catchment', 'Catchment'],
+        ['legend-swatch-flowline', 'NHD flowline']
+    ].map(function (entry) {
+        return '<div class="legend-row"><span class="legend-swatch ' + entry[0] + '"></span>' +
+            '<span class="legend-label">' + entry[1] + '</span></div>';
+    }).join('');
+    view.ui.add(legend, 'top-right');
+
     function setStatus(message) {
         mapStatus.textContent = message || '';
         mapStatus.hidden = !message;

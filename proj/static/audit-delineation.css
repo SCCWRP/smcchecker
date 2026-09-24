@@ -138,3 +138,55 @@ button.primary:disabled {
     font-size: 15px;
     color: #555;
 }
+
+/* Map legend. The three swatches mirror SITE_SYMBOL, CATCHMENT_SYMBOL and
+   FLOWLINE_SYMBOL in audit-delineation.js; keep them in step. */
+.map-legend {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #d9d9d9;
+    border-radius: 3px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.legend-row {
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+}
+
+.legend-swatch {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    flex: 0 0 16px;
+}
+
+.legend-swatch-site {
+    width: 12px;
+    height: 12px;
+    flex-basis: 12px;
+    margin-left: 2px;
+    margin-right: 10px;
+    border-radius: 50%;
+    background: rgb(255, 0, 0);
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px #b0b0b0;
+}
+
+.legend-swatch-catchment {
+    background: rgba(0, 0, 255, 0.5);
+    border: 1px solid #ffffff;
+    outline: 1px solid #b0b0b0;
+}
+
+.legend-swatch-flowline {
+    height: 0;
+    border-top: 2px solid rgba(0, 112, 192, 0.85);
+    align-self: center;
+}
+
+.legend-label {
+    white-space: nowrap;
+}
