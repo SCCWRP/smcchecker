@@ -10,3 +10,4 @@ from .siteevaluation_custom import siteevaluation
 from .phab_custom import phab
 from .trash_custom import trash
 from .vertebrate_custom import vertebrate
+from .shapefile_custom import shapefile
