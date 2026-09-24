@@ -1,5 +1,7 @@
 import os
 import csv
+import json
+import datetime
 import pandas as pd
 from bs4 import BeautifulSoup
 from io import BytesIO, StringIO
@@ -537,7 +539,238 @@ def adminauth():
     return jsonify(message=str(session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS")).lower())
 
 
+# Delineation auditing tool: a reviewer walks the GIS sites/catchments that came
+# in through the checker but have not been QA'd yet (sde.gissites.approve =
+# 'not_reviewed'), looks at the site point and its catchment polygon on a map,
+# and approves or rejects them. Port of the ArcGIS-Notebook + ipywidgets version
+# Jeff was running - same queries, same approve values ('yes'/'no'/'not_reviewed'),
+# same both-tables-in-one-transaction write.
+#
+# Writes go through g.eng, which connects as the `sde` role - the only role the
+# checker has, and one of the four holding UPDATE on both tables. sde.gissites
+# carries an audit trigger, so every decision also lands in sde.audit_log;
+# sde.giscatchments is not audited (excluded from the 2026-09-08 rollout for
+# being over 50MB).
+DELINEATION_TABLES = ('gissites', 'giscatchments')
+
+# Radio value -> what goes in the `approve` column.
+DELINEATION_DECISIONS = {
+    'later': 'not_reviewed',
+    'approve': 'yes',
+    'reject': 'no',
+}
+
+DELINEATION_VERBS = {
+    'yes': 'approved',
+    'no': 'rejected',
+    'not_reviewed': 'marked not reviewed',
+}
+
+
+def _delineation_authorized():
+    return bool(session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS"))
+
+
+def _delineation_pending(eng):
+    """masterids still waiting on QA, same query the notebook opened with."""
+    return [
+        r.masterid
+        for r in eng.execute(
+            text(
+                """
+                SELECT DISTINCT masterid
+                FROM sde.gissites
+                WHERE approve = 'not_reviewed'
+                ORDER BY masterid
+                """
+            )
+        ).fetchall()
+    ]
+
+
+def _delineation_features(eng, table, masterid):
+    """GeoJSON geometries for one masterid. `table` is only ever passed a
+    literal from DELINEATION_TABLES - never anything off the request."""
+    assert table in DELINEATION_TABLES
+    rows = eng.execute(
+        text(
+            f"""
+            SELECT masterid, ST_AsGeoJSON(shape) AS geojson
+            FROM sde.{table}
+            WHERE masterid = :masterid
+              AND shape IS NOT NULL
+            """
+        ),
+        {"masterid": masterid},
+    ).fetchall()
+    return [{"masterid": r.masterid, "geometry": json.loads(r.geojson)} for r in rows]
+
+
+# How far either side of the site point the map opens, in degrees. The notebook
+# used the same 0.1, and the flowline overlay is clipped to the same box so the
+# page only pulls the reaches the reviewer can actually see.
+DELINEATION_VIEW_BUFFER = 0.1
+
+# Guard against a station sitting on an unusually dense stretch of network.
+# Nothing near the 11 stations currently pending comes close to this.
+DELINEATION_FLOWLINE_LIMIT = 4000
+
+
+def _delineation_flowlines(eng, longitude, latitude):
+    """NHD reaches inside the station's view box.
+
+    Returns nothing at all if sde.nhd_flowlines_ca has not been loaded yet, so
+    the tool still works without the overlay rather than erroring out. See
+    db/smc/nhd-flowlines-load/ in database-admin for the table.
+    """
+    if eng.execute(text("SELECT to_regclass('sde.nhd_flowlines_ca')")).scalar() is None:
+        return []
+
+    b = DELINEATION_VIEW_BUFFER
+    rows = eng.execute(
+        text(
+            """
+            SELECT comid, gnis_name, ftype, ST_AsGeoJSON(shape) AS geojson
+            FROM sde.nhd_flowlines_ca
+            WHERE shape && ST_MakeEnvelope(:xmin, :ymin, :xmax, :ymax, 4326)
+            LIMIT :limit
+            """
+        ),
+        {
+            "xmin": longitude - b,
+            "ymin": latitude - b,
+            "xmax": longitude + b,
+            "ymax": latitude + b,
+            "limit": DELINEATION_FLOWLINE_LIMIT,
+        },
+    ).fetchall()
+
+    return [
+        {
+            "comid": r.comid,
+            "name": r.gnis_name,
+            "ftype": r.ftype,
+            "geometry": json.loads(r.geojson),
+        }
+        for r in rows
+    ]
+
+
 @admin.route('/audit-delineation')
 def audit_delineation():
+    if not _delineation_authorized():
+        return render_template('admin_password.html', redirect_route='audit-delineation')
 
-    return render_template('audit-delineation.jinja2')
+    return render_template(
+        'audit-delineation.jinja2',
+        stations=_delineation_pending(g.eng),
+        arcgis_api_key=os.environ.get('ARCGIS_API_KEY', ''),
+    )
+
+
+@admin.route('/audit-delineation/stations')
+def audit_delineation_stations():
+    if not _delineation_authorized():
+        return jsonify(error="Not authorized."), 403
+
+    return jsonify(stations=_delineation_pending(g.eng))
+
+
+@admin.route('/audit-delineation/station/<masterid>')
+def audit_delineation_station(masterid):
+    if not _delineation_authorized():
+        return jsonify(error="Not authorized."), 403
+
+    eng = g.eng
+    site = eng.execute(
+        text(
+            """
+            SELECT login_email, login_agency, submissionid, filename, created_date, approve
+            FROM sde.gissites
+            WHERE masterid = :masterid
+            """
+        ),
+        {"masterid": masterid},
+    ).fetchone()
+
+    if site is None:
+        return jsonify(error=f"Station {masterid} was not found in gissites."), 404
+
+    sites = _delineation_features(eng, 'gissites', masterid)
+
+    # Clip the flowlines to the first site point, which is what the view zooms
+    # to. Every masterid in gissites has exactly one row.
+    flowlines = []
+    for feature in sites:
+        if feature["geometry"].get("type") == "Point":
+            longitude, latitude = feature["geometry"]["coordinates"][:2]
+            flowlines = _delineation_flowlines(eng, longitude, latitude)
+            break
+
+    return jsonify(
+        masterid=masterid,
+        submitter=site.login_email,
+        agency=site.login_agency,
+        submissionid=site.submissionid,
+        filename=site.filename,
+        submitted=site.created_date.strftime("%Y-%m-%d %H:%M:%S") if site.created_date else None,
+        approve=site.approve,
+        sites=sites,
+        catchments=_delineation_features(eng, 'giscatchments', masterid),
+        flowlines=flowlines,
+    )
+
+
+@admin.route('/audit-delineation/submit', methods=['POST'])
+def audit_delineation_submit():
+    if not _delineation_authorized():
+        return jsonify(error="Not authorized."), 403
+
+    payload = request.get_json(silent=True) or {}
+    masterid = (payload.get('masterid') or '').strip()
+    email = (payload.get('email') or '').strip()
+    decision = (payload.get('decision') or '').strip()
+
+    if not masterid:
+        return jsonify(error="No station selected."), 400
+    if not email:
+        # The notebook let this through and wrote a blank last_edited_user.
+        # Requiring it keeps the audit trail attributable.
+        return jsonify(error="Enter your email address first - it is recorded as the reviewer."), 400
+    if decision not in DELINEATION_DECISIONS:
+        return jsonify(error=f"Unrecognized decision: {decision!r}."), 400
+
+    new_status = DELINEATION_DECISIONS[decision]
+    timestamp = datetime.datetime.now()
+
+    try:
+        with g.eng.begin() as conn:
+            for tbl in DELINEATION_TABLES:
+                conn.execute(
+                    text(
+                        f"""
+                        UPDATE sde.{tbl}
+                           SET approve          = :new_status,
+                               last_edited_user = :user,
+                               last_edited_date = :timestamp
+                         WHERE masterid = :masterid
+                        """
+                    ),
+                    {
+                        "new_status": new_status,
+                        "user": email,
+                        "timestamp": timestamp,
+                        "masterid": masterid,
+                    },
+                )
+    except Exception as e:
+        print(f"audit_delineation_submit error: {e}")
+        return jsonify(error="Could not save - see the server log for details."), 500
+
+    return jsonify(
+        message=(
+            f"Station {masterid} has been {DELINEATION_VERBS[new_status]} "
+            f"by {email} on {timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+        ),
+        status=new_status,
+    )

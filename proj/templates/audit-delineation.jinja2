@@ -4,65 +4,75 @@
 <head>
    <meta charset="utf-8" />
    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-   <title>
-      Delineation Auditting Tool
-   </title>
+   <title>Delineation Auditing Tool</title>
    <link rel="shortcut icon" href="#" />
-   <link rel="stylesheet" href="https://js.arcgis.com/4.22/esri/themes/light/main.css" />
-   <link rel="stylesheet" type="text/css" href="https://unpkg.com/@esri/calcite-components@1.0.0-beta.79/dist/calcite/calcite.css" />
-   <link rel="stylesheet" href="static/audit-delineation.css">
-   <!-- Load the Chart.js library -->
-   <script src="https://js.arcgis.com/4.23/"></script>
-   <script type="module" src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.79/dist/calcite/calcite.esm.js"></script>
+   <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+   <link rel="stylesheet" href="{{ url_for('static', filename='audit-delineation.css') }}">
+   <script src="https://js.arcgis.com/4.25/"></script>
+</head>
 
 <body>
+   <div class="container">
 
-<div>
-<calcite-modal id="loginModal" aria-labelledby="modal-title" active disable-close-button disable-escape disable-outside-close>
-    <h3 slot="header" id="modal-title">Login Required</h3>
-    <div slot="content" id="modal-content">
-        <p>Please log in to continue.</p>
-        <!-- Login form -->
-        <form id="loginForm">
-            <calcite-input type="password" id="passwordInput" placeholder="Password" required></calcite-input>
-            <calcite-button type="submit">Login</calcite-button>
-        </form>
-    </div>
-</calcite-modal>
-</div>
+      <div class="left-side">
+         <h2>Delineation Auditing Tool</h2>
 
+         {% if stations %}
+         <p class="pending-count">
+            <span id="pendingCount">{{ stations|length }}</span> station(s) waiting on QA.
+            <a href="#" id="refreshStations">Refresh list</a>
+         </p>
 
-   <calcite-shell class="calcite-theme-light">
-      <div class="container">
-         <!-- Left side content -->
-         <div class="left-side">
-            
+         <label class="field">
+            <span>Enter your email address:</span>
+            <input type="email" id="reviewerEmail" placeholder="you@sccwrp.org" autocomplete="email">
+         </label>
+
+         <label class="field">
+            <span>Choose stationid:</span>
+            <select id="stationSelect">
+               {% for station in stations %}
+               <option value="{{ station }}">{{ station }}</option>
+               {% endfor %}
+            </select>
+         </label>
+
+         <button type="button" id="drawButton" class="primary">Draw on map</button>
+
+         <p id="stationLabel" class="station-label">Selected Station: {{ stations[0] }}</p>
+
+         <div id="confirmContainer" class="confirm-container" hidden>
+            <fieldset>
+               <legend>QA decision</legend>
+               <label><input type="radio" name="decision" value="later" checked> I need to check later</label>
+               <label><input type="radio" name="decision" value="approve"> I approve this file</label>
+               <label><input type="radio" name="decision" value="reject"> I do not approve this file</label>
+            </fieldset>
+            <button type="button" id="submitButton" class="primary">Submit</button>
+            <p id="result" class="result"></p>
          </div>
-         <!-- Right side content -->
-         <div class="right-side"> 
-         <div id="viewDiv"></div>           
-         </div>
+
+         {% else %}
+         <p class="empty">No new stations needed to be QA</p>
+         {% endif %}
       </div>
-   </calcite-shell>
+
+      <div class="right-side">
+         <div id="viewDiv"></div>
+         <div id="mapStatus" class="map-status">Pick a station and press <strong>Draw on map</strong>.</div>
+      </div>
+
+   </div>
+
+   <script>
+      window.AUDIT_DELINEATION = {
+         stationUrlTemplate: {{ url_for('admin.audit_delineation_station', masterid='__MASTERID__')|tojson }},
+         stationsUrl: {{ url_for('admin.audit_delineation_stations')|tojson }},
+         submitUrl: {{ url_for('admin.audit_delineation_submit')|tojson }},
+         arcgisApiKey: {{ arcgis_api_key|tojson }}
+      };
+   </script>
+   <script src="{{ url_for('static', filename='audit-delineation.js') }}"></script>
 </body>
-<script type="module" src="static/audit-delineation.js"></script>
-
-<script>
-
-    function checkPassword() {
-        var password = document.getElementById('passwordInput').value;
-        return password === "3535$Harbor"; // I will replace this with a fetch to adminauth route later - Duy
-    }
-
-    document.getElementById('loginForm').onsubmit = function(event) {
-        event.preventDefault();
-        if (checkPassword()) {
-            document.getElementById('loginModal').style.display = "none";
-        } else {
-            alert('Incorrect password, please try again.');
-        }
-    }
-    
-</script>
 
 </html>
