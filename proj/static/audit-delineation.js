@@ -35,10 +35,7 @@ require([
 
     // Esri's own basemaps need the API key; without one fall back to OSM so the
     // map still draws instead of coming up blank.
-    const BASEMAP_TOPO = CFG.arcgisApiKey ? "arcgis-topographic" : "osm";
-    const BASEMAP_IMAGERY = "arcgis-imagery";
-
-    const map = new Map({ basemap: BASEMAP_TOPO });
+    const map = new Map({ basemap: CFG.arcgisApiKey ? "arcgis-topographic" : "osm" });
 
     const view = new MapView({
         map: map,
@@ -53,26 +50,16 @@ require([
     const graphicsLayer = new GraphicsLayer();
     map.addMany([flowlineLayer, graphicsLayer]);
 
-    // Imagery is what you actually want under a catchment boundary, but the
-    // notebook opened on the topo basemap - so start there and let the reviewer
-    // flip.
-    if (CFG.arcgisApiKey) {
-        const basemapToggle = document.createElement('button');
-        basemapToggle.textContent = 'Switch to Imagery';
-        basemapToggle.addEventListener('click', function () {
-            const toImagery = map.basemap.id !== BASEMAP_IMAGERY;
-            map.basemap = toImagery ? BASEMAP_IMAGERY : BASEMAP_TOPO;
-            basemapToggle.textContent = toImagery ? 'Switch to Topographic' : 'Switch to Imagery';
-        });
-        view.ui.add(basemapToggle, 'top-right');
-    }
-
     const SITE_SYMBOL = {
         type: "simple-marker",
         color: [255, 0, 0],
         size: "15px",
         outline: { color: [255, 255, 255], width: 2 }
     };
+
+    // Close enough to judge whether the catchment was drawn off the right reach,
+    // while still showing the whole of a typical catchment.
+    const STATION_ZOOM = 14;
 
     const FLOWLINE_SYMBOL = {
         type: "simple-line",
@@ -148,16 +135,12 @@ require([
         });
 
         if (firstPoint) {
-            // Same 0.1-degree box the notebook zoomed to.
-            const buffer = 0.1;
+            // center + zoom, not a bare extent object: goTo does not reliably
+            // autocast {xmin,ymin,xmax,ymax}, so the earlier version silently
+            // left the view sitting at the statewide default.
             view.goTo({
-                target: {
-                    xmin: firstPoint.longitude - buffer,
-                    ymin: firstPoint.latitude - buffer,
-                    xmax: firstPoint.longitude + buffer,
-                    ymax: firstPoint.latitude + buffer,
-                    spatialReference: { wkid: 4326 }
-                }
+                center: [firstPoint.longitude, firstPoint.latitude],
+                zoom: STATION_ZOOM
             });
         }
 
