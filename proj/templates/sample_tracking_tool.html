@@ -20,15 +20,16 @@
     --card: #ffffff;
   }
   * { box-sizing: border-box; }
+  html { font-size: 112.5%; } /* 18px base; every size below is rem-based and scales with it */
   body {
     font-family: "Roboto", "Google Sans", system-ui, sans-serif;
     background: var(--bg);
     color: var(--ink);
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 2.5rem 1.5rem 4rem;
   }
-  .brand { font-family: "Google Sans", sans-serif; font-size: 1.9rem; font-weight: 500; color: var(--ink); margin-bottom: 0.1rem; }
+  .brand { font-family: "Google Sans", sans-serif; font-size: 2.2rem; font-weight: 500; color: var(--ink); margin-bottom: 0.1rem; }
 
   .card {
     background: var(--card);
@@ -41,10 +42,10 @@
 
   .row { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
   .field { flex: 1; min-width: 180px; display: flex; flex-direction: column; position: relative; }
-  label { font-size: 0.8rem; font-weight: 500; color: var(--ink-light); margin-bottom: 0.4rem; letter-spacing: 0.01em; }
+  label { font-size: 0.95rem; font-weight: 500; color: var(--ink-light); margin-bottom: 0.4rem; letter-spacing: 0.01em; }
   input[type=text], input[type=email], input[type=number], select {
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     padding: 0.65rem 0.8rem;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -69,7 +70,7 @@
     border-radius: 20px;
     padding: 0.4rem 0.9rem 0.4rem 0.7rem;
     cursor: pointer;
-    font-size: 0.88rem;
+    font-size: 1rem;
     transition: background 0.15s, border-color 0.15s;
   }
   .purpose-options label:has(input:checked) {
@@ -77,7 +78,7 @@
     border-color: var(--blue);
     color: var(--blue-dark);
   }
-  .purpose-options input[type=checkbox] { accent-color: var(--blue); width: 16px; height: 16px; }
+  .purpose-options input[type=checkbox] { accent-color: var(--blue); width: 26px; height: 26px; }
 
   button {
     background: var(--blue);
@@ -86,7 +87,7 @@
     padding: 0.7rem 1.6rem;
     border-radius: 20px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 500;
     font-family: "Google Sans", sans-serif;
     letter-spacing: 0.015em;
@@ -102,7 +103,7 @@
     padding: 0.85rem 1.1rem;
     border-radius: 8px;
     margin-bottom: 1.25rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
   .error div + div { margin-top: 0.35rem; }
 
@@ -124,27 +125,27 @@
     border-radius: 20px;
     padding: 0.65rem 1.4rem;
     font-family: "Google Sans", sans-serif;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 500;
     text-decoration: none;
   }
   a.btn-link:hover { background: #f1f3f4; }
-  .clear-link { font-size: 0.85rem; color: var(--ink-light); text-decoration: none; padding-bottom: 0.8rem; }
+  .clear-link { font-size: 1rem; color: var(--ink-light); text-decoration: none; padding-bottom: 0.8rem; }
   .clear-link:hover { text-decoration: underline; }
 
-  h2 { font-family: "Google Sans", sans-serif; font-size: 1.1rem; font-weight: 500; color: var(--ink); margin-bottom: 0.75rem; }
+  h2 { font-family: "Google Sans", sans-serif; font-size: 1.4rem; font-weight: 500; color: var(--ink); margin-bottom: 0.75rem; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 0.87rem; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 1rem; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
   th, td { text-align: left; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); }
-  th { color: var(--ink-light); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; background: var(--bg); }
+  th { color: var(--ink-light); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; background: var(--bg); }
   tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: #f8f9fa; }
 
   .required::after { content: " *"; color: var(--red); }
-  .hint { font-size: 0.8rem; color: var(--ink-light); margin: -0.6rem 0 1.4rem; }
+  .hint { font-size: 0.95rem; color: var(--ink-light); margin: -0.6rem 0 1.4rem; }
 
   .new-sample-btn { margin: 1.75rem 0 1.25rem; }
-  .summary-line { font-size: 0.9rem; color: var(--ink-light); margin: 0 0 1.25rem; }
+  .summary-line { font-size: 1rem; color: var(--ink-light); margin: 0 0 1.25rem; }
   .summary-line strong { color: var(--ink); font-weight: 500; }
 </style>
 </head>
@@ -158,6 +159,7 @@
   </div>
   {% endif %}
 
+  {% if show_check_submissions %}
   <h2>Check submissions</h2>
   <form method="get" action="{{ url_for('admin.sample_tracking_tool') }}" class="filter-form">
     <div class="field">
@@ -182,13 +184,15 @@
     <a class="clear-link" href="{{ url_for('admin.sample_tracking_tool') }}">Clear</a>
     {% endif %}
   </form>
+  {% endif %}
 
-  {% if checked and rows %}
+  {% if show_check_submissions and checked and rows %}
   <div style="display: flex; justify-content: flex-end; margin-bottom: 0.75rem;">
     <a class="btn-link" href="{{ url_for('admin.sample_tracking_tool_export', f_participant=f_participant, f_year=f_year) }}">Download as CSV</a>
   </div>
   {% endif %}
 
+  {% if show_check_submissions %}
   <table id="resultsTable">
     <tr>
       <th>StationCode</th><th>Participant</th><th>Year</th><th>Purpose</th>
@@ -212,16 +216,38 @@
     </td></tr>
     {% endfor %}
   </table>
+  {% endif %}
 
   <button id="newSampleBtn" class="secondary new-sample-btn" type="button" onclick="toggleForm()">+ Enter New Sample</button>
 
   <div class="card" id="newSampleCard" {% if not error %}hidden{% endif %}>
     <form method="post" action="{{ url_for('admin.sample_tracking_tool_submit') }}">
-      <input type="hidden" name="participant" id="entryParticipant" value="{{ f_participant }}">
-      <input type="hidden" name="year" id="entryYear" value="{{ f_year or 2027 }}">
+      <div class="row">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" name="login_email" placeholder="you@example.org">
+        </div>
+      </div>
 
-      {% set selected_owner = owners | selectattr('agencycode', 'equalto', f_participant) | list %}
-      <p class="summary-line">Adding for <strong id="summaryParticipant">{{ selected_owner[0].agencyname if selected_owner else "(select a Participant above)" }}</strong> - <strong id="summaryYear">{{ f_year or 2027 }}</strong></p>
+      <div class="row">
+        <div class="field">
+          <label class="required">Participant</label>
+          <select name="participant" id="entryParticipant" >
+            <option value="">None</option>
+            {% for o in owners %}
+            <option value="{{ o.agencycode }}" {% if o.agencycode == f_participant %}selected{% endif %}>{{ o.agencyname }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label class="required">Year</label>
+          <select name="year" id="entryYear" >
+            {% for y in years %}
+            <option value="{{ y }}" {% if (f_year and y|string == f_year) or (not f_year and y == 2027) %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
 
       <div class="row">
         <div class="field">
@@ -229,7 +255,6 @@
           <input type="text" name="stationcode" placeholder="e.g. 401M02845, 402M00155" required>
         </div>
       </div>
-      <p class="hint">Enter one or more StationCodes separated by commas - each must be a unique code that exists in lu_stations. Participant and Year come from the "Check submissions" filter above.</p>
 
       <div class="field" style="margin-bottom: 1.4rem;">
         <label class="required">Purpose (select all that apply)</label>
@@ -256,13 +281,6 @@
       </div>
       <p class="hint">Details is required when EffortEquivalent is not 1 (explain the effort) or when Purpose includes Other (describe it). Each StationCode can only be logged once per year.</p>
 
-      <div class="row">
-        <div class="field">
-          <label>Email</label>
-          <input type="email" name="login_email" placeholder="you@example.org">
-        </div>
-      </div>
-
       <button type="submit">Submit</button>
     </form>
   </div>
@@ -275,15 +293,13 @@
       btn.textContent = card.hidden ? '+ Enter New Sample' : '- Hide Form';
     }
 
+    // Only used when the "Check submissions" section is shown: keep the entry form in step with its filter.
     function syncParticipant(sourceSelect) {
       document.getElementById('entryParticipant').value = sourceSelect.value;
-      var text = sourceSelect.value ? sourceSelect.options[sourceSelect.selectedIndex].text : '(select a Participant above)';
-      document.getElementById('summaryParticipant').textContent = text;
     }
 
     function syncYear(sourceSelect) {
       document.getElementById('entryYear').value = sourceSelect.value;
-      document.getElementById('summaryYear').textContent = sourceSelect.value;
     }
   </script>
 </body>

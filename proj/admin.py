@@ -38,6 +38,9 @@ SAMPLE_TRACKER_ERROR_SEP = "||"
 SAMPLE_TRACKER_PASSWORD = "sccwrp"  # temporary demo password, not a real secret - replace before this becomes a real feature
 
 
+SHOW_CHECK_SUBMISSIONS = False
+
+
 def _sample_tracker_rows(eng, participant=None, year=None, limit=50):
     where = []
     params = {}
@@ -104,7 +107,9 @@ def sample_tracking_tool():
         except ValueError:
             error = (error + SAMPLE_TRACKER_ERROR_SEP if error else "") + "Year filter must be an integer."
 
-    rows = _sample_tracker_rows(eng, participant=f_participant or None, year=year_filter) if checked else []
+    # The "check submissions" section (filters, results table, CSV button) is hidden
+    # for now. Set SHOW_CHECK_SUBMISSIONS = True to bring it back.
+    rows = _sample_tracker_rows(eng, participant=f_participant or None, year=year_filter) if (SHOW_CHECK_SUBMISSIONS and checked) else []
     owners = eng.execute(text("SELECT agencycode, agencyname FROM sde.lu_dataowner ORDER BY agencyname")).fetchall()
 
     return render_template(
@@ -118,6 +123,7 @@ def sample_tracking_tool():
         f_participant=f_participant,
         f_year=f_year,
         checked=checked,
+        show_check_submissions=SHOW_CHECK_SUBMISSIONS,
     )
 
 
