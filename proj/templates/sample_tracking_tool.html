@@ -161,13 +161,16 @@
   .purpose-options input[type=checkbox] { width: 24px; height: 24px; flex: none; }
   .hint { margin: -0.2rem 0 clamp(0.5rem, 1.8vh, 1.1rem); }
   .card button[type=submit] { padding: clamp(0.45rem, 1.2vh, 0.7rem) 1.6rem; }
+  .form-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+  .form-actions a.btn-link { padding: clamp(0.4rem, 1.1vh, 0.65rem) 1.4rem; }
   @media (max-width: 700px) {
     html { font-size: 106%; }
     .row { flex-direction: column; gap: 0.6rem; }
     .field { min-width: 0; width: 100%; flex: none; }
     .purpose-options { flex-wrap: wrap; }
     .purpose-options label { font-size: 1rem; }
-    .card button[type=submit] { width: 100%; }
+    .form-actions { flex-direction: column; align-items: stretch; }
+    .form-actions a.btn-link { text-align: center; }
   }
 </style>
 </head>
@@ -300,7 +303,10 @@
       </div>
       <p class="hint">Details is required if Effort is not 1 or Purpose includes Other.</p>
 
-      <button type="submit">Submit</button>
+      <div class="form-actions">
+        <button type="submit">Submit</button>
+        <a class="btn-link" href="{{ url_for('admin.sample_tracking_tool') }}">Start Over</a>
+      </div>
     </form>
   </div>
 
