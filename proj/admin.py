@@ -241,7 +241,7 @@ def sample_tracking_tool_submit():
         found_codes = {r[0] for r in found}
         missing = [s for s in stationcodes if s not in found_codes]
         if missing:
-            errors.append(f"Unknown StationCode(s) - not found in lu_stations: {', '.join(missing)}.")
+            errors.append(f"Unknown StationCode(s) - not found in lu_stations: {', '.join(missing)}. If you are entering multiple stations, separate them by commas.")
 
     # One row per (stationcode, year) - matches the
     # sample_tracker_stationcode_year_key constraint in the DB.
