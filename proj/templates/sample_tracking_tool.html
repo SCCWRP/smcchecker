@@ -273,6 +273,7 @@
           <input type="text" name="stationcode" placeholder="e.g. 401M02845, 402M00155" value="{{ form.stationcode or '' }}" required>
         </div>
       </div>
+      <p class="hint">Note: All StationCodes you are entering must already exist in <a href="{{ url_for('scraper.lookuplists', action='help', layer='lu_stations') }}" target="_blank" rel="noopener">lu_stations</a>. If not, contact Jeff Brown (<a href="mailto:jeffb@sccwrp.org">jeffb@sccwrp.org</a>) to add them first.</p>
 
       <div class="field" style="margin-bottom: 1.4rem;">
         <label class="required">Purpose (select all that apply)</label>
