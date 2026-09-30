@@ -62,9 +62,36 @@ def multitask(functions: list, *args):
 @lru_cache(maxsize=128, typed=True)
 def convert_dtype(t, x):
     try:
+        print("t")
+        print(t == pd.Timestamp)
         if ((pd.isnull(x)) and (t == int)):
             return True
+        if pd.isnull(x) and t == pd.Timestamp:
+            return True
+
+        # For some reason, t(x) was not here. I just put it here now on 10/28/2024 
         t(x)
+
+
+        # if the type is an int, and it got this far, at least the literal matches that of a number
+        # if it matches the float pattern though, we have a problem
+        if (t == int):
+
+            # remove negative sign
+            # remove decimal part if all zeros, retain if there is a non zero digit
+            # then call the isdigit method to see if all values in the string are digits, thus meaning it is an integer value
+            return re.sub(r'\.0*$','',(str(x)[1:] if str(x).startswith('-') else str(x))).isdigit()
+            
+            # floatpat = re.compile(r"^\d+\.0*[1-9]+")
+            # # If it matches a float we want to return False
+            # return not bool(re.match(floatpat, str(x)))
+        
+        if t == pd.Timestamp:
+            # checking for a valid postgres timestamp literal
+            # Postgres technically also accepts the format like "January 8 00:00:00 1999" but we won't be checking for that unless it becomes a problem
+            datepat = re.compile("\d{4}-\d{1,2}-\d{1,2}\s*(\d{1,2}:\d{1,2}:\d{2}(\.\d+){0,1}){0,1}$")
+            return bool(re.match(datepat, str(x)))
+        
         return True
     except Exception as e:
         if t == pd.Timestamp:
@@ -72,6 +99,7 @@ def convert_dtype(t, x):
             # Postgres technically also accepts the format like "January 8 00:00:00 1999" but we won't be checking for that unless it becomes a problem
             datepat = re.compile("\d{4}-\d{1,2}-\d{1,2}\s*(\d{1,2}:\d{1,2}:\d{2}(\.\d+){0,1}){0,1}$")
             return bool(re.match(datepat, str(x)))
+        
         return False
 
 @lru_cache(maxsize=128, typed=True)
@@ -105,8 +133,9 @@ def check_precision(x, precision):
         
         if rightdigits: # if its not a NoneType, it found a match
             rightdigits = rightdigits.groups()[0]
-        
-        right = powerof10 + len(rightdigits)
+            right = powerof10 + len(rightdigits)
+        else:
+            right = 0
     else:
         # frac part is zero if there is no decimal place, or if it came in with scientific notation
         # because this else block represents the case where the power was positive
@@ -123,6 +152,7 @@ def check_precision(x, precision):
 
 @lru_cache(maxsize=128, typed=True)
 def check_scale(x, scale):
+    
     try:
         int(x)
     except Exception as e:
@@ -146,14 +176,16 @@ def check_scale(x, scale):
         
         if rightdigits: # if its not a NoneType, it found a match
             rightdigits = rightdigits.groups()[0]
-        
-        right = powerof10 + len(rightdigits)
+            right = powerof10 + len(rightdigits)
+        else:
+            right = 0
     else:
         # frac part is zero if there is no decimal place, or if it came in with scientific notation
         # because this else block represents the case where the power was positive
-        #print('HERE')
-        #print(x)
-        #print(str(x))
+        print('HERE')
+        print(x)
+        x = round(x, 10)
+        print(str(x))
         frac_part = abs(int(re.sub("\d*\.","",str(x)))) if ( '.' in str(x) ) and ('e' not in str(x)) else 0
         #print('NO')
         
@@ -163,7 +195,14 @@ def check_scale(x, scale):
                 frac_part = int(frac_part / 10)
 
         right = len(str(frac_part)) if frac_part > 0 else 0
-    return True if right <= scale else False
+
+    returnbool = True if right <= scale else False
+    if not returnbool:
+        print("x")
+        print(str(x))
+        print("right")
+        print(right)
+    return returnbool
 
 @lru_cache(maxsize=128, typed=True)
 def check_length(x, maxlength):
@@ -218,32 +257,17 @@ def get_primary_key(tablename, eng):
     # Copy paste to Navicat, pgadmin, or do a pd.read_sql to see what it gives
     pkey_query = f"""
         SELECT 
-            conrelid::regclass AS table_from, 
-            conname, 
-            pg_get_constraintdef(oid) 
-        FROM pg_constraint 
-        WHERE 
-            contype IN ('f', 'p') 
-            AND connamespace = 'sde'::regnamespace 
-            AND conname LIKE '{tablename}%%' 
-        ORDER BY 
-            conrelid::regclass::text, contype DESC;
+            c.column_name, 
+            c.data_type
+        FROM information_schema.table_constraints tc 
+        JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name) 
+        JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema
+            AND tc.table_name = c.table_name AND ccu.column_name = c.column_name
+        WHERE constraint_type = 'PRIMARY KEY' and tc.table_name = '{tablename}';
     """
     pkey_df = pd.read_sql(pkey_query, eng)
     
-    pkey = []
-    # sometimes there is no primary key
-    if not pkey_df.empty:
-        # pg_get_constraintdef = postgres get constraint definition
-        # Get the primary key constraint's definition
-        pkey = pkey_df.pg_get_constraintdef.tolist()[0]
-
-        # Remove excess junk to just get the primary key field names
-        # split at the commas to get a nice neat python list
-        pkey = re.sub(r"(PRIMARY\sKEY\s\()|(\))","",pkey).split(',')
-
-        # remove whitespace from the edges
-        pkey = [colname.strip() for colname in pkey]
-        
+    pkey = pkey_df.column_name.tolist() if not pkey_df.empty else []
+    
     return pkey
 

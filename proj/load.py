@@ -37,7 +37,14 @@ def load():
         # For projects that do not set up their data templates in this way, that arg should be removed
 
         # Note also that only empty cells will be regarded as missing values
-        sheet: pd.read_excel(excel_path, sheet_name = sheet, skiprows = current_app.excel_offset, na_values = [''])
+        sheet: pd.read_excel(
+            excel_path, 
+            sheet_name = sheet,
+            skiprows = current_app.excel_offset,
+            dtype = {"no_observation": str},
+            na_values = [''], 
+            keep_default_na=False
+        )
         
         for sheet in pd.ExcelFile(excel_path).sheet_names
         
@@ -52,7 +59,7 @@ def load():
         ) \
         .table_name \
         .values
-
+    print(all_dfs.keys())
     assert all(sheet in valid_tables for sheet in all_dfs.keys()), \
         f"Sheetname in excel file {excel_path} not found in the list of tables that can be submitted to"
 
@@ -61,7 +68,8 @@ def load():
     warnings = pd.DataFrame( json.loads(open(os.path.join(session['submission_dir'], 'warnings.json') , 'r').read()) )
       
     for tbl in all_dfs.keys():
-
+        if tbl in current_app.tabs_to_ignore:
+            continue
         # Lowercase all column names first
         all_dfs[tbl].columns = [x.lower() for x in all_dfs[tbl].columns]
 
@@ -147,7 +155,7 @@ def load():
     # So we know the massive argument list of the data receipt function, which is like the notification email for successful submission
     #def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, originalfile, tables, eng, mailserver, *args, **kwargs):
     data_receipt(
-        send_from = 'admin@checker.sccwrp.org',
+        send_from = current_app.mail_from,
         always_send_to = current_app.maintainers,
         login_email = session.get('login_info').get('login_email'),
         dtype = session.get('datatype'),

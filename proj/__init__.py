@@ -3,7 +3,7 @@ from flask import Flask,current_app, g
 from sqlalchemy import create_engine
 import psycopg2
 from psycopg2 import sql
-
+from flask_cors import CORS
 # import blueprints to register them
 from .main import upload
 from .login import homepage
@@ -11,7 +11,11 @@ from .load import finalsubmit
 from .download import download
 from .scraper import scraper
 from .templater import templater # for dynamic lookup lists called into template before output to user
-
+from .process_shapefile import sfprocessing 
+from .load_shapefile import sfloading 
+from .map_check import map_check, get_map_info
+from .admin import admin
+from .query import query
 
 CUSTOM_CONFIG_PATH = os.path.join(os.getcwd(), 'proj', 'config')
 
@@ -26,16 +30,27 @@ assert all([item in BASIC_CONFIG.keys() for item in ["EXCEL_OFFSET", "SYSTEM_FIE
 
 
 app = Flask(__name__, static_url_path='/static')
+
+# CORS(app, resources={r"/arcgis/*": {"origins": "https://nexus.sccwrp.org"}})
+
+CORS(app)
+
 app.debug = True # remove for production
 
 
 # does your application require uploaded filenames to be modified to timestamps or left as is
+app.config['APP_SCRIPT_ROOT'] = 'smcchecker'
+
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 app.config['MAIL_SERVER'] = os.environ.get('FLASK_APP_MAIL_SERVER')
 
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
+
+app.config['BACKGROUND_IMAGE'] = BASIC_CONFIG.get("BACKGROUND_IMAGE")
+
 app.secret_key = os.environ.get("FLASK_APP_SECRET_KEY")
+
 
 # set the database connection string, database, and type of database we are going to point our application at
 #app.eng = create_engine(os.environ.get("DB_CONNECTION_STRING"))
@@ -138,9 +153,16 @@ for datasetname, dataset in app.datasets.items():
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
 
 app.register_blueprint(upload)
+app.register_blueprint(sfprocessing)
+app.register_blueprint(sfloading)
 app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
+app.register_blueprint(get_map_info)
 app.register_blueprint(download)
 app.register_blueprint(scraper)
 app.register_blueprint(templater)
+app.register_blueprint(map_check)
+app.register_blueprint(admin)
+app.register_blueprint(query)
+
 
