@@ -289,3 +289,39 @@ def test_plain_get_is_clean_form(authed):
     assert 'class="error"' not in html.split("</style>")[-1]
     assert 'name="stationcode"' in html and 'value="SMC_2027_2031_v1"' in html
     assert "checked" not in html.split('name="purpose"', 1)[1].split("</form>")[0].replace('type="checkbox"', "")
+
+
+# ---------- tool-only SCCWRP participant / allowed list ----------
+
+def test_sccwrp_accepted_without_lu_dataowner(authed, engine):
+    assert "SCCWRP" not in engine.owners
+    resp = submit(authed, participant="SCCWRP")
+    assert engine.tracker and engine.tracker[0]["participant"] == "SCCWRP"
+    with authed.session_transaction() as s:
+        assert "Southern California Coastal Water Research Project" in s["SAMPLE_TRACKER_SUCCESS"]
+
+
+def test_sccwrp_in_dropdown(authed):
+    html = authed.get("/sample-tracking-tool").get_data(as_text=True)
+    assert 'value="SCCWRP"' in html and "Southern California Coastal Water Research Project" in html
+    assert 'value="LACFCD"' in html
+    assert 'value="USEPA"' not in html
+
+
+def test_non_allowed_code_rejected(authed, engine):
+    errs = errors_of(submit(authed, participant="USEPA"))
+    assert any("not an allowed Participant" in e for e in errs)
+    assert_no_insert(engine)
+
+
+# ---------- effort decimals ----------
+
+def test_effort_two_decimals_ok(authed, engine):
+    submit(authed, effortequivalent="1.25", details="partial")
+    assert engine.tracker[0]["effort"] == 1.25
+
+
+def test_effort_three_decimals_rejected(authed, engine):
+    errs = errors_of(submit(authed, effortequivalent="1.255", details="partial"))
+    assert any("at most 2 decimal places" in e for e in errs)
+    assert_no_insert(engine)

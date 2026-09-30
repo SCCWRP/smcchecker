@@ -2,6 +2,8 @@ import os
 import csv
 import json
 import datetime
+from decimal import Decimal, InvalidOperation
+from types import SimpleNamespace
 import pandas as pd
 from bs4 import BeautifulSoup
 from io import BytesIO, StringIO
@@ -42,6 +44,11 @@ SAMPLE_TRACKER_PARTICIPANTS = [
     "San_Diego_River_WMA", "San_Dieguito_WMA", "San_Luis_Rey_River_WMA",
     "Santa_Margarita_River_WMA", "Tijuana_River_WMA", "SanDiegoCity", "SCCWRP",
 ]
+# Participants that exist only in this tool (deliberately NOT in sde.lu_dataowner):
+# agencycode -> agencyname. They skip the lu_dataowner lookups.
+SAMPLE_TRACKER_TOOL_ONLY_OWNERS = {
+    "SCCWRP": "Southern California Coastal Water Research Project",
+}
 SAMPLE_TRACKER_YEARS = list(range(2027, 2032))  # matches the SMC_2027_2031_v1 workplan cycle
 SAMPLE_TRACKER_ERROR_SEP = "||"
 SAMPLE_TRACKER_PASSWORD = "sccwrp"  # temporary demo password, not a real secret - replace before this becomes a real feature
@@ -126,8 +133,12 @@ def sample_tracking_tool():
     owners = eng.execute(
         text("SELECT agencycode, agencyname FROM sde.lu_dataowner WHERE agencycode IN :codes ORDER BY agencyname")
         .bindparams(bindparam("codes", expanding=True)),
-        {"codes": SAMPLE_TRACKER_PARTICIPANTS},
+        {"codes": [c for c in SAMPLE_TRACKER_PARTICIPANTS if c not in SAMPLE_TRACKER_TOOL_ONLY_OWNERS]},
     ).fetchall()
+    owners = sorted(
+        [*owners, *(SimpleNamespace(agencycode=c, agencyname=n) for c, n in SAMPLE_TRACKER_TOOL_ONLY_OWNERS.items())],
+        key=lambda o: o.agencyname,
+    )
 
     return render_template(
         'sample_tracking_tool.html',
@@ -237,6 +248,12 @@ def sample_tracking_tool_submit():
         effort = float(raw_effort)
         if effort <= 0:
             errors.append("EffortEquivalent must be greater than 0.")
+        try:
+            exp = Decimal(raw_effort).normalize().as_tuple().exponent
+        except InvalidOperation:
+            exp = 0
+        if isinstance(exp, int) and exp < -2:
+            errors.append("EffortEquivalent can have at most 2 decimal places.")
     except ValueError:
         errors.append("EffortEquivalent must be numeric.")
 
@@ -275,7 +292,9 @@ def sample_tracking_tool_submit():
                 f"Already logged for {year} - only one entry is allowed per StationCode per year: {listed}."
             )
 
-    if participant:
+    if participant in SAMPLE_TRACKER_TOOL_ONLY_OWNERS:
+        pass
+    elif participant:
         owner_exists = eng.execute(
             text("SELECT 1 FROM sde.lu_dataowner WHERE agencycode = :p"), {"p": participant}
         ).fetchone()
@@ -330,10 +349,13 @@ def sample_tracking_tool_submit():
         print(f"sample_tracking_tool_submit error: {e}")
         return _sample_tracker_fail("Could not save - see server log for details.")
 
-    owner_row = eng.execute(
-        text("SELECT agencyname FROM sde.lu_dataowner WHERE agencycode = :p"), {"p": participant}
-    ).fetchone()
-    owner_name = owner_row[0] if owner_row else participant
+    if participant in SAMPLE_TRACKER_TOOL_ONLY_OWNERS:
+        owner_name = SAMPLE_TRACKER_TOOL_ONLY_OWNERS[participant]
+    else:
+        owner_row = eng.execute(
+            text("SELECT agencyname FROM sde.lu_dataowner WHERE agencycode = :p"), {"p": participant}
+        ).fetchone()
+        owner_name = owner_row[0] if owner_row else participant
     session['SAMPLE_TRACKER_SUCCESS'] = (
         f"Saved {len(stationcodes)} station(s) for {owner_name}, {year}: {', '.join(stationcodes)}."
     )

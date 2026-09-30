@@ -72,7 +72,8 @@ class FakeEngine:
         if "SELECT agencyname FROM sde.lu_dataowner" in sql:
             return _Result([(self.owners[params["p"]],)] if params["p"] in self.owners else [])
         if "SELECT agencycode, agencyname FROM sde.lu_dataowner" in sql:
-            return _Result([_Row(agencycode=k, agencyname=v) for k, v in self.owners.items()])
+            # mirror the real query's WHERE agencycode IN :codes
+            return _Result([_Row(agencycode=k, agencyname=v) for k, v in self.owners.items() if k in params["codes"]])
         raise AssertionError(f"FakeEngine: unexpected SQL: {sql}")
 
     @contextmanager
@@ -103,7 +104,8 @@ def make_integrity_error(msg):
 def engine():
     return FakeEngine(
         stations={"401M02845", "402M00155", "403M00001", "A", "B"},
-        owners={"SCCWRP": "Southern California Coastal Water Research Project", "LACFCD": "LA County Flood Control"},
+        # SCCWRP is deliberately absent: it is a tool-only participant, not in lu_dataowner.
+        owners={"LACFCD": "LA County Flood Control", "USEPA": "US Environmental Protection Agency"},
     )
 
 
