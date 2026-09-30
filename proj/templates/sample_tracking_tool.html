@@ -105,6 +105,15 @@
     margin-bottom: 1.25rem;
     font-size: 1rem;
   }
+  .success {
+    background: #e6f4ea;
+    border: 1px solid #b7dfc1;
+    color: var(--green);
+    padding: 0.85rem 1.1rem;
+    border-radius: 8px;
+    margin-bottom: 1.25rem;
+    font-size: 1rem;
+  }
   .error div + div { margin-top: 0.35rem; }
 
   .filter-form { display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
@@ -176,6 +185,9 @@
 </style>
 </head>
 <body>
+  {% if success %}
+  <div class="success">{{ success }}</div>
+  {% endif %}
   {% if error %}
   <div class="error">
     {% for e in error.split('||') %}

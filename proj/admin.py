@@ -94,6 +94,8 @@ def sample_tracking_tool():
     error = request.args.get("error")
     # Values from a failed submit (stashed by sample_tracking_tool_submit) - used to refill the form once.
     form = session.pop('SAMPLE_TRACKER_FORM', None) or {}
+    # One-time success banner from a successful submit (popped so reload/Start Over don't re-show it).
+    success = session.pop('SAMPLE_TRACKER_SUCCESS', None)
     f_participant = request.args.get("f_participant", "").strip()
     f_year = request.args.get("f_year", "").strip()
 
@@ -126,6 +128,7 @@ def sample_tracking_tool():
         f_year=f_year,
         checked=checked,
         form=form,
+        success=success,
         show_check_submissions=SHOW_CHECK_SUBMISSIONS,
     )
 
@@ -312,6 +315,13 @@ def sample_tracking_tool_submit():
         print(f"sample_tracking_tool_submit error: {e}")
         return _sample_tracker_fail("Could not save - see server log for details.")
 
+    owner_row = eng.execute(
+        text("SELECT agencyname FROM sde.lu_dataowner WHERE agencycode = :p"), {"p": participant}
+    ).fetchone()
+    owner_name = owner_row[0] if owner_row else participant
+    session['SAMPLE_TRACKER_SUCCESS'] = (
+        f"Saved {len(stationcodes)} station(s) for {owner_name}, {year}: {', '.join(stationcodes)}."
+    )
     return redirect(url_for('admin.sample_tracking_tool'))
 
 @admin.route('/track')
