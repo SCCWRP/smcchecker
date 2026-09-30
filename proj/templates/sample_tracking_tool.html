@@ -245,14 +245,14 @@
       <div class="row">
         <div class="field">
           <label>Email</label>
-          <input type="email" name="login_email" placeholder="you@example.org">
+          <input type="email" name="login_email" placeholder="you@example.org" value="{{ form.login_email or '' }}">
         </div>
         <div class="field">
           <label class="required">Participant</label>
           <select name="participant" id="entryParticipant" >
             <option value="">None</option>
             {% for o in owners %}
-            <option value="{{ o.agencycode }}" {% if o.agencycode == f_participant %}selected{% endif %}>{{ o.agencyname }}</option>
+            <option value="{{ o.agencycode }}" {% if o.agencycode == (form.participant or f_participant) %}selected{% endif %}>{{ o.agencyname }}</option>
             {% endfor %}
           </select>
         </div>
@@ -260,7 +260,8 @@
           <label class="required">Year</label>
           <select name="year" id="entryYear" >
             {% for y in years %}
-            <option value="{{ y }}" {% if (f_year and y|string == f_year) or (not f_year and y == 2027) %}selected{% endif %}>{{ y }}</option>
+            {% set sel_year = form.year or f_year %}
+            <option value="{{ y }}" {% if (sel_year and y|string == sel_year) or (not sel_year and y == 2027) %}selected{% endif %}>{{ y }}</option>
             {% endfor %}
           </select>
         </div>
@@ -269,7 +270,7 @@
       <div class="row">
         <div class="field">
           <label class="required">StationCode(s)</label>
-          <input type="text" name="stationcode" placeholder="e.g. 401M02845, 402M00155" required>
+          <input type="text" name="stationcode" placeholder="e.g. 401M02845, 402M00155" value="{{ form.stationcode or '' }}" required>
         </div>
       </div>
 
@@ -277,7 +278,7 @@
         <label class="required">Purpose (select all that apply)</label>
         <div class="purpose-options">
           {% for col, label in purposes %}
-          <label><input type="checkbox" name="purpose" value="{{ col }}"> {{ label }}</label>
+          <label><input type="checkbox" name="purpose" value="{{ col }}" {% if col in (form.purposes or []) %}checked{% endif %}> {{ label }}</label>
           {% endfor %}
         </div>
       </div>
@@ -285,15 +286,15 @@
       <div class="row">
         <div class="field">
           <label>Workplan</label>
-          <input type="text" name="workplan" value="SMC_2027_2031_v1">
+          <input type="text" name="workplan" value="{{ form.workplan if form.workplan is defined else 'SMC_2027_2031_v1' }}">
         </div>
         <div class="field">
           <label>EffortEquivalent</label>
-          <input type="number" step="0.1" name="effortequivalent" value="1">
+          <input type="number" step="0.1" name="effortequivalent" value="{{ form.effortequivalent if form.effortequivalent is defined else 1 }}">
         </div>
         <div class="field" style="flex: 2;">
           <label>Details</label>
-          <input type="text" name="details" placeholder="required if Effort is not 1 or Purpose is Other">
+          <input type="text" name="details" placeholder="required if Effort is not 1 or Purpose is Other" value="{{ form.details or '' }}">
         </div>
       </div>
       <p class="hint">Details is required if Effort is not 1 or Purpose includes Other.</p>

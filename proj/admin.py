@@ -92,6 +92,8 @@ def sample_tracking_tool():
 
     eng = g.eng
     error = request.args.get("error")
+    # Values from a failed submit (stashed by sample_tracking_tool_submit) - used to refill the form once.
+    form = session.pop('SAMPLE_TRACKER_FORM', None) or {}
     f_participant = request.args.get("f_participant", "").strip()
     f_year = request.args.get("f_year", "").strip()
 
@@ -123,6 +125,7 @@ def sample_tracking_tool():
         f_participant=f_participant,
         f_year=f_year,
         checked=checked,
+        form=form,
         show_check_submissions=SHOW_CHECK_SUBMISSIONS,
     )
 
@@ -175,6 +178,20 @@ def sample_tracking_tool_submit():
     raw_effort = request.form.get("effortequivalent", "").strip() or "1"
     details = request.form.get("details", "").strip() or None
     login_email = request.form.get("login_email", "").strip() or None
+
+    # Exactly what the user typed, so a failed submit can refill the form.
+    def _sample_tracker_fail(message):
+        session['SAMPLE_TRACKER_FORM'] = {
+            "login_email": request.form.get("login_email", ""),
+            "participant": participant,
+            "year": raw_year,
+            "stationcode": request.form.get("stationcode", ""),
+            "purposes": request.form.getlist("purpose"),
+            "workplan": request.form.get("workplan", ""),
+            "effortequivalent": request.form.get("effortequivalent", ""),
+            "details": request.form.get("details", ""),
+        }
+        return redirect(url_for('admin.sample_tracking_tool', error=message))
 
     stationcodes = [s.strip() for s in raw_stations.split(",") if s.strip()]
     errors = []
@@ -250,7 +267,7 @@ def sample_tracking_tool_submit():
             errors.append(f"Unknown Participant {participant!r} - not found in lu_dataowner.")
 
     if errors:
-        return redirect(url_for('admin.sample_tracking_tool', error=SAMPLE_TRACKER_ERROR_SEP.join(errors)))
+        return _sample_tracker_fail(SAMPLE_TRACKER_ERROR_SEP.join(errors))
 
     try:
         with eng.begin() as conn:
@@ -290,10 +307,10 @@ def sample_tracking_tool_submit():
             friendly = "Details is required when EffortEquivalent is not 1 or Purpose is Other."
         else:
             friendly = "Could not save - the entry breaks a database rule. See server log for details."
-        return redirect(url_for('admin.sample_tracking_tool', error=friendly))
+        return _sample_tracker_fail(friendly)
     except Exception as e:
         print(f"sample_tracking_tool_submit error: {e}")
-        return redirect(url_for('admin.sample_tracking_tool', error="Could not save - see server log for details."))
+        return _sample_tracker_fail("Could not save - see server log for details.")
 
     return redirect(url_for('admin.sample_tracking_tool'))
 
