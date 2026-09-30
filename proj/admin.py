@@ -9,6 +9,7 @@ from flask import Blueprint, g, current_app, render_template, redirect, url_for,
 import psycopg2
 from psycopg2 import sql
 from sqlalchemy import bindparam, text
+from sqlalchemy.exc import IntegrityError
 
 
 from .utils.db import metadata_summary
@@ -21,7 +22,17 @@ admin = Blueprint('admin', __name__)
 # the sde.sample_tracker table DDL. Not gated behind AUTHORIZED_FOR_ADMIN_FUNCTIONS
 # (unlike /track, /column-order) - has its own separate, temporary password
 # instead since this is still a demo, not the real gate design.
-SAMPLE_TRACKER_PURPOSES = ["Status and Trend", "Restoration", "Causal assessment", "Targeted"]
+# One boolean column per purpose (2026-09-18 follow-up: wide format instead of
+# the old semicolon-delimited `purpose` text). (column, label) pairs, in form order.
+# See db/smc/sample-tracker-app/migrate_2026-09-30_followups.sql in database-admin.
+SAMPLE_TRACKER_PURPOSES = [
+    ("status_and_trend", "Status and Trend"),
+    ("restoration", "Restoration"),
+    ("causal_assessment", "Causal assessment"),
+    ("targeted", "Targeted"),
+    ("purpose_other", "Other"),
+]
+SAMPLE_TRACKER_PURPOSE_COLUMNS = [c for c, _ in SAMPLE_TRACKER_PURPOSES]
 SAMPLE_TRACKER_YEARS = list(range(2027, 2032))  # matches the SMC_2027_2031_v1 workplan cycle
 SAMPLE_TRACKER_ERROR_SEP = "||"
 SAMPLE_TRACKER_PASSWORD = "sccwrp"  # temporary demo password, not a real secret - replace before this becomes a real feature
@@ -43,8 +54,9 @@ def _sample_tracker_rows(eng, participant=None, year=None, limit=50):
     return eng.execute(
         text(
             f"""
-            SELECT id, stationcode, participant, year, purpose, workplan,
-                   effortequivalent, details, created_date
+            SELECT id, stationcode, participant, year,
+                   status_and_trend, restoration, causal_assessment, targeted, purpose_other,
+                   workplan, effortequivalent, details, login_email, created_date
             FROM sde.sample_tracker
             {clause}
             ORDER BY id DESC
@@ -53,6 +65,10 @@ def _sample_tracker_rows(eng, participant=None, year=None, limit=50):
         ),
         params,
     ).fetchall()
+
+
+def _sample_tracker_purpose_labels(row):
+    return [label for col, label in SAMPLE_TRACKER_PURPOSES if getattr(row, col)]
 
 
 @admin.route('/sample-tracking-tool/login', methods=['GET', 'POST'])
@@ -94,6 +110,7 @@ def sample_tracking_tool():
     return render_template(
         'sample_tracking_tool.html',
         purposes=SAMPLE_TRACKER_PURPOSES,
+        purpose_labels=_sample_tracker_purpose_labels,
         years=SAMPLE_TRACKER_YEARS,
         rows=rows,
         error=error,
@@ -118,9 +135,17 @@ def sample_tracking_tool_export():
 
     buf = StringIO()
     writer = csv.writer(buf)
-    writer.writerow(["StationCode", "Participant", "Year", "Purpose", "Workplan", "Effort", "Details", "Submitted"])
+    writer.writerow(
+        ["StationCode", "Participant", "Year"]
+        + [label for _, label in SAMPLE_TRACKER_PURPOSES]
+        + ["Workplan", "Effort", "Details", "Email", "Submitted"]
+    )
     for r in rows:
-        writer.writerow([r.stationcode, r.participant, r.year, r.purpose, r.workplan, r.effortequivalent, r.details or "", r.created_date])
+        writer.writerow(
+            [r.stationcode, r.participant, r.year]
+            + ["TRUE" if getattr(r, c) else "FALSE" for c in SAMPLE_TRACKER_PURPOSE_COLUMNS]
+            + [r.workplan, r.effortequivalent, r.details or "", r.login_email or "", r.created_date]
+        )
 
     return send_file(
         BytesIO(buf.getvalue().encode("utf-8")),
@@ -139,10 +164,11 @@ def sample_tracking_tool_submit():
     raw_stations = request.form.get("stationcode", "").strip()
     participant = request.form.get("participant", "").strip()
     raw_year = request.form.get("year", "").strip()
-    purposes = request.form.getlist("purpose")
+    purposes = set(request.form.getlist("purpose")) & set(SAMPLE_TRACKER_PURPOSE_COLUMNS)
     workplan = request.form.get("workplan", "").strip() or "SMC_2027_2031_v1"
     raw_effort = request.form.get("effortequivalent", "").strip() or "1"
     details = request.form.get("details", "").strip() or None
+    login_email = request.form.get("login_email", "").strip() or None
 
     stationcodes = [s.strip() for s in raw_stations.split(",") if s.strip()]
     errors = []
@@ -175,6 +201,13 @@ def sample_tracking_tool_submit():
     except ValueError:
         errors.append("EffortEquivalent must be numeric.")
 
+    # Same rules as the sample_tracker_effort_details_check /
+    # sample_tracker_other_details_check constraints in the DB.
+    if effort is not None and effort != 1 and not details:
+        errors.append("Details is required when EffortEquivalent is not 1 - explain the effort value.")
+    if "purpose_other" in purposes and not details:
+        errors.append("Details is required when Purpose is Other - describe the purpose.")
+
     if stationcodes:
         found = eng.execute(
             text("SELECT stationid FROM sde.lu_stations WHERE stationid IN :codes").bindparams(
@@ -186,6 +219,22 @@ def sample_tracking_tool_submit():
         missing = [s for s in stationcodes if s not in found_codes]
         if missing:
             errors.append(f"Unknown StationCode(s) - not found in lu_stations: {', '.join(missing)}.")
+
+    # One row per (stationcode, year) - matches the
+    # sample_tracker_stationcode_year_key constraint in the DB.
+    if stationcodes and year is not None:
+        taken = eng.execute(
+            text(
+                "SELECT stationcode, participant FROM sde.sample_tracker "
+                "WHERE year = :year AND stationcode IN :codes ORDER BY stationcode"
+            ).bindparams(bindparam("codes", expanding=True)),
+            {"year": year, "codes": stationcodes},
+        ).fetchall()
+        if taken:
+            listed = ", ".join(f"{r.stationcode} (by {r.participant})" for r in taken)
+            errors.append(
+                f"Already logged for {year} - only one entry is allowed per StationCode per year: {listed}."
+            )
 
     if participant:
         owner_exists = eng.execute(
@@ -204,21 +253,38 @@ def sample_tracking_tool_submit():
                     text(
                         """
                         INSERT INTO sde.sample_tracker
-                            (stationcode, participant, year, purpose, workplan, effortequivalent, details)
+                            (stationcode, participant, year,
+                             status_and_trend, restoration, causal_assessment, targeted, purpose_other,
+                             workplan, effortequivalent, details, login_email)
                         VALUES
-                            (:stationcode, :participant, :year, :purpose, :workplan, :effort, :details)
+                            (:stationcode, :participant, :year,
+                             :status_and_trend, :restoration, :causal_assessment, :targeted, :purpose_other,
+                             :workplan, :effort, :details, :login_email)
                         """
                     ),
                     {
                         "stationcode": stationcode,
                         "participant": participant,
                         "year": year,
-                        "purpose": "; ".join(purposes),
+                        **{c: c in purposes for c in SAMPLE_TRACKER_PURPOSE_COLUMNS},
                         "workplan": workplan,
                         "effort": effort,
                         "details": details,
+                        "login_email": login_email,
                     },
                 )
+    except IntegrityError as e:
+        # Backstop for the DB constraints (e.g. someone logged the same
+        # station+year between our check above and this insert).
+        print(f"sample_tracking_tool_submit integrity error: {e}")
+        msg = str(getattr(e, "orig", e))
+        if "sample_tracker_stationcode_year_key" in msg:
+            friendly = "One of these StationCodes was just logged for this year by someone else - only one entry is allowed per StationCode per year. Check submissions and try again."
+        elif "details_check" in msg:
+            friendly = "Details is required when EffortEquivalent is not 1 or Purpose is Other."
+        else:
+            friendly = "Could not save - the entry breaks a database rule. See server log for details."
+        return redirect(url_for('admin.sample_tracking_tool', error=friendly))
     except Exception as e:
         print(f"sample_tracking_tool_submit error: {e}")
         return redirect(url_for('admin.sample_tracking_tool', error="Could not save - see server log for details."))

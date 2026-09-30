@@ -42,7 +42,7 @@
   .row { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
   .field { flex: 1; min-width: 180px; display: flex; flex-direction: column; position: relative; }
   label { font-size: 0.8rem; font-weight: 500; color: var(--ink-light); margin-bottom: 0.4rem; letter-spacing: 0.01em; }
-  input[type=text], input[type=number], select {
+  input[type=text], input[type=email], input[type=number], select {
     font-family: inherit;
     font-size: 0.95rem;
     padding: 0.65rem 0.8rem;
@@ -52,7 +52,7 @@
     color: var(--ink);
     transition: border-color 0.15s, box-shadow 0.15s;
   }
-  input[type=text]:focus, input[type=number]:focus, select:focus {
+  input[type=text]:focus, input[type=email]:focus, input[type=number]:focus, select:focus {
     outline: none;
     border-color: var(--blue);
     box-shadow: 0 0 0 3px rgba(26,115,232,0.18);
@@ -192,21 +192,22 @@
   <table id="resultsTable">
     <tr>
       <th>StationCode</th><th>Participant</th><th>Year</th><th>Purpose</th>
-      <th>Workplan</th><th>Effort</th><th>Details</th><th>Submitted</th>
+      <th>Workplan</th><th>Effort</th><th>Details</th><th>Email</th><th>Submitted</th>
     </tr>
     {% for r in rows %}
     <tr>
       <td>{{ r.stationcode }}</td>
       <td>{{ r.participant }}</td>
       <td>{{ r.year }}</td>
-      <td>{{ r.purpose }}</td>
+      <td>{{ purpose_labels(r) | join(", ") }}</td>
       <td>{{ r.workplan }}</td>
       <td>{{ r.effortequivalent }}</td>
       <td>{{ r.details or "" }}</td>
+      <td>{{ r.login_email or "" }}</td>
       <td>{{ r.created_date }}</td>
     </tr>
     {% else %}
-    <tr id="emptyRow"><td colspan="8" style="color:#5f6368; padding: 1.25rem;">
+    <tr id="emptyRow"><td colspan="9" style="color:#5f6368; padding: 1.25rem;">
       {% if checked %}No matching submissions found.{% else %}Set a filter above and click Check to see submissions.{% endif %}
     </td></tr>
     {% endfor %}
@@ -233,8 +234,8 @@
       <div class="field" style="margin-bottom: 1.4rem;">
         <label class="required">Purpose (select all that apply)</label>
         <div class="purpose-options">
-          {% for p in purposes %}
-          <label><input type="checkbox" name="purpose" value="{{ p }}"> {{ p }}</label>
+          {% for col, label in purposes %}
+          <label><input type="checkbox" name="purpose" value="{{ col }}"> {{ label }}</label>
           {% endfor %}
         </div>
       </div>
@@ -250,7 +251,15 @@
         </div>
         <div class="field" style="flex: 2;">
           <label>Details</label>
-          <input type="text" name="details" placeholder="optional notes">
+          <input type="text" name="details" placeholder="required if Effort is not 1 or Purpose is Other">
+        </div>
+      </div>
+      <p class="hint">Details is required when EffortEquivalent is not 1 (explain the effort) or when Purpose includes Other (describe it). Each StationCode can only be logged once per year.</p>
+
+      <div class="row">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" name="login_email" placeholder="you@example.org">
         </div>
       </div>
 
