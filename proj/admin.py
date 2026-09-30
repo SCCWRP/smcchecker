@@ -33,6 +33,15 @@ SAMPLE_TRACKER_PURPOSES = [
     ("purpose_other", "Other"),
 ]
 SAMPLE_TRACKER_PURPOSE_COLUMNS = [c for c, _ in SAMPLE_TRACKER_PURPOSES]
+# Data owners allowed in the Participant dropdown (agencycodes in sde.lu_dataowner);
+# other lu_dataowner rows are hidden and rejected on submit.
+SAMPLE_TRACKER_PARTICIPANTS = [
+    "LACFCD", "LARWMP", "OCWMPU", "RCFC", "RWQCB4", "RWQCB8", "RWQCB9",
+    "SBCFCD", "SDCDPW", "SGRRMP", "VCWPD", "SWRCB",
+    "Carlsbad_WMA", "Penasquitos-Mission_Bay_WMA", "San_Diego_Bay_WMA",
+    "San_Diego_River_WMA", "San_Dieguito_WMA", "San_Luis_Rey_River_WMA",
+    "Santa_Margarita_River_WMA", "Tijuana_River_WMA", "SanDiegoCity", "SCCWRP",
+]
 SAMPLE_TRACKER_YEARS = list(range(2027, 2032))  # matches the SMC_2027_2031_v1 workplan cycle
 SAMPLE_TRACKER_ERROR_SEP = "||"
 SAMPLE_TRACKER_PASSWORD = "sccwrp"  # temporary demo password, not a real secret - replace before this becomes a real feature
@@ -114,7 +123,11 @@ def sample_tracking_tool():
     # The "check submissions" section (filters, results table, CSV button) is hidden
     # for now. Set SHOW_CHECK_SUBMISSIONS = True to bring it back.
     rows = _sample_tracker_rows(eng, participant=f_participant or None, year=year_filter) if (SHOW_CHECK_SUBMISSIONS and checked) else []
-    owners = eng.execute(text("SELECT agencycode, agencyname FROM sde.lu_dataowner ORDER BY agencyname")).fetchall()
+    owners = eng.execute(
+        text("SELECT agencycode, agencyname FROM sde.lu_dataowner WHERE agencycode IN :codes ORDER BY agencyname")
+        .bindparams(bindparam("codes", expanding=True)),
+        {"codes": SAMPLE_TRACKER_PARTICIPANTS},
+    ).fetchall()
 
     return render_template(
         'sample_tracking_tool.html',
@@ -268,6 +281,8 @@ def sample_tracking_tool_submit():
         ).fetchone()
         if not owner_exists:
             errors.append(f"Unknown Participant {participant!r} - not found in lu_dataowner.")
+        elif participant not in SAMPLE_TRACKER_PARTICIPANTS:
+            errors.append(f"Participant {participant!r} is not an allowed Participant for the sample tracking tool.")
 
     if errors:
         return _sample_tracker_fail(SAMPLE_TRACKER_ERROR_SEP.join(errors))
