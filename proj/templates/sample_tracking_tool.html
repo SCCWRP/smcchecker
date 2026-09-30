@@ -46,7 +46,7 @@
 
   .row { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
   .field { flex: 1; min-width: 180px; display: flex; flex-direction: column; position: relative; }
-  label { font-size: 0.95rem; font-weight: 500; color: var(--ink-light); margin-bottom: 0.4rem; letter-spacing: 0.01em; }
+  label { font-size: 0.95rem; font-weight: 500; color: var(--ink); margin-bottom: 0.4rem; letter-spacing: 0.01em; }
   input[type=text], input[type=email], input[type=number], select {
     font-family: inherit;
     font-size: 1.05rem;
@@ -155,7 +155,7 @@
   tbody tr:hover td { background: #f8f9fa; }
 
   .required::after { content: " *"; color: var(--red); }
-  .hint { font-size: 0.95rem; color: var(--ink-light); margin: -0.6rem 0 1.4rem; }
+  .hint { font-size: 0.95rem; color: var(--ink); margin: -0.6rem 0 1.4rem; }
 
   .new-sample-btn { margin: 1.75rem 0 1.25rem; }
   .summary-line { font-size: 1rem; color: var(--ink-light); margin: 0 0 1.25rem; }
@@ -174,7 +174,8 @@
   .purpose-options input[type=checkbox] { width: 24px; height: 24px; flex: none; }
   .hint { margin: -0.4rem 0 clamp(0.9rem, 2.8vh, 1.5rem); }
   .card button[type=submit] { padding: clamp(0.45rem, 1.2vh, 0.7rem) 1.6rem; }
-  .label-note { font-weight: 400; font-size: 0.9rem; }
+  input::placeholder { color: var(--ink-light); opacity: 1; }
+  .label-note { color: var(--ink); font-weight: 400; font-size: 0.9rem; }
   .form-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
   .form-actions a.btn-link { padding: clamp(0.4rem, 1.1vh, 0.65rem) 1.4rem; }
   @media (max-width: 700px) {
