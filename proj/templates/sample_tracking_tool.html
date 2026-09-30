@@ -25,10 +25,14 @@
     font-family: "Roboto", "Google Sans", system-ui, sans-serif;
     background: var(--bg);
     color: var(--ink);
-    max-width: 1000px;
-    margin: 0 auto;
+    margin: 0;
     padding: 2.5rem 1.5rem 4rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
+  /* margin:auto centers the page block both ways when there is room, and still scrolls from the top when it is taller than the viewport */
+  .page { width: 100%; max-width: 1000px; margin: auto; }
   .brand { font-family: "Google Sans", sans-serif; font-size: 2.2rem; font-weight: 500; color: var(--ink); margin-bottom: 0.1rem; }
 
   .card {
@@ -185,6 +189,7 @@
 </style>
 </head>
 <body>
+<div class="page">
   {% if success %}
   <div class="success">{{ success }}</div>
   {% endif %}
@@ -332,5 +337,6 @@
       document.getElementById('entryYear').value = sourceSelect.value;
     }
   </script>
+</div>
 </body>
 </html>
