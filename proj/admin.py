@@ -1,0 +1,916 @@
+import os
+import math
+import csv
+import json
+import datetime
+from decimal import Decimal, InvalidOperation
+from types import SimpleNamespace
+import pandas as pd
+from bs4 import BeautifulSoup
+from io import BytesIO, StringIO
+from flask import Blueprint, g, current_app, render_template, redirect, url_for, session, request, jsonify, send_file
+import psycopg2
+from psycopg2 import sql
+from sqlalchemy import bindparam, text
+from sqlalchemy.exc import IntegrityError
+
+
+from .utils.db import metadata_summary
+
+admin = Blueprint('admin', __name__)
+
+# Sample-tracking-tool: participants log every site+year they sampled and why,
+# before submitting any other data type. Demo built 2026-09-16 - see
+# db/smc/sample-tracker-app/create_sample_tracker.sql in database-admin for
+# the sde.sample_tracker table DDL. Not gated behind AUTHORIZED_FOR_ADMIN_FUNCTIONS
+# (unlike /track, /column-order) - has its own separate, temporary password
+# instead since this is still a demo, not the real gate design.
+# One boolean column per purpose (2026-09-18 follow-up: wide format instead of
+# the old semicolon-delimited `purpose` text). (column, label) pairs, in form order.
+# See db/smc/sample-tracker-app/migrate_2026-09-30_followups.sql in database-admin.
+SAMPLE_TRACKER_PURPOSES = [
+    ("status_and_trend", "Status and Trend"),
+    ("restoration", "Restoration"),
+    ("causal_assessment", "Causal assessment"),
+    ("targeted", "Targeted"),
+    ("purpose_other", "Other"),
+]
+SAMPLE_TRACKER_PURPOSE_COLUMNS = [c for c, _ in SAMPLE_TRACKER_PURPOSES]
+# Data owners allowed in the Participant dropdown (agencycodes in sde.lu_dataowner);
+# other lu_dataowner rows are hidden and rejected on submit. The options are this
+# hardcoded list intersected with lu_dataowner, so any change to lu_dataowner needs
+# a matching edit here.
+SAMPLE_TRACKER_PARTICIPANTS = [
+    "LACFCD", "LARWMP", "OCWMPU", "RCFC", "RWQCB4", "RWQCB8", "RWQCB9",
+    "SBCFCD", "SDCDPW", "SGRRMP", "VCWPD", "SWRCB",
+    "Carlsbad_WMA", "Penasquitos_WMA", "Mission_Bay_WMA", "San_Diego_Bay_WMA",
+    "San_Diego_River_WMA", "San_Dieguito_WMA", "San_Luis_Rey_River_WMA",
+    "Santa_Margarita_River_WMA", "Tijuana_River_WMA", "SanDiegoCity", "SCCWRP",
+]
+# Participants that exist only in this tool (deliberately NOT in sde.lu_dataowner):
+# agencycode -> agencyname. They skip the lu_dataowner lookups.
+SAMPLE_TRACKER_TOOL_ONLY_OWNERS = {
+    "SCCWRP": "Southern California Coastal Water Research Project",
+}
+SAMPLE_TRACKER_YEARS = list(range(2027, 2032))  # matches the SMC_2027_2031_v1 workplan cycle
+SAMPLE_TRACKER_ERROR_SEP = "||"
+SAMPLE_TRACKER_PASSWORD = "sccwrp"  # temporary demo password, not a real secret - replace before this becomes a real feature
+
+
+SHOW_CHECK_SUBMISSIONS = False
+
+
+def _sample_tracker_rows(eng, participant=None, year=None, limit=50):
+    where = []
+    params = {}
+    if participant:
+        where.append("participant = :participant")
+        params["participant"] = participant
+    if year:
+        where.append("year = :year")
+        params["year"] = year
+    clause = f"WHERE {' AND '.join(where)}" if where else ""
+    limit_clause = "LIMIT :limit" if limit else ""
+    if limit:
+        params["limit"] = limit
+    return eng.execute(
+        text(
+            f"""
+            SELECT id, stationcode, participant, year,
+                   status_and_trend, restoration, causal_assessment, targeted, purpose_other,
+                   workplan, effortequivalent, details, login_email, created_date
+            FROM sde.sample_tracker
+            {clause}
+            ORDER BY id DESC
+            {limit_clause}
+            """
+        ),
+        params,
+    ).fetchall()
+
+
+def _sample_tracker_purpose_labels(row):
+    return [label for col, label in SAMPLE_TRACKER_PURPOSES if getattr(row, col)]
+
+
+@admin.route('/sample-tracking-tool/login', methods=['GET', 'POST'])
+def sample_tracking_tool_login():
+    error = None
+    if request.method == 'POST':
+        if request.form.get('password') == SAMPLE_TRACKER_PASSWORD:
+            session['SAMPLE_TRACKER_AUTHORIZED'] = True
+            return redirect(url_for('admin.sample_tracking_tool'))
+        error = "Incorrect password."
+    return render_template('sample_tracker_login.html', error=error)
+
+
+@admin.route('/sample-tracking-tool')
+def sample_tracking_tool():
+    if not session.get('SAMPLE_TRACKER_AUTHORIZED'):
+        return redirect(url_for('admin.sample_tracking_tool_login'))
+
+    eng = g.eng
+    error = request.args.get("error")
+    # Values from a failed submit (stashed by sample_tracking_tool_submit) - used to refill the form once.
+    form = session.pop('SAMPLE_TRACKER_FORM', None) or {}
+    # One-time success banner from a successful submit (popped so reload/Start Over don't re-show it).
+    success = session.pop('SAMPLE_TRACKER_SUCCESS', None)
+    f_participant = request.args.get("f_participant", "").strip()
+    f_year = request.args.get("f_year", "").strip()
+
+    # Only run the query once the filter form has actually been submitted
+    # (any f_* key present) - not on the plain landing page, so the results
+    # table starts empty rather than dumping every row.
+    checked = any(k in request.args for k in ("f_participant", "f_year"))
+
+    year_filter = None
+    if f_year:
+        try:
+            year_filter = int(f_year)
+        except ValueError:
+            error = (error + SAMPLE_TRACKER_ERROR_SEP if error else "") + "Year filter must be an integer."
+
+    # The "check submissions" section (filters, results table, CSV button) is hidden
+    # for now. Set SHOW_CHECK_SUBMISSIONS = True to bring it back.
+    rows = _sample_tracker_rows(eng, participant=f_participant or None, year=year_filter) if (SHOW_CHECK_SUBMISSIONS and checked) else []
+    owners = eng.execute(
+        text("SELECT agencycode, agencyname FROM sde.lu_dataowner WHERE agencycode IN :codes ORDER BY agencyname")
+        .bindparams(bindparam("codes", expanding=True)),
+        {"codes": [c for c in SAMPLE_TRACKER_PARTICIPANTS if c not in SAMPLE_TRACKER_TOOL_ONLY_OWNERS]},
+    ).fetchall()
+    owners = sorted(
+        [*owners, *(SimpleNamespace(agencycode=c, agencyname=n) for c, n in SAMPLE_TRACKER_TOOL_ONLY_OWNERS.items())],
+        key=lambda o: o.agencyname,
+    )
+
+    return render_template(
+        'sample_tracking_tool.html',
+        purposes=SAMPLE_TRACKER_PURPOSES,
+        purpose_labels=_sample_tracker_purpose_labels,
+        years=SAMPLE_TRACKER_YEARS,
+        rows=rows,
+        error=error,
+        owners=owners,
+        f_participant=f_participant,
+        f_year=f_year,
+        checked=checked,
+        form=form,
+        success=success,
+        show_check_submissions=SHOW_CHECK_SUBMISSIONS,
+    )
+
+
+@admin.route('/sample-tracking-tool/export')
+def sample_tracking_tool_export():
+    if not session.get('SAMPLE_TRACKER_AUTHORIZED'):
+        return redirect(url_for('admin.sample_tracking_tool_login'))
+
+    eng = g.eng
+    f_participant = request.args.get("f_participant", "").strip()
+    f_year = request.args.get("f_year", "").strip()
+    year_filter = int(f_year) if f_year.isdigit() else None
+
+    rows = _sample_tracker_rows(eng, participant=f_participant or None, year=year_filter, limit=None)
+
+    buf = StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(
+        ["StationCode", "Participant", "Year"]
+        + [label for _, label in SAMPLE_TRACKER_PURPOSES]
+        + ["Workplan", "Effort", "Details", "Email", "Submitted"]
+    )
+    for r in rows:
+        writer.writerow(
+            [r.stationcode, r.participant, r.year]
+            + ["TRUE" if getattr(r, c) else "FALSE" for c in SAMPLE_TRACKER_PURPOSE_COLUMNS]
+            + [r.workplan, r.effortequivalent, r.details or "", r.login_email or "", r.created_date]
+        )
+
+    return send_file(
+        BytesIO(buf.getvalue().encode("utf-8")),
+        download_name="sample_tracker.csv",
+        as_attachment=True,
+        mimetype="text/csv",
+    )
+
+
+@admin.route('/sample-tracking-tool/submit', methods=['POST'])
+def sample_tracking_tool_submit():
+    if not session.get('SAMPLE_TRACKER_AUTHORIZED'):
+        return redirect(url_for('admin.sample_tracking_tool_login'))
+
+    eng = g.eng
+    raw_stations = request.form.get("stationcode", "").strip()
+    participant = request.form.get("participant", "").strip()
+    raw_year = request.form.get("year", "").strip()
+    purposes = set(request.form.getlist("purpose")) & set(SAMPLE_TRACKER_PURPOSE_COLUMNS)
+    workplan = request.form.get("workplan", "").strip() or "SMC_2027_2031_v1"
+    raw_effort = request.form.get("effortequivalent", "").strip() or "1"
+    details = request.form.get("details", "").strip() or None
+    login_email = request.form.get("login_email", "").strip() or None
+
+    # Exactly what the user typed, so a failed submit can refill the form.
+    def _sample_tracker_fail(message):
+        session['SAMPLE_TRACKER_FORM'] = {
+            "login_email": request.form.get("login_email", ""),
+            "participant": participant,
+            "year": raw_year,
+            "stationcode": request.form.get("stationcode", ""),
+            "purposes": request.form.getlist("purpose"),
+            "workplan": request.form.get("workplan", ""),
+            "effortequivalent": request.form.get("effortequivalent", ""),
+            "details": request.form.get("details", ""),
+        }
+        return redirect(url_for('admin.sample_tracking_tool', error=message))
+
+    stationcodes = [s.strip() for s in raw_stations.split(",") if s.strip()]
+    errors = []
+
+    if not stationcodes:
+        errors.append("StationCode(s) is required.")
+    if not participant:
+        errors.append("Participant is required.")
+    if not raw_year:
+        errors.append("Year is required.")
+    if not purposes:
+        errors.append("At least one Purpose is required.")
+
+    if stationcodes and len(stationcodes) != len(set(stationcodes)):
+        dupes = sorted({s for s in stationcodes if stationcodes.count(s) > 1})
+        errors.append(f"Duplicate StationCode(s) in the list: {', '.join(dupes)}.")
+
+    year = None
+    if raw_year:
+        try:
+            year = int(raw_year)
+        except ValueError:
+            errors.append("Year must be an integer.")
+
+    effort = None
+    try:
+        effort = float(raw_effort)
+        if effort <= 0:
+            errors.append("EffortEquivalent must be greater than 0.")
+        try:
+            exp = Decimal(raw_effort).normalize().as_tuple().exponent
+        except InvalidOperation:
+            exp = 0
+        if isinstance(exp, int) and exp < -2:
+            errors.append("EffortEquivalent can have at most 2 decimal places.")
+    except ValueError:
+        errors.append("EffortEquivalent must be numeric.")
+
+    # Same rules as the sample_tracker_effort_details_check /
+    # sample_tracker_other_details_check constraints in the DB.
+    if effort is not None and effort != 1 and not details:
+        errors.append("Details is required when EffortEquivalent is not 1 - explain the effort value.")
+    if "purpose_other" in purposes and not details:
+        errors.append("Details is required when Purpose is Other - describe the purpose.")
+
+    if stationcodes:
+        found = eng.execute(
+            text("SELECT stationid FROM sde.lu_stations WHERE stationid IN :codes").bindparams(
+                bindparam("codes", expanding=True)
+            ),
+            {"codes": stationcodes},
+        ).fetchall()
+        found_codes = {r[0] for r in found}
+        missing = [s for s in stationcodes if s not in found_codes]
+        if missing:
+            errors.append(f"Unknown StationCode(s) - not found in lu_stations: {', '.join(missing)}. If you are entering multiple stations, separate them by commas.")
+
+    # One row per (stationcode, year) - matches the
+    # sample_tracker_stationcode_year_key constraint in the DB.
+    if stationcodes and year is not None:
+        taken = eng.execute(
+            text(
+                "SELECT stationcode, participant FROM sde.sample_tracker "
+                "WHERE year = :year AND stationcode IN :codes ORDER BY stationcode"
+            ).bindparams(bindparam("codes", expanding=True)),
+            {"year": year, "codes": stationcodes},
+        ).fetchall()
+        if taken:
+            listed = ", ".join(f"{r.stationcode} (by {r.participant})" for r in taken)
+            errors.append(
+                f"Already logged for {year} - only one entry is allowed per StationCode per year: {listed}."
+            )
+
+    if participant in SAMPLE_TRACKER_TOOL_ONLY_OWNERS:
+        pass
+    elif participant:
+        owner_exists = eng.execute(
+            text("SELECT 1 FROM sde.lu_dataowner WHERE agencycode = :p"), {"p": participant}
+        ).fetchone()
+        if not owner_exists:
+            errors.append(f"Unknown Participant {participant!r} - not found in lu_dataowner.")
+        elif participant not in SAMPLE_TRACKER_PARTICIPANTS:
+            errors.append(f"Participant {participant!r} is not an allowed Participant for the sample tracking tool.")
+
+    if errors:
+        return _sample_tracker_fail(SAMPLE_TRACKER_ERROR_SEP.join(errors))
+
+    try:
+        with eng.begin() as conn:
+            for stationcode in stationcodes:
+                conn.execute(
+                    text(
+                        """
+                        INSERT INTO sde.sample_tracker
+                            (stationcode, participant, year,
+                             status_and_trend, restoration, causal_assessment, targeted, purpose_other,
+                             workplan, effortequivalent, details, login_email)
+                        VALUES
+                            (:stationcode, :participant, :year,
+                             :status_and_trend, :restoration, :causal_assessment, :targeted, :purpose_other,
+                             :workplan, :effort, :details, :login_email)
+                        """
+                    ),
+                    {
+                        "stationcode": stationcode,
+                        "participant": participant,
+                        "year": year,
+                        **{c: c in purposes for c in SAMPLE_TRACKER_PURPOSE_COLUMNS},
+                        "workplan": workplan,
+                        "effort": effort,
+                        "details": details,
+                        "login_email": login_email,
+                    },
+                )
+    except IntegrityError as e:
+        # Backstop for the DB constraints (e.g. someone logged the same
+        # station+year between our check above and this insert).
+        print(f"sample_tracking_tool_submit integrity error: {e}")
+        msg = str(getattr(e, "orig", e))
+        if "sample_tracker_stationcode_year_key" in msg:
+            friendly = "One of these StationCodes was just logged for this year by someone else - only one entry is allowed per StationCode per year. Check submissions and try again."
+        elif "details_check" in msg:
+            friendly = "Details is required when EffortEquivalent is not 1 or Purpose is Other."
+        else:
+            friendly = "Could not save - the entry breaks a database rule. See server log for details."
+        return _sample_tracker_fail(friendly)
+    except Exception as e:
+        print(f"sample_tracking_tool_submit error: {e}")
+        return _sample_tracker_fail("Could not save - see server log for details.")
+
+    if participant in SAMPLE_TRACKER_TOOL_ONLY_OWNERS:
+        owner_name = SAMPLE_TRACKER_TOOL_ONLY_OWNERS[participant]
+    else:
+        owner_row = eng.execute(
+            text("SELECT agencyname FROM sde.lu_dataowner WHERE agencycode = :p"), {"p": participant}
+        ).fetchone()
+        owner_name = owner_row[0] if owner_row else participant
+    session['SAMPLE_TRACKER_SUCCESS'] = (
+        f"Saved {len(stationcodes)} station(s) for {owner_name}, {year}: {', '.join(stationcodes)}."
+    )
+    return redirect(url_for('admin.sample_tracking_tool'))
+
+@admin.route('/track')
+def tracking():
+    print("start track")
+    sql_session =   '''
+                    SELECT LOGIN_EMAIL,
+                        LOGIN_AGENCY,
+                        SUBMISSIONID,
+                        DATATYPE,
+                        SUBMIT,
+                        CREATED_DATE,
+                        ORIGINAL_FILENAME
+                    FROM SUBMISSION_TRACKING_TABLE
+                    WHERE SUBMISSIONID IS NOT NULL
+                        AND ORIGINAL_FILENAME IS NOT NULL
+                    ORDER BY CREATED_DATE DESC
+                    '''
+    session_results = g.eng.execute(sql_session)
+    session_json = [dict(r) for r in session_results]
+    authorized = session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS")
+    if not authorized:
+        return render_template('admin_password.html', redirect_route='track')
+
+    
+    # session is a reserved word in flask - renaming to something different
+    return render_template('track.html', session_json=session_json, authorized=authorized)
+
+
+@admin.route('/schema')
+def schema():
+    print("entering schema")
+
+    # This is kind of obsolete - orgiinally i was going to have this only available to scientists
+    # We will keep this because later we will have different levels of access and privileges
+    authorized = session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS")
+
+    print("start schema information lookup routine")
+    eng = g.eng
+
+    # Query string arg to get the specific datatype
+    datatype = request.args.get("datatype")
+
+    # Query string arg option to download
+    download = str(request.args.get("download")).strip().lower() == 'true'
+    
+    # If a specific datatype is selected then display the schema for it
+    if datatype is not None:
+        if datatype not in current_app.datasets.keys():
+            return f"Datatype {datatype} not found"
+
+        # dictionary to return
+        return_object = {}
+        
+        tables = current_app.datasets.get(datatype).get("tables")
+        for tbl in tables:
+            df = metadata_summary(tbl, eng)
+            
+            df['lookuplist_table_name'] = df['lookuplist_table_name'].apply(
+                lambda x: f"""<a target=_blank href=/{current_app.script_root}/scraper?action=help&layer={x}>{x}</a>""" if pd.notnull(x) else ''
+            )
+
+            # drop "table_name" column
+            df.drop('tablename', axis = 'columns', inplace = True)
+
+            # drop system fields
+            df.drop(df[df.column_name.isin(current_app.system_fields)].index, axis = 'rows', inplace = True)
+
+            df.fillna('', inplace = True)
+
+            return_object[tbl] = df.to_dict('records')
+        
+        if download:
+            excel_blob = BytesIO()
+
+            with pd.ExcelWriter(excel_blob) as writer:
+                for key in return_object.keys():
+                    df_to_download = pd.DataFrame.from_dict(return_object[key])
+                    df_to_download['lookuplist_table_name'] = df_to_download['lookuplist_table_name'].apply(
+                        lambda x: "https://{}/{}/scraper?action=help&layer={}".format(
+                            request.host,
+                            current_app.config.get('APP_SCRIPT_ROOT'),
+                            BeautifulSoup(x, 'html.parser').text.strip()
+                        ) if BeautifulSoup(x, 'html.parser').text.strip() != '' else ''
+                    )
+                    df_to_download.to_excel(writer, sheet_name=key, index=False)
+
+            excel_blob.seek(0)
+
+            # if the query string said "download=true"
+            return send_file(
+                excel_blob, 
+                download_name = f'{datatype}_schema.xlsx', 
+                as_attachment = True, 
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+
+        # Return the datatype query string arg - the template will need access to that
+        return render_template('schema.jinja2', metadata=return_object, datatype=datatype, authorized=authorized)
+        
+    # only executes if "datatypes" not given
+    datatypes_list = current_app.datasets.keys()
+    return render_template('schema.jinja2', datatypes_list=datatypes_list, authorized=authorized)
+
+
+@admin.route('/save-changes', methods = ['POST'])
+def savechanges():
+    authorized = session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS")
+    
+    if authorized:
+        data = request.get_json()
+
+        tablename = str(data.get("tablename")).strip()
+        column_name = str(data.get("column_name")).strip()
+        column_description = str(data.get("column_description")).strip()
+
+
+
+        # connect with psycopg2
+        connection = psycopg2.connect(
+            host=os.environ.get("DB_HOST"),
+            database=os.environ.get("DB_NAME"),
+            user=os.environ.get("DB_USER"),
+            password=os.environ.get("PGPASSWORD"),
+        )
+
+        connection.set_session(autocommit=True)
+
+        with connection.cursor() as cursor:
+            command = sql.SQL(
+                """
+                COMMENT ON COLUMN {tablename}.{column_name} IS {description};
+                """
+            ).format(
+                tablename = sql.Identifier(tablename),
+                column_name = sql.Identifier(column_name),
+                description = sql.Literal(column_description)
+            )
+            
+            cursor.execute(command)
+
+        connection.close()
+
+        
+        return jsonify(message=f"successfully updated comment on the column {column_name} in the table {tablename}")
+
+    return ''
+
+
+
+@admin.route('/column-order', methods = ['GET','POST'])
+def column_order():
+    authorized = session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS")
+    if not authorized:
+        # return template for GET request, empty string for everything else
+        return render_template('admin_password.html', redirect_route='column-order') \
+            if request.method == 'GET' \
+            else ''
+    
+
+    # connect with psycopg2
+    connection = psycopg2.connect(
+        host=os.environ.get("DB_HOST"),
+        database=os.environ.get("DB_NAME"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("PGPASSWORD"),
+    )
+
+    connection.set_session(autocommit=True)
+
+    if request.method == 'GET':
+        eng = g.eng
+
+        # update column-order table based on contents of information schema
+        cols_to_add_qry = (
+            """
+            WITH cols_to_add AS (
+                SELECT 
+                    table_name,
+                    column_name,
+                    ordinal_position AS original_db_position,
+                    ordinal_position AS custom_column_position 
+                FROM
+                    information_schema.COLUMNS 
+                WHERE
+                    table_name IN ( SELECT DISTINCT table_name FROM column_order ) 
+                    AND ( table_name, column_name ) NOT IN ( SELECT DISTINCT table_name, column_name FROM column_order )
+            )
+            INSERT INTO 
+                column_order (table_name, column_name, original_db_position, custom_column_position) 
+                (
+                    SELECT table_name, column_name, original_db_position, custom_column_position FROM cols_to_add
+                )
+            ;
+            """
+        )
+
+        # remove records from column order if they are not there anymore
+        cols_to_delete_qry = (
+            """
+            WITH cols_to_delete AS (
+                SELECT TABLE_NAME
+                    ,
+                    COLUMN_NAME,
+                    original_db_position,
+                    custom_column_position 
+                FROM
+                    column_order 
+                WHERE
+                    TABLE_NAME NOT IN ( SELECT DISTINCT TABLE_NAME FROM information_schema.COLUMNS ) 
+                    OR ( TABLE_NAME, COLUMN_NAME ) NOT IN ( SELECT DISTINCT TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS ) 
+                ) 
+                DELETE FROM column_order 
+                WHERE
+                    ( TABLE_NAME, COLUMN_NAME ) IN ( SELECT TABLE_NAME, COLUMN_NAME FROM cols_to_delete );
+            ;
+            """
+        )
+        with connection.cursor() as cursor:
+            command = sql.SQL(cols_to_add_qry)
+            cursor.execute(command)
+            command = sql.SQL(cols_to_delete_qry)
+            cursor.execute(command)
+
+        basequery = (
+            """
+            WITH baseqry AS (
+                SELECT table_name, column_name, custom_column_position FROM column_order ORDER BY table_name, custom_column_position
+            )
+            SELECT * FROM baseqry
+            """
+        )
+        
+        # Query string arg to get the specific datatype
+        datatype = request.args.get("datatype")
+        
+        # If a specific datatype is selected then display the schema for it
+        if datatype is not None:
+            if datatype not in current_app.datasets.keys():
+                return f"Datatype {datatype} not found"
+
+            # dictionary to return
+            return_object = {}
+            
+            tables = current_app.datasets.get(datatype).get("tables")
+            for tbl in tables:
+                df = pd.read_sql(f"{basequery} WHERE table_name = '{tbl}';", eng)
+
+                df.fillna('', inplace = True)
+
+                return_object[tbl] = df.to_dict('records')
+            
+            # Return the datatype query string arg - the template will need access to that
+            return render_template('column-order.jinja2', metadata=return_object, datatype=datatype, authorized=authorized)
+        
+        # only executes if "datatypes" not given
+        datatypes_list = current_app.datasets.keys()
+        return render_template('column-order.jinja2', datatypes_list=datatypes_list, authorized=authorized)
+        
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+
+            tablename = str(data.get("tablename")).strip()
+            column_order_information = data.get("column_order_information")
+
+            with connection.cursor() as cursor:
+                for item in column_order_information:
+                    column_name = item.get('column_name')
+                    column_position = item.get('column_position')
+                    command = sql.SQL(
+                        """
+                        UPDATE column_order 
+                            SET custom_column_position = {pos} 
+                        WHERE 
+                            column_order.table_name = {tablename} 
+                            AND column_order.column_name = {column_name};
+                        """
+                    ).format(
+                        pos = sql.Literal(column_position),
+                        tablename = sql.Literal(tablename),
+                        column_name = sql.Literal(column_name)
+                    )
+                    
+                    cursor.execute(command)
+
+            connection.close()
+            return jsonify(message=f"Successfully updated column order for {tablename}")
+        except Exception as e:
+            print(e)
+            return jsonify(message=f"Error: {str(e)}")
+
+    else:
+        return ''
+
+
+
+
+
+
+@admin.route('/adminauth', methods = ['GET','POST'])
+def adminauth():
+
+    # I put a link in the schema page for some who want to edit the schema to sign in
+    # I put schema as as query string arg to show i want them to be redirected there after they sign in
+    if request.args.get("redirect_to"):
+        return render_template('admin_password.html', redirect_route=request.args.get("redirect_to"))
+
+    adminpw = request.get_json().get('adminpw')
+    if adminpw == os.environ.get("ADMIN_FUNCTION_PASSWORD"):
+        session['AUTHORIZED_FOR_ADMIN_FUNCTIONS'] = True
+
+
+    return jsonify(message=str(session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS")).lower())
+
+
+# Delineation auditing tool: a reviewer walks the GIS sites/catchments that came
+# in through the checker but have not been QA'd yet (sde.gissites.approve =
+# 'not_reviewed'), looks at the site point and its catchment polygon on a map,
+# and approves or rejects them. Port of the ArcGIS-Notebook + ipywidgets version
+# Jeff was running - same queries, same approve values ('yes'/'no'/'not_reviewed'),
+# same both-tables-in-one-transaction write.
+#
+# Writes go through g.eng, which connects as the `sde` role - the only role the
+# checker has, and one of the four holding UPDATE on both tables. sde.gissites
+# carries an audit trigger, so every decision also lands in sde.audit_log;
+# sde.giscatchments is not audited (excluded from the 2026-09-08 rollout for
+# being over 50MB).
+DELINEATION_TABLES = ('gissites', 'giscatchments')
+
+# Radio value -> what goes in the `approve` column.
+DELINEATION_DECISIONS = {
+    'later': 'not_reviewed',
+    'approve': 'yes',
+    'reject': 'no',
+}
+
+DELINEATION_VERBS = {
+    'yes': 'approved',
+    'no': 'rejected',
+    'not_reviewed': 'marked not reviewed',
+}
+
+
+def _delineation_authorized():
+    return bool(session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS"))
+
+
+def _delineation_pending(eng):
+    """masterids still waiting on QA, same query the notebook opened with."""
+    return [
+        r.masterid
+        for r in eng.execute(
+            text(
+                """
+                SELECT DISTINCT masterid
+                FROM sde.gissites
+                WHERE approve = 'not_reviewed'
+                ORDER BY masterid
+                """
+            )
+        ).fetchall()
+    ]
+
+
+def _delineation_features(eng, table, masterid):
+    """GeoJSON geometries for one masterid. `table` is only ever passed a
+    literal from DELINEATION_TABLES - never anything off the request."""
+    assert table in DELINEATION_TABLES
+    rows = eng.execute(
+        text(
+            f"""
+            SELECT masterid, ST_AsGeoJSON(shape) AS geojson
+            FROM sde.{table}
+            WHERE masterid = :masterid
+              AND shape IS NOT NULL
+            """
+        ),
+        {"masterid": masterid},
+    ).fetchall()
+    return [{"masterid": r.masterid, "geometry": json.loads(r.geojson)} for r in rows]
+
+
+# How far from the site point the flowline overlay reaches, in km (a box of
+# +/- this distance on each side). The DELINEATION_FLOWLINE_BUFFER_KM
+# environment variable overrides it. The old value was 0.1 degrees (about 10 km).
+DELINEATION_FLOWLINE_BUFFER_KM = float(os.environ.get("DELINEATION_FLOWLINE_BUFFER_KM", 50))
+
+# Guard against a station sitting on an unusually dense stretch of network.
+# Dense areas (Bay Area, Sierra foothills) return about 4,500-5,800 reaches at 50 km.
+DELINEATION_FLOWLINE_LIMIT = 8000
+
+
+def _delineation_flowlines(eng, longitude, latitude):
+    """NHD reaches inside the station's view box.
+
+    Returns nothing at all if sde.nhd_flowlines_ca has not been loaded yet, so
+    the tool still works without the overlay rather than erroring out. See
+    db/smc/nhd-flowlines-load/ in database-admin for the table.
+    """
+    if eng.execute(text("SELECT to_regclass('sde.nhd_flowlines_ca')")).scalar() is None:
+        return []
+
+    dlat = DELINEATION_FLOWLINE_BUFFER_KM / 111.32
+    dlon = dlat / max(math.cos(math.radians(latitude)), 0.1)
+    rows = eng.execute(
+        text(
+            """
+            SELECT comid, gnis_name, ftype, ST_AsGeoJSON(shape) AS geojson
+            FROM sde.nhd_flowlines_ca
+            WHERE shape && ST_MakeEnvelope(:xmin, :ymin, :xmax, :ymax, 4326)
+            LIMIT :limit
+            """
+        ),
+        {
+            "xmin": longitude - dlon,
+            "ymin": latitude - dlat,
+            "xmax": longitude + dlon,
+            "ymax": latitude + dlat,
+            "limit": DELINEATION_FLOWLINE_LIMIT,
+        },
+    ).fetchall()
+
+    return [
+        {
+            "comid": r.comid,
+            "name": r.gnis_name,
+            "ftype": r.ftype,
+            "geometry": json.loads(r.geojson),
+        }
+        for r in rows
+    ]
+
+
+@admin.route('/audit-delineation')
+def audit_delineation():
+    if not _delineation_authorized():
+        return render_template('admin_password.html', redirect_route='audit-delineation')
+
+    return render_template(
+        'audit-delineation.jinja2',
+        stations=_delineation_pending(g.eng),
+        arcgis_api_key=os.environ.get('ARCGIS_API_KEY', ''),
+    )
+
+
+@admin.route('/audit-delineation/stations')
+def audit_delineation_stations():
+    if not _delineation_authorized():
+        return jsonify(error="Not authorized."), 403
+
+    return jsonify(stations=_delineation_pending(g.eng))
+
+
+@admin.route('/audit-delineation/station/<masterid>')
+def audit_delineation_station(masterid):
+    if not _delineation_authorized():
+        return jsonify(error="Not authorized."), 403
+
+    eng = g.eng
+    site = eng.execute(
+        text(
+            """
+            SELECT login_email, login_agency, submissionid, filename, created_date, approve
+            FROM sde.gissites
+            WHERE masterid = :masterid
+            """
+        ),
+        {"masterid": masterid},
+    ).fetchone()
+
+    if site is None:
+        return jsonify(error=f"Station {masterid} was not found in gissites."), 404
+
+    sites = _delineation_features(eng, 'gissites', masterid)
+
+    # Clip the flowlines to the first site point, which is what the view zooms
+    # to. Every masterid in gissites has exactly one row.
+    flowlines = []
+    for feature in sites:
+        if feature["geometry"].get("type") == "Point":
+            longitude, latitude = feature["geometry"]["coordinates"][:2]
+            flowlines = _delineation_flowlines(eng, longitude, latitude)
+            break
+
+    return jsonify(
+        masterid=masterid,
+        submitter=site.login_email,
+        agency=site.login_agency,
+        submissionid=site.submissionid,
+        filename=site.filename,
+        submitted=site.created_date.strftime("%Y-%m-%d %H:%M:%S") if site.created_date else None,
+        approve=site.approve,
+        sites=sites,
+        catchments=_delineation_features(eng, 'giscatchments', masterid),
+        flowlines=flowlines,
+    )
+
+
+@admin.route('/audit-delineation/submit', methods=['POST'])
+def audit_delineation_submit():
+    if not _delineation_authorized():
+        return jsonify(error="Not authorized."), 403
+
+    payload = request.get_json(silent=True) or {}
+    masterid = (payload.get('masterid') or '').strip()
+    email = (payload.get('email') or '').strip()
+    decision = (payload.get('decision') or '').strip()
+
+    if not masterid:
+        return jsonify(error="No station selected."), 400
+    if not email:
+        # The notebook let this through and wrote a blank last_edited_user.
+        # Requiring it keeps the audit trail attributable.
+        return jsonify(error="Enter your email address first - it is recorded as the reviewer."), 400
+    if decision not in DELINEATION_DECISIONS:
+        return jsonify(error=f"Unrecognized decision: {decision!r}."), 400
+
+    new_status = DELINEATION_DECISIONS[decision]
+    timestamp = datetime.datetime.now()
+
+    try:
+        with g.eng.begin() as conn:
+            for tbl in DELINEATION_TABLES:
+                conn.execute(
+                    text(
+                        f"""
+                        UPDATE sde.{tbl}
+                           SET approve          = :new_status,
+                               last_edited_user = :user,
+                               last_edited_date = :timestamp
+                         WHERE masterid = :masterid
+                        """
+                    ),
+                    {
+                        "new_status": new_status,
+                        "user": email,
+                        "timestamp": timestamp,
+                        "masterid": masterid,
+                    },
+                )
+    except Exception as e:
+        print(f"audit_delineation_submit error: {e}")
+        return jsonify(error="Could not save - see the server log for details."), 500
+
+    return jsonify(
+        message=(
+            f"Station {masterid} has been {DELINEATION_VERBS[new_status]} "
+            f"by {email} on {timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+        ),
+        status=new_status,
+    )

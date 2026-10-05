@@ -54,9 +54,6 @@ def timeseries(all_dfs):
     timeseriesresults = all_dfs['tbl_timeseriesresults']
     timeserieseffortcheck = all_dfs['tbl_timeserieseffortcheck']
     timeserieseffortdetails = all_dfs['tbl_timeserieseffortdetails']
-    timeserieslocations = all_dfs['tbl_timeserieslocations']
-    timeseriesstations = all_dfs['tbl_timeseriesstations']
-
 
     timeseriesresults_args = {
         "dataframe": timeseriesresults,
@@ -81,26 +78,6 @@ def timeseries(all_dfs):
     timeserieseffortdetails_args = {
         "dataframe": timeserieseffortdetails,
         "tablename": 'tbl_timeserieseffortdetails',
-        "badrows": [],
-        "badcolumn": "",
-        "error_type": "",
-        "is_core_error": False,
-        "error_message": ""
-    }
-
-    timeserieslocations_args = {
-        "dataframe": timeserieslocations,
-        "tablename": 'tbl_timeserieslocations',
-        "badrows": [],
-        "badcolumn": "",
-        "error_type": "",
-        "is_core_error": False,
-        "error_message": ""
-    }
-
-    timeseriesstations_args = {
-        "dataframe": timeseriesstations,
-        "tablename": 'tbl_timeseriesstations',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
