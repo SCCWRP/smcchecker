@@ -59,7 +59,7 @@ require([
 
     // Close enough to judge whether the catchment was drawn off the right reach,
     // while still showing the whole of a typical catchment.
-    const STATION_ZOOM = 14;
+    const STATION_ZOOM = 11;
 
     const FLOWLINE_SYMBOL = {
         type: "simple-line",

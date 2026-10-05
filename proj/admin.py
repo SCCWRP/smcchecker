@@ -1,4 +1,5 @@
 import os
+import math
 import csv
 import json
 import datetime
@@ -744,14 +745,14 @@ def _delineation_features(eng, table, masterid):
     return [{"masterid": r.masterid, "geometry": json.loads(r.geojson)} for r in rows]
 
 
-# How far either side of the site point the map opens, in degrees. The notebook
-# used the same 0.1, and the flowline overlay is clipped to the same box so the
-# page only pulls the reaches the reviewer can actually see.
-DELINEATION_VIEW_BUFFER = 0.1
+# How far from the site point the flowline overlay reaches, in km (a box of
+# +/- this distance on each side). The DELINEATION_FLOWLINE_BUFFER_KM
+# environment variable overrides it. The old value was 0.1 degrees (about 10 km).
+DELINEATION_FLOWLINE_BUFFER_KM = float(os.environ.get("DELINEATION_FLOWLINE_BUFFER_KM", 50))
 
 # Guard against a station sitting on an unusually dense stretch of network.
-# Nothing near the 11 stations currently pending comes close to this.
-DELINEATION_FLOWLINE_LIMIT = 4000
+# Dense areas (Bay Area, Sierra foothills) return about 4,500-5,800 reaches at 50 km.
+DELINEATION_FLOWLINE_LIMIT = 8000
 
 
 def _delineation_flowlines(eng, longitude, latitude):
@@ -764,7 +765,8 @@ def _delineation_flowlines(eng, longitude, latitude):
     if eng.execute(text("SELECT to_regclass('sde.nhd_flowlines_ca')")).scalar() is None:
         return []
 
-    b = DELINEATION_VIEW_BUFFER
+    dlat = DELINEATION_FLOWLINE_BUFFER_KM / 111.32
+    dlon = dlat / max(math.cos(math.radians(latitude)), 0.1)
     rows = eng.execute(
         text(
             """
@@ -775,10 +777,10 @@ def _delineation_flowlines(eng, longitude, latitude):
             """
         ),
         {
-            "xmin": longitude - b,
-            "ymin": latitude - b,
-            "xmax": longitude + b,
-            "ymax": latitude + b,
+            "xmin": longitude - dlon,
+            "ymin": latitude - dlat,
+            "xmax": longitude + dlon,
+            "ymax": latitude + dlat,
             "limit": DELINEATION_FLOWLINE_LIMIT,
         },
     ).fetchall()
