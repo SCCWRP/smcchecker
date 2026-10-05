@@ -36,11 +36,13 @@ SAMPLE_TRACKER_PURPOSES = [
 ]
 SAMPLE_TRACKER_PURPOSE_COLUMNS = [c for c, _ in SAMPLE_TRACKER_PURPOSES]
 # Data owners allowed in the Participant dropdown (agencycodes in sde.lu_dataowner);
-# other lu_dataowner rows are hidden and rejected on submit.
+# other lu_dataowner rows are hidden and rejected on submit. The options are this
+# hardcoded list intersected with lu_dataowner, so any change to lu_dataowner needs
+# a matching edit here.
 SAMPLE_TRACKER_PARTICIPANTS = [
     "LACFCD", "LARWMP", "OCWMPU", "RCFC", "RWQCB4", "RWQCB8", "RWQCB9",
     "SBCFCD", "SDCDPW", "SGRRMP", "VCWPD", "SWRCB",
-    "Carlsbad_WMA", "Penasquitos-Mission_Bay_WMA", "San_Diego_Bay_WMA",
+    "Carlsbad_WMA", "Penasquitos_WMA", "Mission_Bay_WMA", "San_Diego_Bay_WMA",
     "San_Diego_River_WMA", "San_Dieguito_WMA", "San_Luis_Rey_River_WMA",
     "Santa_Margarita_River_WMA", "Tijuana_River_WMA", "SanDiegoCity", "SCCWRP",
 ]
