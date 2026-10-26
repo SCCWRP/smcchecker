@@ -113,6 +113,11 @@ def check_precision(x, precision):
         # if its the wrong datatype it should get picked up by that check
         return True
 
+    if isinstance(x, str):
+        # text cells (Excel text numbers like '10') cannot go through abs().
+        # Whether the text is a valid number is checkDataTypes' job
+        return True
+
     if pd.isnull(precision):
         return True
 
@@ -161,6 +166,11 @@ def check_scale(x, scale):
         # thus we return true.
         # if its the wrong datatype it should get picked up by that check
         return True
+
+    if isinstance(x, str):
+        # text cells cannot go through abs(). checkDataTypes handles invalid text
+        return True
+
     if pd.isnull(scale):
         return True
     x = abs(x)
