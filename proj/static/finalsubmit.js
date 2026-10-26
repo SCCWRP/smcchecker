@@ -11,13 +11,24 @@ const addFinalSubmitListener = () => {
         document.getElementById("loader-gif-container").classList.remove("hidden");
 
         const formData = new FormData(this);
-        const response = await fetch(`/${script_root}/load`, {
-            method: 'post',
-            body: formData
-        });
-        console.log(response);
+        
+        var response = '';
+        // Route the different route
+        if (document.querySelector("#submission-type").innerText === 'Shapefile Submission'){
+            console.log("Attempting to load shapefiles")
+            response = await fetch(`/${script_root}/sfloading`, {
+                method: 'post',
+                body: formData
+            })}
+        else {
+            response = await fetch(`/${script_root}/load`, {
+                method: 'post',
+                body: formData
+            })
+        }
+
         const result = await response.json();
-        console.log(result);
+
 
         document.getElementById("loader-gif-container").style.display = 'none';
         

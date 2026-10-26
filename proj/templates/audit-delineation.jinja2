@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <meta charset="utf-8" />
+   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+   <title>Delineation Auditing Tool</title>
+   <link rel="shortcut icon" href="#" />
+   <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+   <link rel="stylesheet" href="{{ url_for('static', filename='audit-delineation.css') }}">
+   <script src="https://js.arcgis.com/4.25/"></script>
+</head>
+
+<body>
+   <div class="container">
+
+      <div class="left-side">
+         <h2>Delineation Auditing Tool</h2>
+
+         {% if stations %}
+         <p class="pending-count">
+            <span id="pendingCount">{{ stations|length }}</span> station(s) waiting on QA.
+            <a href="#" id="refreshStations">Refresh list</a>
+         </p>
+
+         <label class="field">
+            <span>Enter your email address:</span>
+            <input type="email" id="reviewerEmail" placeholder="you@sccwrp.org" autocomplete="email">
+         </label>
+
+         <label class="field">
+            <span>Choose stationid:</span>
+            <select id="stationSelect">
+               {% for station in stations %}
+               <option value="{{ station }}">{{ station }}</option>
+               {% endfor %}
+            </select>
+         </label>
+
+         <button type="button" id="drawButton" class="primary">Draw on map</button>
+
+         <p id="stationLabel" class="station-label">Selected Station: {{ stations[0] }}</p>
+
+         <div id="confirmContainer" class="confirm-container" hidden>
+            <fieldset>
+               <legend>QA decision</legend>
+               <label><input type="radio" name="decision" value="later" checked> I need to check later</label>
+               <label><input type="radio" name="decision" value="approve"> I approve this file</label>
+               <label><input type="radio" name="decision" value="reject"> I do not approve this file</label>
+            </fieldset>
+            <button type="button" id="submitButton" class="primary">Submit</button>
+            <p id="result" class="result"></p>
+         </div>
+
+         {% else %}
+         <p class="empty">No new stations needed to be QA</p>
+         {% endif %}
+      </div>
+
+      <div class="right-side">
+         <div id="viewDiv"></div>
+         <div id="mapStatus" class="map-status">Pick a station and press <strong>Draw on map</strong>.</div>
+      </div>
+
+   </div>
+
+   <script>
+      window.AUDIT_DELINEATION = {
+         stationUrlTemplate: {{ url_for('admin.audit_delineation_station', masterid='__MASTERID__')|tojson }},
+         stationsUrl: {{ url_for('admin.audit_delineation_stations')|tojson }},
+         submitUrl: {{ url_for('admin.audit_delineation_submit')|tojson }},
+         arcgisApiKey: {{ arcgis_api_key|tojson }}
+      };
+   </script>
+   <script src="{{ url_for('static', filename='audit-delineation.js') }}"></script>
+</body>
+
+</html>

@@ -11,3 +11,7 @@ Contributors:
 - Duy Nguyen
 - Zaib Quraishi
 
+
+## Tests
+
+Sample tracking tool tests (no DB or full app needed): `pip install flask flask-cors "sqlalchemy<2" pandas beautifulsoup4 psycopg2-binary pytest`, then `python -m pytest tests` from the repo root.

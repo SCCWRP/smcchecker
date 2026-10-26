@@ -134,7 +134,7 @@ def extract_phab_data(infile):
         'stationcode', 'sampledate', 'sampleagencycode', 'eventcode', 'protocolcode', 'projectcode', 
         'parentprojectcode', 'locationcode', 'collectiontime', 'collectionmethodcode', 'collectiondepth', 'unitcollectiondepth', 
         'collectiondevicedescr', 'calibrationdate',
-        'replicate', 'analytename', 'fractionname', 'methodname','matrixname', 'variableresult', 'result', 'resqualcode', 
+        'replicate', 'analytename', 'fractionname', 'methodname','matrixname', 'variableresult', 'result', 'unitname', 'resqualcode', 
         'qacode', 'compliancecode', 'batchverificationcode', 'resultcomments', 'collectioncomments', 'samplecomments'
     ]]
    
@@ -169,7 +169,7 @@ def extract_phab_data(infile):
         'stationcode', 'sampledate', 'sampleagencycode', 'eventcode', 'protocolcode', 'projectcode', 
         'parentprojectcode', 'locationcode', 'collectiontime', 'collectionmethodcode', 'collectiondepth', 'unitcollectiondepth', 
         'collectiondevicedescr', 'calibrationdate',
-        'replicate', 'analytename', 'fractionname', 'methodname','matrixname', 'variableresult', 'result', 'resqualcode', 
+        'replicate', 'analytename', 'fractionname', 'methodname','matrixname', 'variableresult', 'result', 'unitname','resqualcode', 
         'qacode', 'compliancecode', 'batchverificationcode', 'resultcomments', 'collectioncomments', 'samplecomments'
     ]]
 
@@ -184,6 +184,22 @@ def extract_phab_data(infile):
     geom.rename(columns={'longitude':'actual_longitude', 'latitude':'actual_latitude'}, inplace = True)
     
     phab = phab.merge(geom, on = 'stationcode', how = 'left')
+
+    # Remove unnecessary duplicates
+    phab.drop_duplicates(inplace = True)
+
+    # Replace Length Reach with Length, Reach
+    phab.analytename = phab.analytename.replace('Length Reach', 'Length, Reach')
+
+    # Make the sampledate and calibration date into actual timestamps instead of strings
+    phab['sampledate'] = pd.to_datetime(phab['sampledate'], errors='ignore')
+    phab['calibrationdate'] = pd.to_datetime(phab['calibrationdate'], errors='ignore')
+
+    # Sort values of the PHAB dataframe
+    phab.sort_values(
+        ['stationcode', 'sampledate', 'sampleagencycode', 'collectionmethodcode', 'methodname', 'matrixname', 'locationcode', 'analytename'], 
+        inplace = True
+    )
 
 
     print("Now return the all_dataframes dictionary")
